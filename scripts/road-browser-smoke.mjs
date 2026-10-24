@@ -7,7 +7,8 @@
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { waitForOffline } from './browser-offline.mjs';
-import { MAIN, SIDE, CAST, getEncounter, getProgress, campaignId, withCampaignPuzzles, rivalScore, resolvePuzzle } from '../dist/road.js';
+import { MAIN, SIDE, CAST, SCORE_UNITS, getEncounter, getProgress, campaignId, withCampaignPuzzles, rivalScore, resolvePuzzle, plumeTaunt, scoreOf, starTally } from '../dist/road.js';
+import { KEEPERS } from '../dist/road-cast.js';
 import { mechanicFor } from '../dist/expansion.js';
 import { freshAttempt, nextHint, move, isSolved } from '../dist/engine.js';
 import * as road3 from '../dist/caravan-road3.js';
@@ -98,6 +99,7 @@ try {
     };
     await page.goto(base); await page.locator('#nickname').fill(`Road ${band}`); await page.locator(`[name=band][value="${band}"]`).check(); await page.locator('#profile-form button[type=submit]').click();
     await page.locator('.lr-overview').waitFor(); await capture('map-start'); await waitForOffline(page);
+    assert.equal(await page.locator('.lr-map-layer:visible .lr-wagon-party').count(), 1, `${band}: the wagon waits at the ferry`);
     for (let count = 0; count < MAIN.length; count++) {
       const e = MAIN[count];
       // From the map, tap the stop itself (the first matching control); Next already opened puzzles within a stop.
@@ -113,7 +115,14 @@ try {
       // The keeper opens with one line; Plume's card shows only where there is a count.
       assert.equal(apos(await ui.bubble()).includes(apos(e.lines.open)), true, `${id}: open line`);
       assert.equal(await page.locator('.lr-rival').count(), rival === null ? 0 : 1, `${id}: Plume card`);
-      if (rival !== null) assert.match(await page.locator('.lr-rival').innerText(), new RegExp(`\\b${rival}\\b`));
+      if (rival !== null) {
+        // The race: both counts beside the card; Plume's first line on the first card.
+        const unit = SCORE_UNITS[p.mechanic][rival === 1 ? 0 : 1];
+        assert.equal((await page.locator('.lr-race').innerText()).replace(/\s+/g, ' ').trim(), `You 0 · Plume ${rival} ${unit}`, `${id}: race count`);
+        const taunt = plumeTaunt(e, band);
+        assert.equal(await page.locator('.lr-rival-line').count(), taunt ? 1 : 0, `${id}: Plume speaks only on the first card`);
+        if (taunt) { assert.ok(apos(await page.locator('.lr-rival-line').innerText()).includes(apos(taunt.text))); checks.push(`${band}: Plume's first line and the race count`); }
+      }
       assert.equal(await page.locator(`body[data-stop="${e.stop}"]`).count(), 1, `${id}: page takes the stop's mood`);
       await ui.fit(`${id}/unsolved`);
       if (e.step === 0) await capture(`${e.stop}-puzzle`);
@@ -126,8 +135,12 @@ try {
         assert.ok(CAST.sprocket.oops.map(apos).some(line => said.includes(line)), `${id}: oops line`);
         checks.push('illegal move gets a keeper reaction');
       }
-      await hintThrice();
-      assert.ok(apos(await ui.bubble()).includes(apos(CAST[e.speaker].hint)), `${id}: hint line`);
+      // The first Hint is a free nudge: Snooze says no place; the No-hints star stays.
+      await ui.action('hint').click();
+      assert.equal((await ui.profile()).attempts[id].hintLevel, 1);
+      assert.ok(apos(await ui.bubble()).includes(apos(CAST[e.speaker].nudge || CAST[e.speaker].hint)), `${id}: first hint line`);
+      for (let i = 0; i < 2; i++) await ui.action('hint').click();
+      assert.ok(apos(await ui.bubble()).includes(apos(CAST[e.speaker].hint)) || (CAST[e.speaker].nudge && apos(await ui.bubble()).includes(apos(CAST[e.speaker].nudge))), `${id}: hint line`);
       const saved = (await ui.profile()).attempts[id];
       await page.reload(); await page.locator('.board-panel').waitFor(); assert.deepEqual((await ui.profile()).attempts[id], saved, `${id}: hints and board survive reload`);
       await solveUI(p, id);
@@ -138,11 +151,31 @@ try {
       const stars = await page.locator('#completion-heading .lr-stars i.on').count();
       assert.equal(stars, trail.stars[e.id], `${id}: stars shown match stars saved`);
       assert.equal(await page.locator('#completion-heading .lr-stars i').count(), rival === null ? 2 : 3);
+      // Three hints cost the No-hints star; the strip says a replay can win it back, and repeats the race.
+      const reasons = await page.locator('.lr-star-reasons').innerText();
+      assert.match(reasons, /Replay to win it/, `${id}: the hint star can be won back`);
+      if (rival !== null) assert.ok(reasons.includes(`You ${scoreOf(p, after.attempts[id])} · Plume ${rival} `), `${id}: both counts on the strip`);
       if (e.grants) { assert.equal(await page.locator('.lr-tool-earned').count(), 1, `${id}: tool earned`); checks.push(`${e.grants} earned at ${e.id}`); }
       assert.equal(await page.locator('.board-panel button:enabled,.board-panel input:enabled,.board-panel select:enabled').count(), 0, `${id}: solved board is locked until Replay`);
       if (e.step === 2) await capture(`${e.stop}-lit`);
       results.push({ band, id, stars: trail.stars[e.id] });
-      if (e.id === 'fair-final') { await ui.action('finale').click(); await page.locator('.lr-finale').waitFor(); await capture('finale'); break; }
+      if (e.id === 'fair-final') {
+        await ui.action('finale').click(); await page.locator('.lr-finale').waitFor(); await capture('finale');
+        // Goodbyes, Plume's concession, the medal, stars of the most, and the next trail up.
+        assert.equal(await page.locator('.lr-bye').count(), KEEPERS.length + 1);
+        assert.ok(apos(await page.locator('.lr-byes').innerText()).includes(apos(CAST.plume.concede)));
+        assert.equal(await page.locator(`.lr-medal-award.band-${band}`).count(), 1);
+        const tally = starTally(await ui.profile(), puzzles);
+        assert.equal((await page.locator('.lr-finale-stars').innerText()).replace(/\s+/g, ' ').trim(), `★ ${tally.earned} of ${tally.max}`);
+        assert.equal(await page.locator('.lr-missing [data-action=open-encounter]').count(), tally.missing.length);
+        assert.equal(await page.locator('[data-action=switch-band]').getAttribute('data-id').catch(() => null), { k1: '23', '23': '45', '45': null }[band], `${band}: never a lower trail`);
+        // The finished fair on the map opens its sheet, with the finale.
+        await ui.action('map').click(); await page.locator('.lr-overview').waitFor();
+        await page.locator('.lr-map-layer:visible .lr-stop[data-id="fair"]').click();
+        await page.getByRole('button', { name: 'Finale' }).click(); await page.locator('.lr-finale').waitFor();
+        checks.push(`${band}: finale goodbyes, medal, stars of ${tally.max}, the fair's sheet`);
+        break;
+      }
       await ui.action('finish-encounter').click();
       if (e.step === 2) {
         await page.locator('.lr-overview').waitFor();
@@ -153,6 +186,9 @@ try {
           await page.locator('.lr-map-layer:visible [data-action=open-encounter][data-id="ferry-bath"]').click(); await page.locator('.board-panel').waitFor();
           assert.ok(apos(await ui.bubble()).includes(apos(getEncounter('ferry-bath').lines.locked)));
           assert.equal(await page.getByRole('button', { name: /^Fill jug/ }).count(), 0, 'no Fill without the pump');
+          assert.equal(await page.locator('[data-action=hint]:visible').count(), 0, 'no Hint before the pump');
+          assert.match(await page.locator('.needs-tool').innerText(), /Needs the pump/);
+          if (band === 'k1') await capture('bath-locked');
           await ui.action('map').click(); checks.push('side puzzle locked before its tool');
         }
         if (e.stop === 'workshop') {

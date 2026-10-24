@@ -160,7 +160,10 @@ function commitBoard(puzzle, attempt, board) {
   const step = keep && (!mechanic?.undoStep || mechanic.undoStep(puzzle, attempt.board, board, attempt.history.at(-1)?.board ?? null));
   const history = !keep ? [] : step ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : attempt.history;
   // `moves` counts Undo steps, so each history entry stays one move apart (storage checks it).
-  return { ...attempt, board, moves: attempt.moves + (keep && !step ? 0 : 1), history, completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  const next = { ...attempt, board, moves: attempt.moves + (keep && !step ? 0 : 1), history, completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  // A mechanic of several games may close the hint panel when a game ends (the proof duel on the road).
+  const settle = mechanic?.settleHints;
+  return settle ? settle(puzzle, attempt, next) : next;
 }
 export function removeTile(puzzle, attempt, cell) {
   if (puzzle.mechanic !== 'tile' || !attempt.board.some(pair => pair.includes(cell))) return null;

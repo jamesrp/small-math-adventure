@@ -4,6 +4,7 @@ import { stageKind, stageBoard, stageControls } from './road-stage.js';
 import { PARTY_NAMES } from './road-cast.js';
 import { companionDrawing } from './caravan-art.js';
 import { media, slots } from './art.js';
+import { toolArt } from './road-placeholders.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import { BANDS, freshAttempt, isSolved, nextHint } from './engine.js';
 export const symbols=['●','▲','■','★','◆','✚'], avatars=['✦','☀','❋','◆','☾','✿'];
@@ -34,12 +35,19 @@ function puzzleView(p,a,ctx){
       ${ctx.stage?stageControls(ctx.stage,p,a,ctx):expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
-    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
+    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${p.missingAbility?needsTool(p):expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel&&!p.missingAbility?(expansion?expansionHintCard(a,hint,p,ctx):hintCard(p,a,hint,ctx)):''}`}</aside>`}
   </div><div class="feedback ${deadend?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
-function expansionHintCard(a,hint,p){
+// A road side puzzle before its tool (dist/road.js, resolvePuzzle) has no Hint:
+// what it needs stands in its place, and the keeper's locked line says why.
+const TOOL_NAMES={pump:'pump',chalk:'chalk'};
+function needsTool(p){return `<span class="needs-tool" role="note">${media(slots.tool(p.missingAbility),toolArt(p.missingAbility),{key:`needs-${p.missingAbility}`,cls:'needs-tool-icon'})}Needs the ${esc(TOOL_NAMES[p.missingAbility]||p.missingAbility)}</span>`;}
+function expansionHintCard(a,hint,p,ctx={}){
   // A 'note' hint (Proofs evidence puzzles) shows the authored hints by level and never an answer.
-  return `<section class="hint-card" aria-label="Hint"><p>${esc(hint.type==='note'?p.hints[Math.min(a.hintLevel,p.hints.length)-1]:a.hintLevel===1&&a.moves===0?p.hints[0]:hint.text||'Check your current choices.')}</p>${a.hintLevel>=2&&hint.type==='deadend'?btn('Undo','rescue','secondary'):a.hintLevel>=3&&hint.type==='move'?btn('Apply hint','apply-hint','secondary'):''}</section>`;
+  // On the road the first Hint is a free nudge: the idea (the first authored
+  // hint), never a move, unless the board is already at a dead end.
+  const nudge=a.hintLevel===1&&(a.moves===0||ctx.encounter)&&hint.type!=='deadend';
+  return `<section class="hint-card" aria-label="Hint"><p>${esc(hint.type==='note'?p.hints[Math.min(a.hintLevel,p.hints.length)-1]:nudge?p.hints[0]:hint.text||'Check your current choices.')}</p>${a.hintLevel>=2&&hint.type==='deadend'?btn('Undo','rescue','secondary'):a.hintLevel>=3&&hint.type==='move'?btn('Apply hint','apply-hint','secondary'):''}</section>`;
 }
 function tileBoard(p,a,ctx){
   const isL=p.tileShape==='l-tromino',selection=ctx.tileSelection||[];

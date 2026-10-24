@@ -48,9 +48,16 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-listen{position:absolute;right:6px;bottom:6px;min-height:34px;width:34px;padding:0;display:grid;place-items:center;border-radius:50%;background:#eef0e2;color:var(--rd-ink);border:0;box-shadow:none}
 .lr-rival{position:absolute;top:12px;right:12px;z-index:2;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(255,253,245,.94);color:var(--rd-ink);box-shadow:0 3px 0 rgba(0,0,0,.14);max-width:min(60%,330px)}
 .lr-rival .lr-portrait{width:46px;height:46px;border-width:2px;box-shadow:none}
-.lr-rival strong{display:block;font-family:var(--rd-display);font-weight:400;font-size:1.15rem;line-height:1.1}
-.lr-rival strong::before{content:"Plume · ";font-family:var(--rd-body);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--rd-muted)}
-.lr-rival span{display:block;font-size:.92rem;line-height:1.2}
+/* The race: the child's count beside Plume's, and Plume's line under them. */
+.lr-rival-body{min-width:0}
+.lr-race{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;font-family:var(--rd-body);font-weight:650;font-size:.86rem;line-height:1.2;color:var(--rd-muted)}
+.lr-race>span{white-space:nowrap}
+.lr-race b{font-family:var(--rd-display);font-weight:400;font-size:1.3rem;color:var(--rd-ink)}
+.lr-race-you b{color:var(--rd-pine)}
+.lr-race-sep{color:#b9bea6}
+.lr-rival-line{display:block;margin-top:2px;font-size:.92rem;line-height:1.25}
+.lr-rival.has-line{border-radius:18px;max-width:min(70%,360px)}
+.lr-rival .lr-listen{position:static;display:inline-grid;vertical-align:middle;margin-left:2px;pointer-events:auto}
 .lr-rival.is-beat,.lr-rival.is-tie{box-shadow:0 0 0 3px var(--rd-star),0 3px 0 rgba(0,0,0,.14)}
 @media (prefers-reduced-motion:no-preference){
   .lr-bubble{animation:rd-pop .32s cubic-bezier(.3,1.5,.6,1)}
@@ -68,8 +75,9 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
   .lr-portrait{width:80px;height:80px;border-width:3px}
   .lr-bubble{margin-top:46px;font-size:1rem}
   .lr-bubble::before{display:none}
-  .lr-rival{top:8px;right:8px;padding:4px 10px 4px 4px}
+  .lr-rival{top:8px;right:8px;padding:4px 10px 4px 4px;max-width:min(76%,330px)}
   .lr-rival .lr-portrait{width:38px;height:38px}
+  .lr-rival.has-line{max-width:min(92%,360px)}
 }
 
 /* Stages: road puzzles played in their picture (dist/road-stage.js) -----------
@@ -217,6 +225,8 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @keyframes rd-star{from{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.25)}}
 .lr-star-reasons{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--rd-muted)}
 .lr-star-reasons li{display:flex;align-items:center;gap:6px;opacity:.5}
+.lr-reason-detail{display:block;font-size:.8rem;line-height:1.2;color:var(--rd-muted)}
+.lr-star-reasons li:not(.got) .lr-reason-detail{color:var(--rd-ink)}
 .lr-star-reasons li.got{opacity:1;color:var(--rd-ink)}
 .lr-reason-icon{display:inline-grid;place-items:center;width:24px;height:24px}
 .lr-reason-icon svg{width:24px;height:24px}
@@ -245,7 +255,7 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @media (max-width:699px){.lr-map-wide{display:none}.lr-map-tall{display:block}}
 .lr-stop{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);translate:-50% -50%;z-index:3;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;color:var(--rd-ink)}
 .lr-stop:disabled{opacity:1;pointer-events:none}
-.lr-stop:focus-visible{outline:none}
+.lr-stop:focus-visible{outline:3px solid #fff8d9;outline-offset:0;box-shadow:0 0 0 6px var(--rd-pine)}
 .lr-stop-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s,box-shadow .2s,background .2s}
 .lr-stop.is-current .lr-stop-glow{opacity:1;background:radial-gradient(closest-side,rgba(255,240,170,.34),rgba(255,226,110,.14) 72%,rgba(255,226,110,0));box-shadow:0 0 0 3px rgba(255,248,214,.95),0 0 0 5px rgba(179,136,64,.45),0 0 16px 6px rgba(255,208,70,.8)}
 .lr-stop.is-current:is(:hover,:focus-visible) .lr-stop-glow{background:radial-gradient(closest-side,rgba(255,244,190,.5),rgba(255,226,110,.24) 72%,rgba(255,226,110,0));box-shadow:0 0 0 5px #fff6cc,0 0 34px 14px rgba(255,204,60,.95)}
@@ -257,6 +267,13 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .lr-medals{display:flex;gap:3px}
 .lr-medals i{width:8px;height:8px;border-radius:50%;background:#0002}
 .lr-medals i.on.band-k1{background:#d58b4f}.lr-medals i.on.band-23{background:#a9b4bf}.lr-medals i.on.band-45{background:#e3b23c}
+/* The key to the stops' medal colors sits with the star total. */
+.lr-hud{flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 16px)}
+.lr-medal-key{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:rgba(255,253,245,.94);box-shadow:0 3px 0 rgba(0,0,0,.16);font-size:.8rem;font-weight:700;color:var(--rd-ink);line-height:1.3}
+.lr-medal-key>span,.lr-medal-key>b{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lr-medal-key>b{font-weight:700;color:var(--rd-muted)}
+.lr-medal-key i{width:10px;height:10px;border-radius:50%}
+.lr-medal-key .band-k1{background:#d58b4f}.lr-medal-key .band-23{background:#a9b4bf}.lr-medal-key .band-45{background:#e3b23c}
 .lr-side{position:absolute;left:var(--x);top:var(--y);translate:42px -64px;z-index:4;width:52px;height:52px;min-height:52px;padding:4px;border-radius:16px;border:2px solid #fff;background:rgba(255,253,245,.95);box-shadow:0 3px 0 rgba(0,0,0,.2)}
 .lr-side .art-slot{width:100%;height:100%}
 .lr-side>span{position:absolute;right:-6px;bottom:-6px;font-size:.9rem;background:var(--rd-card);border-radius:999px;padding:0 4px;line-height:1.4}
@@ -306,6 +323,25 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-medal-list li.on{opacity:1}
 .lr-medal-list i{width:16px;height:16px;border-radius:50%;display:inline-block}
 .lr-medal-list .band-k1{background:#d58b4f}.lr-medal-list .band-23{background:#a9b4bf}.lr-medal-list .band-45{background:#e3b23c}
+.lr-finale-stars span{font-size:1.15rem;color:var(--rd-muted)}
+.lr-byes{list-style:none;margin:0;padding:0;width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px 14px;text-align:left}
+.lr-bye{display:flex;align-items:flex-start;gap:8px}
+.lr-bye .lr-portrait{width:60px;height:60px;border-width:3px}
+.lr-bye .lr-bubble{flex:1;margin:4px 0 0;font-size:1rem}
+.lr-bye .lr-bubble::before{top:12px}
+.lr-bye:last-child .lr-bubble{box-shadow:0 0 0 2px var(--rd-star),0 3px 0 rgba(0,0,0,.12)}
+.lr-medal-award{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;padding:8px 20px 8px 10px;border-radius:999px;background:var(--rd-card);border:1px solid var(--rd-line);box-shadow:0 3px 0 var(--rd-line)}
+.lr-medal-award svg{width:52px;height:65px}
+.lr-medal-award strong{font-family:var(--rd-display);font-weight:400;font-size:1.4rem}
+.medal-disc.band-k1{fill:#d58b4f}.medal-disc.band-23{fill:#c3ccd4}.medal-disc.band-45{fill:#e3b23c}
+.lr-medal-other{display:inline-flex;align-items:center;gap:4px;font-size:.88rem;font-weight:700;color:var(--rd-muted)}
+.lr-medal-other i{width:12px;height:12px;border-radius:50%}
+.lr-medal-other.band-k1 i{background:#d58b4f}.lr-medal-other.band-23 i{background:#a9b4bf}.lr-medal-other.band-45 i{background:#e3b23c}
+.lr-missing{width:100%;max-width:560px;text-align:left}
+@media (prefers-reduced-motion:no-preference){.lr-medal-award svg{animation:rd-bounce .6s .3s backwards}}
+/* A side puzzle before its tool: what it needs, where Hint would be. */
+.needs-tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 14px 4px 6px;border-radius:999px;background:#f6edd2;border:1px solid #e3cf98;color:var(--rd-ink);font-weight:650;font-size:.92rem}
+.needs-tool-icon{flex:none;width:34px;height:34px}
 
 /* Travelers as the swap pieces ----------------------------------------------------- */
 .party-board .cup-button{background:var(--rd-card);border:2px solid var(--rd-line);border-radius:22px;aspect-ratio:1;padding:4px;color:var(--rd-ink)}

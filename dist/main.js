@@ -71,7 +71,7 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
   undoDrawn=null;
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
@@ -276,11 +276,14 @@ function narrate(text,voiceId,line=null){
   window.speechSynthesis.speak(voice);
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
-function openEncounter(id){
+// Replay from a stop sheet, the Journal or the finale (replay) starts a fresh attempt.
+function openEncounter(id,replay=false){
   if(!profile())return;
   const next=beginEncounter(profile(),puzzles,id);
   if(!next){go('map');return;}
-  if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
+  const old=profile().attempts[next.puzzle.id];
+  if(!old)profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
+  else if(replay)profile().attempts[next.puzzle.id]=restart(next.puzzle,old);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
 function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);if(!next&&chosenTap)return;selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
@@ -327,7 +330,7 @@ document.addEventListener('click',event=>{
   else if(action==='library')go('library');
   else if(action==='journal')go('journal');
   else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
-  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id);}
+  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1');}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();
     if(!encounter||!isSolved(p,a.board))return;
@@ -337,7 +340,7 @@ document.addEventListener('click',event=>{
     if(next&&p.band===profile().band)openEncounter(next.id);
     else go('map');
   }
-  else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id);if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),[{label:'Done'}]);}
+  else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id),fair=stop?.id==='fair'&&getProgress(profile()).complete;if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),fair?[{label:'Done'},{label:'Finale',run:()=>go('finale')}]:[{label:'Done'}]);}
   else if(action==='finale'&&profile())go('finale');
   else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
   else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice,control.closest('.lr-keeper')?.dataset.line);
@@ -358,7 +361,7 @@ document.addEventListener('click',event=>{
   // look after it, both at rest (a clock run drawn whole).
   else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){const atRest=()=>({...playContext(p,profile(),activeEncounter()),clockPresentation:undefined}),shown=a.history.length?playView(p,a,atRest()):null;selected=null;tileSelection=[];highlighted=null;message='';const ctx=atRest();let drawn=null;const next=undoPress(p,a,b=>(drawn={attempt:b,html:playView(p,b,ctx)}).html,shown);put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else{undoDrawn=drawn?.attempt===next?drawn.html:null;render();}}
   else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();let next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);if(action==='restart'&&isExpansion(p)&&mechanicFor(p).carryOnRestart)next={...next,board:mechanicFor(p).carryOnRestart(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
+  else if(action==='hint'&&a&&!p.missingAbility){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);

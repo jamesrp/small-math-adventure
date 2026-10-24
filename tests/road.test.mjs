@@ -4,10 +4,12 @@ import { readFile } from 'node:fs/promises';
 import { freshAttempt, move, nextHint, isSolved, restart, validBoard, undo } from '../dist/engine.js';
 import { mechanicFor, isExpansion } from '../dist/expansion.js';
 import { clockPeriod } from '../dist/motion.js';
-import { STOPS, SIDE, MAIN, CAST, TOOLS, BAND_KEYS, SCORE_UNITS, freshJourney, getEncounter, getProgress, startJourney, beginEncounter, recordSolve, validateJourney, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, campaignId, trailFor, hasTool, medals, scoreOf, optimumOf, rivalScore, starsFor, maxStars, rivalVerdict, stopReached } from '../dist/road.js';
+import { STOPS, SIDE, MAIN, CAST, TOOLS, BAND_KEYS, SCORE_UNITS, freshJourney, getEncounter, getProgress, startJourney, beginEncounter, recordSolve, validateJourney, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, campaignId, trailFor, hasTool, medals, scoreOf, optimumOf, rivalScore, starsFor, maxStars, rivalVerdict, stopReached, plumeTaunt, starTally, hintCostsStar } from '../dist/road.js';
+import { KEEPERS } from '../dist/road-cast.js';
 import { emptyStore, validateStore, parseBackup } from '../dist/storage.js';
 import { playView } from '../dist/ui.js';
-import { roadMapView, journalView, encounterLine, encounterScene, finaleView, talkBeat, sayLine, startTalk, stopTalk, resetTalk } from '../dist/road-ui.js';
+import { roadMapView, journalView, encounterLine, encounterScene, encounterDone, stopSheet, finaleView, talkBeat, sayLine, startTalk, stopTalk, resetTalk } from '../dist/road-ui.js';
+import { playInstructions } from '../dist/expansion.js';
 import { setManifest, media, asset } from '../dist/art.js';
 
 const pack = JSON.parse(await readFile(new URL('../dist/puzzles.json', import.meta.url), 'utf8'));
@@ -90,7 +92,7 @@ test('every trail plays to the fair: stops light, tools arrive, Plume moves, sav
     const done = getProgress(pr);
     assert.equal(done.complete, true); assert.equal(done.encounter, null);
     assert.deepEqual(medals(pr).fair, [band]);
-    assert.match(finaleView(pr), /The Lantern Fair/);
+    assert.match(finaleView(pr, puzzles), /The Lantern Fair/);
     assert.doesNotThrow(() => validateStore(storeFor(pr), puzzles));
   }
 });
@@ -112,8 +114,12 @@ test('stars: solved, no hints, and Plume’s score; replays only raise them', ()
   assert.equal(a.hintLevel, 0); assert.ok(scoreOf(p, a) > rivalScore(e, p));
   assert.equal(starsFor(e, p, a), 2);
   pr.attempts[p.id] = a; assert.equal(recordSolve(pr, p.id, e.id, puzzles).stars, 2);
-  // A clean, quick replay earns all three.
+  // A clean, quick replay earns all three; the first Hint (a nudge) costs nothing,
+  // a hint that shows a move costs the No-hints star.
   a = solve(p, restart(p, a)); pr.attempts[p.id] = a;
+  assert.equal(starsFor(e, p, { ...a, hintLevel: 1, helpUsed: true }), 3);
+  assert.equal(starsFor(e, p, { ...a, hintLevel: 2, helpUsed: true }), 2);
+  assert.equal(hintCostsStar({ ...a, hintLevel: 1 }), false); assert.equal(hintCostsStar({ ...a, hintLevel: 2 }), true);
   assert.equal(starsFor(e, p, a), 3); assert.equal(recordSolve(pr, p.id, e.id, puzzles).stars, 3);
   assert.equal(trailFor(pr).stars['ferry-seats'], 3);
   // Undo removes moves from Plume's count.
@@ -122,9 +128,15 @@ test('stars: solved, no hints, and Plume’s score; replays only raise them', ()
 });
 
 test('Plume’s scores are always reachable and tighten along the road', () => {
+  const capped = [];
   for (const band of BAND_KEYS) for (const e of MAIN) {
     const p = all.find(p => p.id === campaignId(e.id, band)), rival = rivalScore(e, p);
     if (!SCORE_UNITS[p.mechanic] || e.rival) { assert.equal(rival, null, e.id); assert.equal(maxStars(e, p), 2); continue; }
+    // Where the fewest presses fill the press budget, every solve would tie
+    // Plume: no card and no third star (docs/ROAD.md).
+    const budget = p.parameters?.press_budget;
+    if (budget != null && optimumOf(p) >= budget) { assert.equal(rival, null, `${e.id}/${band}: no card at the budget`); assert.equal(maxStars(e, p), 2); capped.push(`${e.id}/${band}`); continue; }
+    if (budget != null) assert.ok(rival < budget, `${e.id}/${band}: Plume under the budget`);
     assert.ok(rival >= optimumOf(p), `${e.id}/${band}: Plume never beats the best possible`);
     if (['lighthouse', 'fair'].includes(e.stop)) assert.equal(rival, optimumOf(p), `${e.id}/${band}: Plume is perfect by the lighthouse`);
     assert.equal(maxStars(e, p), 3);
@@ -132,6 +144,7 @@ test('Plume’s scores are always reachable and tighten along the road', () => {
     const a = solve(p);
     assert.ok(scoreOf(p, a) <= rival, `${e.id}/${band}: hint path within Plume’s score`);
   }
+  assert.deepEqual(capped.sort(), ['ferry-lights/23', 'ferry-lights/45', 'hollow-pumpkins/23', 'lighthouse-lamps/23', 'lighthouse-lamps/45']);
 });
 
 test('scores count the right thing for each family', () => {
@@ -164,6 +177,12 @@ test('side puzzles: tried before the tool, finished after it', () => {
     assert.equal(move(locked, a, { type: 'fill', jug: 1 }), null);
     a = move(locked, a, { type: 'pour', from: 0, to: 1 }); assert.ok(a);
     assert.equal(nextHint(locked, a).type, 'equipment');
+    // Locked, the bath shows what it needs instead of a Hint; hints pressed in an
+    // older save are not held against it once the pump arrives.
+    a = { ...a, hintLevel: 2, helpUsed: true };
+    const lockedView = playView(locked, a, { pack: fullPack, profile: pr, encounter: getEncounter('ferry-bath'), selected: null, message: '' });
+    assert.match(lockedView, /class="needs-tool"[^>]*>.*Needs the pump/s);
+    assert.doesNotMatch(lockedView, /data-action="hint"/); assert.doesNotMatch(lockedView, /class="hint-card"/);
     pr.attempts[bath.id] = a;
     assert.equal(recordSolve(pr, bath.id, 'ferry-bath', puzzles), null);
     while (getProgress(pr).stop.id === 'ferry') finish(pr);
@@ -177,7 +196,10 @@ test('side puzzles: tried before the tool, finished after it', () => {
     assert.deepEqual(parseBackup(JSON.stringify(storeFor(pr)), puzzles), storeFor(pr), 'tried side boards save before the tool');
     // Earn both tools, then finish both side puzzles.
     while (!hasTool(trailFor(pr), 'pump')) finish(pr);
+    assert.equal(pr.attempts[bath.id].hintLevel, 0, 'the unlocked bath starts with no hints');
+    assert.match(playView(resolvePuzzle(bath, pr), pr.attempts[bath.id], { pack: fullPack, profile: pr, encounter: getEncounter('ferry-bath'), selected: null, message: '' }), /data-action="hint"/);
     const sideBath = finish(pr, 'ferry-bath'), sideGarden = finish(pr, 'marsh-garden');
+    assert.equal(sideBath.result.stars, 2);
     assert.equal(sideBath.puzzle.parameters.source_and_drain, true); assert.equal(sideBath.result.first, true);
     assert.equal(sideGarden.puzzle.parameters.proveLocked, undefined); assert.equal(sideGarden.result.max, 2);
     assert.deepEqual(trailFor(pr).side, ['ferry-bath', 'marsh-garden']);
@@ -229,7 +251,11 @@ test('keeper lines react to mistakes, hints, solves, locks and Plume’s wins', 
   const { puzzle, encounter } = beginEncounter(pr, puzzles), a = freshAttempt(puzzle);
   assert.equal(encounterLine(encounter, puzzle, a, null).text, encounter.lines.open);
   assert.ok(CAST.snooze.oops.includes(encounterLine(encounter, puzzle, a, { kind: 'oops', n: 4 }).text));
-  assert.equal(encounterLine(encounter, puzzle, a, { kind: 'hint' }).text, CAST.snooze.hint);
+  // The first Hint is a nudge with no place in it; a hint that points at a move says where.
+  const nudged = { ...a, hintLevel: 1 }, pointed = { ...a, hintLevel: 2 };
+  assert.equal(encounterLine(encounter, puzzle, nudged, { kind: 'hint' }).text, CAST.snooze.nudge);
+  assert.equal(nextHint(puzzle, pointed).type, 'move');
+  assert.equal(encounterLine(encounter, puzzle, pointed, { kind: 'hint' }).text, CAST.snooze.hint);
   assert.equal(encounterLine(encounter, puzzle, solve(puzzle), null).text, encounter.lines.win);
   const bath = resolvePuzzle(all.find(p => p.id === campaignId('ferry-bath', 'k1')), pr);
   assert.equal(encounterLine(getEncounter('ferry-bath'), bath, freshAttempt(bath), null).text, getEncounter('ferry-bath').lines.locked);
@@ -407,7 +433,11 @@ test('every line has a voice ID the art manifest can fill, and every slot has a 
   for (const e of [...MAIN, ...SIDE]) {
     const p = resolvePuzzle(all.find(q => q.id === campaignId(e.id, 'k1')), pr), a = freshAttempt(p);
     for (const reaction of [null, { kind: 'oops', n: 0 }, { kind: 'oops', n: 2 }, { kind: 'hint' }]) assert.ok(ids.has(encounterLine(e, p, a, reaction).voice), `${e.id}: ${JSON.stringify(reaction)}`);
+    assert.ok(ids.has(encounterLine(e, p, { ...a, hintLevel: 2 }, { kind: 'hint' }).voice), `${e.id}: a hint that shows a move`);
+    for (const band of BAND_KEYS) { const taunt = plumeTaunt(e, band); if (taunt) assert.equal(lines.find(l => l.id === taunt.voice)?.speaker, 'plume'); }
   }
+  for (const id of KEEPERS) assert.ok(ids.has(`${id}/bye`), id);
+  assert.ok(ids.has('plume/concede'));
   const slots = artSlots();
   assert.equal(slots.length, 95); assert.equal(new Set(slots.map(s => s.id)).size, 95);
   for (const s of slots) assert.ok(s.w > 0 && s.h > 0 && s.about, s.id);
@@ -447,4 +477,141 @@ test('proof gardens: the keeper teases a stuck cover and points to stars after e
   const even = encounterLine(other, shared, b, null);
   assert.deepEqual([even.text, even.voice], ['Hmm. I’d try stars, myself.', 'marsh-garden/even']);
   for (const line of [stuck.text, even.text, other.lines.stuck]) assert.doesNotMatch(line, /color|paint|count|partner|neighbo/i, 'the line gives no idea away');
+});
+
+// The road review fixes of October 24 (docs/ROAD.md, design decisions).
+const esc = text => text.replace(/'/g, '&#39;');
+test('the race: Plume’s first line on the ferry, a live count beside the card, both counts on the solved strip', () => {
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles), rival = rivalScore(e, p), taunt = plumeTaunt(e, band);
+    assert.equal(e.id, 'ferry-seats');
+    assert.ok(taunt.text.includes(`${rival} swaps`), `${band}: Plume says its real number (${taunt.text})`);
+    assert.equal(MAIN.filter(x => plumeTaunt(x, band)).length, 1, 'one taunt per trail');
+    let a = freshAttempt(p);
+    const first = encounterScene(e, pr, p, a);
+    assert.match(first, new RegExp(`You <b>0</b>.*Plume <b>${rival}</b> swaps`, 's'));
+    assert.ok(first.includes(esc(taunt.text)), 'Plume speaks on the first meeting');
+    assert.match(first, new RegExp(`data-voice="voice/${taunt.voice}"`));
+    a = move(p, a, step(p, a));
+    assert.match(encounterScene(e, pr, p, a), /You <b>1<\/b>/, 'the count is live');
+    a = solve(p, a); pr.attempts[p.id] = a;
+    const result = recordSolve(pr, p.id, e.id, puzzles);
+    assert.ok(encounterDone(e, pr, p, a, result).includes(`You ${scoreOf(p, a)} · Plume ${rival} swaps`));
+    // A replay meets the card without the taunt.
+    assert.doesNotMatch(encounterScene(e, pr, p, restart(p, a)), /I did it in/);
+    // A hinted solve says the star can be won back.
+    const hinted = { ...a, hintLevel: 2, helpUsed: true }, fresh = profile(band); startJourney(fresh);
+    assert.match(encounterDone(e, fresh, p, hinted, null), /Replay to win it/);
+    assert.doesNotMatch(encounterDone(e, fresh, p, { ...a, hintLevel: 1 }, null), /Replay to win it/);
+  }
+  assert.deepEqual(SCORE_UNITS.color, ['paint', 'paints']);
+});
+
+test('Pebbles with Plume: Plume shows off while winning, so sensible play can win and random tapping almost never does', () => {
+  const never = () => { throw new Error('the showing-off rival never rolls dice'); };
+  const rates = {};
+  for (const band of BAND_KEYS) {
+    const p = all.find(q => q.id === campaignId('ridge-duel', band)), fair = all.find(q => q.id === campaignId('fair-final', band));
+    assert.equal(p.rival, 'Plume'); assert.equal(p.parameters.rival_slips, 2);
+    assert.equal(fair.rival, 'Plume'); assert.equal(fair.parameters.rival_slips, undefined, 'the rematch is perfect play');
+    assert.match(playInstructions(p), /Plume replies automatically/);
+    const choices = piles => piles.flatMap((n, i) => Array.from({ length: n }, (_, k) => ({ type: 'choose', pile: i + 1, remove: k + 1 })));
+    const memo = new Map();
+    // The exact chance of winning when every move is uniformly random among the
+    // allowed ones (careful: take a whole last pile, never leave a single pile).
+    const chance = (a, careful) => {
+      const key = `${careful}|${JSON.stringify(a.board.turns)}`;
+      if (memo.has(key)) return memo.get(key);
+      let result;
+      if (isSolved(p, a.board)) result = 1;
+      else if (!a.board.piles.some(Boolean)) result = 0;
+      else {
+        let options = choices(a.board.piles);
+        if (careful) {
+          const left = o => a.board.piles.map((n, i) => (i === o.pile - 1 ? n - o.remove : n)).filter(Boolean).length;
+          const win = options.find(o => left(o) === 0), safe = options.filter(o => left(o) !== 1);
+          options = win ? [win] : safe.length ? safe : options;
+        }
+        result = options.reduce((sum, o) => sum + chance(move(p, a, o, never), careful), 0) / options.length;
+      }
+      memo.set(key, result);
+      return result;
+    };
+    const start = freshAttempt(p);
+    rates[band] = [chance(start, false), chance(start, true)].map(x => Math.round(x * 100));
+    // Deterministic: Undo and the same take meet the same reply.
+    const take = choices(start.board.piles).at(-1), once = move(p, start, take, never);
+    assert.deepEqual(move(p, undo(once), take, never).board, once.board);
+    // A loss names Plume, and waits behind Hint.
+    let lost = start;
+    for (let i = 0; i < 20 && lost.board.piles.some(Boolean); i++) lost = move(p, lost, { type: 'choose', pile: lost.board.piles.findIndex(Boolean) + 1, remove: 1 }, never);
+    if (!isSolved(p, lost.board)) { const h = nextHint(p, lost); assert.match(h.text, /^Plume took the last pebble/); assert.equal(h.quiet, true); }
+  }
+  // docs/ROAD.md quotes these (random, careful), in percent.
+  assert.deepEqual(rates, { k1: [14, 57], '23': [11, 28], '45': [14, 39] });
+});
+
+test('Plume’s rematch: Plume speaks, the choose screen says three in a row, and No hints is judged on the winning run', () => {
+  const e = getEncounter('fair-final'), p = all.find(q => q.id === campaignId('fair-final', 'k1')), m = mechanicFor(p);
+  const rnd = () => 0.3, play = action => { a = move(p, a, action, rnd); assert.ok(a, JSON.stringify(action)); };
+  const status = () => m.render(p, a, {});
+  let a = freshAttempt(p, rnd);
+  assert.match(status(), /Win three in a row\./);
+  // A game lost after a hint: the panel closes and the hint is forgotten.
+  a = { ...a, hintLevel: 2, helpUsed: true };
+  play({ type: 'choose', first: 'you' });
+  while (a.board.piles.some(Boolean)) play({ type: 'take', pile: a.board.piles.findIndex(Boolean) + 1, remove: 1 });
+  assert.equal(a.board.turns.at(-1).player, 'opponent');
+  assert.match(status(), /Plume took the last pebble\./); assert.doesNotMatch(status(), /\bI took/);
+  assert.equal(a.hintLevel, 0); assert.equal(a.board.hinted, undefined);
+  play({ type: 'again' }); assert.match(status(), /Wins count from a new start\./);
+  // A run whose first win used a hint keeps that hint until the run ends.
+  a = restart(p, a);
+  const win = () => { do play(m.solve(p, a.board)); while (a.board.piles.some(Boolean) || a.board.first === null); };
+  a = { ...a, hintLevel: 2 }; win();
+  assert.equal(a.hintLevel, 0); assert.equal(a.board.hinted, true); assert.equal(a.board.streak, 1);
+  play({ type: 'new' }); assert.match(status(), /Two more in a row\./); assert.equal(a.board.hinted, true);
+  win(); play({ type: 'new' }); win();
+  assert.ok(isSolved(p, a.board)); assert.equal(starsFor(e, p, a), 1, 'the hinted run');
+  // A clean run after Restart earns No hints; a first nudge does not cost it.
+  a = restart(p, a); a = { ...a, hintLevel: 1 }; win(); play({ type: 'new' }); win(); play({ type: 'new' }); win();
+  assert.ok(isSolved(p, a.board)); assert.equal(starsFor(e, p, a), 2);
+  assert.doesNotThrow(() => validBoard(p, a.board));
+});
+
+test('the finale: goodbyes, Plume concedes, the medal, stars out of the most, stars still to win, and never a lower trail', () => {
+  const most = { k1: 62, '23': 59, '45': 60 };
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    finish(pr, undefined, { hints: true });
+    while (!getProgress(pr).complete) finish(pr);
+    const html = finaleView(pr, puzzles), tally = starTally(pr, puzzles);
+    assert.equal(tally.max, most[band]);
+    for (const id of KEEPERS) assert.match(html, new RegExp(`data-voice="voice/${id}/bye"`));
+    assert.match(html, /data-voice="voice\/plume\/concede"/);
+    assert.match(html, new RegExp(`class="lr-medal-award band-${band}"`));
+    assert.ok(html.includes(`★ ${tally.earned} <span>of ${tally.max}</span>`));
+    assert.match(html, /data-action="open-encounter" [^>]*data-id="ferry-seats" data-replay="1"/, 'the hinted seats can be replayed');
+    assert.match(html, /data-action="open-encounter" [^>]*data-id="ferry-bath" aria-label="Play/, 'an unplayed side puzzle');
+    assert.match(html, /data-action="library"/);
+    const up = html.match(/data-action="switch-band"[^>]*data-id="([^"]+)"/)?.[1];
+    assert.equal(up, { k1: '23', '23': '45', '45': undefined }[band], `${band}: the next trail up, never down`);
+    // A star earned under an older rule stays and counts.
+    const old = copy(pr); old.journey.trails[band].stars['ferry-lights'] = 3;
+    if (maxStars(getEncounter('ferry-lights'), all.find(q => q.id === campaignId('ferry-lights', band))) === 2) assert.equal(starTally(old, puzzles).max, tally.max + 1);
+    // The finished fair opens its sheet (with the finale button in main.js).
+    assert.match(roadMapView(pr), /data-action="stop-sheet" data-id="fair"/);
+  }
+});
+
+test('the map: the wagon waits at the ferry before the first puzzle, stops show focus, medals are explained, replays start fresh', () => {
+  const pr = profile();
+  assert.match(roadMapView(pr), /class="lr-wagon lr-wagon-party /, 'the party wagon on a fresh map');
+  startJourney(pr);
+  assert.doesNotMatch(roadMapView(pr), /lr-medal-key/);
+  finish(pr); finish(pr); finish(pr);
+  assert.match(roadMapView(pr), /class="lr-medal-key"[^>]*aria-label="Medals: Grades K–1, Grades 2–3, Grades 4–5"/);
+  assert.match(stopSheet('ferry', pr, puzzles), /data-id="ferry-seats" data-replay="1"/);
+  assert.doesNotMatch(stopSheet('marsh', pr, puzzles), /data-replay/);
 });

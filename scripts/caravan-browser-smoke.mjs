@@ -222,9 +222,11 @@ try {
     assert.equal(await page.locator('.lr-journal-view [data-action=open-encounter][aria-label^="Replay"]').count(), MAIN.length);
     const first = MAIN[0], firstId = campaignId(first.id, band);
     await page.locator(`.lr-journal-view [data-action=open-encounter][data-id="${first.id}"]`).click(); await page.locator('.board-panel').waitFor();
-    assert.equal(await page.locator('#completion-heading').count(), 1); assert.deepEqual((await ui.profile()).attempts[firstId], finished.attempts[firstId], 'revisit keeps the solved road board');
-    await ui.action('replay').click(); assert.equal(await page.locator('#completion-heading').count(), 0);
-    assert.equal((await ui.profile()).attempts[firstId].moves, 0); assert.deepEqual((await ui.profile()).journey, finished.journey, 'Replay keeps the trail');
+    // Replay from the Journal starts a fresh attempt at once (no second Replay on the solved board).
+    assert.equal(await page.locator('#completion-heading').count(), 0, 'Journal Replay opens a fresh board');
+    const fresh = (await ui.profile()).attempts[firstId];
+    assert.equal(fresh.moves, 0); assert.equal(fresh.hintLevel, 0); assert.equal(fresh.completed, true, 'the solved mark stays');
+    assert.deepEqual((await ui.profile()).journey, finished.journey, 'Replay keeps the trail');
     await hintThrice(); await solveUI('replay');
     const replayed = (await ui.profile()).journey.trails[band], kept = finished.journey.trails[band];
     assert.deepEqual(replayed.completed, kept.completed); assert.deepEqual(replayed.side, kept.side);

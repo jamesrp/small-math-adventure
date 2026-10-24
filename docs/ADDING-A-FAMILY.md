@@ -80,6 +80,7 @@ These are optional:
 | `carry(p, from, to)` | Lets Undo keep part of the board (Chip firing keeps its discoveries). A step that then draws just as the screen did before the press goes with the same press (`undoPress` in `dist/engine.js`), so a kept tally or a refusal that no longer shows never leaves an Undo that changes nothing |
 | `carryOnRestart(p, from, to)` | Lets Restart keep part of the board (Card machines keeps the rows Test has shown) |
 | `noUndo(p)`, `noHint(p)` | Hide Undo or Hint |
+| `settleHints(p, before, next)` | Adjusts the attempt after each move, for a puzzle of several games: on the road the proof duel closes the hint panel (`hintLevel` 0) when a game ends and keeps a costly hint on the board (`hinted`) only through a run of wins, so the road's No-hints star is judged on the winning run |
 | `objective(p, board)` | The line above the board for this board, when it changes as the puzzle goes on (Cops and robbers says "Keep R away from C forever." once Can't is pressed); `undefined` keeps the puzzle's own line |
 | `help(p, attempt, ctx)` | Extra HTML for How to play; `ctx.completed(id)` says whether the child has solved another puzzle, so help can be earned (Pebble Duel's bundle table waits for Duel 1) |
 

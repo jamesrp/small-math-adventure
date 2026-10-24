@@ -936,6 +936,7 @@ function duelValid(p, board) {
   const q = p.parameters;
   if (!object(board) || !Array.isArray(board.start) || board.start.length !== q.piles || !board.start.every(n => integer(n) && n >= 1 && n <= q.max)) return false;
   if (![null, 'you', 'opponent'].includes(board.first) || !Array.isArray(board.turns) || !integer(board.streak) || board.streak < 0 || board.streak > q.streak || typeof board.fresh !== 'boolean') return false;
+  if (board.hinted !== undefined && board.hinted !== true) return false;
   if (board.first === null && board.turns.length) return false;
   let piles = [...board.start];
   for (const [i, t] of board.turns.entries()) {
@@ -979,7 +980,7 @@ function duelMove(p, board, action, random = Math.random) {
   if ((action.type === 'new' || action.type === 'again') && duelOver(board) && board.first !== null) {
     if (action.type === 'again' && duelWinner(board) !== 'opponent') return null;
     const start = action.type === 'new' ? duelStart(p.parameters, random) : [...board.start];
-    return { start, piles: [...start], first: null, turns: [], streak: board.streak, fresh: action.type === 'new' };
+    return { start, piles: [...start], first: null, turns: [], streak: board.streak, fresh: action.type === 'new', ...(board.hinted ? { hinted: true } : {}) };
   }
   return null;
 }
@@ -1005,6 +1006,16 @@ function duelSolve(p, board) {
   return { type: 'move', action: { type: 'take', pile: i + 1, remove: 1 }, text: `No winning move is left from here. Take 1 from pile ${i + 1} and watch for a mistake.` };
 }
 const duelSolveAction = (p, board) => duelSolve(p, board).action;
+// On the road (Plume's rematch) each game ends with the hint panel closed. A
+// hint that cost the No-hints star (level 2 or more) is kept on the board for
+// the rest of the run of wins (`hinted`); a loss ends the run and forgets it,
+// so only the winning run counts. Library duels keep their hints as before.
+function duelSettleHints(p, before, next) {
+  if (!p.campaignEncounter || duelOver(before.board) || !duelOver(next.board)) return next;
+  const { hinted, ...board } = next.board, keep = duelWinner(next.board) === 'you' && (hinted === true || before.hintLevel >= 2);
+  return { ...next, hintLevel: 0, board: keep ? { ...board, hinted: true } : board };
+}
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five'];
 function duelRender(p, attempt) {
   const board = attempt.board, q = p.parameters, state = ui(p), over = duelOver(board), winner = duelWinner(board), solved = board.streak >= q.streak;
   const yourTurn = board.first !== null && !over;
@@ -1012,8 +1023,13 @@ function duelRender(p, attempt) {
   const last = board.turns.at(-1)?.player === 'opponent' ? board.turns.at(-1) : null;
   const ghost = last ? { pile: last.pile, count: last.remove } : null;
   const names = q.piles === 2 ? ['left', 'right'] : q.piles === 3 ? ['left', 'middle', 'right'] : Array.from({ length: q.piles }, (_, i) => `number ${i + 1}`);
-  const status = board.first === null ? '' : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : 'I took the last pebble.') :
-    `${last ? `I took ${last.remove} from the ${names[last.pile - 1]} pile. ` : ''}Your turn`;
+  // On the road the opponent is Plume (p.rival); in the library it speaks as "I".
+  // Before each game the status says how many wins in a row are still needed,
+  // or that a game from the same start is practice.
+  const rival = p.rival || 'I', left = q.streak - board.streak, count = COUNT_WORDS[left] || String(left);
+  const choose = !board.fresh ? 'Wins count from a new start.' : left === q.streak ? `Win ${count} in a row.` : `${count[0].toUpperCase()}${count.slice(1)} more in a row.`;
+  const status = board.first === null ? choose : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : `${rival} took the last pebble.`) :
+    `${last ? `${rival} took ${last.remove} from the ${names[last.pile - 1]} pile. ` : ''}Your turn`;
   const piles = board.piles.map((size, i) => {
     const shown = size + (ghost && ghost.pile === i + 1 ? ghost.count : 0);
     const pebbles = Array.from({ length: shown }, (_, k) => {
@@ -1038,6 +1054,7 @@ const duel = {
   valid: duelValid,
   solved: (p, board) => duelValid(p, board) && board.streak >= p.parameters.streak,
   move: duelMove,
+  settleHints: duelSettleHints,
   hint: duelHint,
   solve: duelSolveAction,
   render: duelRender,

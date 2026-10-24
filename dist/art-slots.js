@@ -51,9 +51,13 @@ export function artSlots() {
 // browser's voice.
 export function voiceLines() {
   const lines = [];
-  for (const e of [...STOPS.flatMap(s => s.encounters), ...SIDE]) for (const [kind, text] of Object.entries(e.lines)) lines.push({ id: `${e.id}/${kind}`, speaker: e.speaker, text });
+  for (const e of [...STOPS.flatMap(s => s.encounters), ...SIDE]) {
+    for (const [kind, text] of Object.entries(e.lines)) lines.push({ id: `${e.id}/${kind}`, speaker: e.speaker, text });
+    // Plume's first-meeting line, one per trail (spoken in Plume's voice).
+    for (const [band, text] of Object.entries(e.taunt || {})) lines.push({ id: `${e.id}/taunt-${band}`, speaker: 'plume', text });
+  }
   for (const [id, cast] of Object.entries(CAST)) {
-    lines.push({ id: `${id}/hint`, speaker: id, text: cast.hint });
+    for (const kind of ['hint', 'nudge', 'bye', 'concede']) if (cast[kind]) lines.push({ id: `${id}/${kind}`, speaker: id, text: cast[kind] });
     for (const kind of ['oops', 'beat', 'tie', 'lose', 'gloat']) (cast[kind] || []).forEach((text, i) => lines.push({ id: `${id}/${kind}-${i + 1}`, speaker: id, text }));
   }
   return lines;

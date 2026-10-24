@@ -162,6 +162,39 @@ function winningMove(piles) {
 }
 const legalNimMoves = piles => piles.flatMap((size, i) => numbers(size).map(remove => ({ pile: i + 1, remove })));
 const nimWinner = board => board.piles.some(Boolean) ? null : board.turns.at(-1)?.player;
+// A rival that shows off (parameters.rival_slips, the road's Pebbles with
+// Plume): while some pile still has SHOW_OFF pebbles or more, it throws away
+// its first rival_slips chances to win in a game, each on the smallest take
+// from the biggest pile that leaves the player a win and more than one pile
+// (one pebble from the biggest pile when that is not the winning take). It
+// never passes up the last pile. Otherwise it plays a winning move when it
+// has one and, with none, one pebble from the biggest pile. Every reply
+// follows from the board, so Undo and replays meet the same rival.
+const SHOW_OFF = 3;
+const biggestPile = piles => piles.indexOf(Math.max(...piles)) + 1;
+function rivalSlips(p, board) {
+  let piles = [...p.parameters.piles], slips = 0;
+  for (const turn of board.turns) {
+    if (turn.player === 'opponent' && winningMove(piles) && nimSum(afterChoice(piles, turn))) slips++;
+    piles = afterChoice(piles, turn);
+  }
+  return slips;
+}
+function showOffSlip(piles) {
+  const order = piles.map((size, i) => i + 1).filter(pile => piles[pile - 1]).sort((a, b) => piles[b - 1] - piles[a - 1] || a - b);
+  for (let remove = 1; remove <= Math.max(...piles); remove++) for (const pile of order) {
+    if (remove > piles[pile - 1]) continue;
+    const rest = afterChoice(piles, { pile, remove });
+    if (nimSum(rest) && rest.filter(Boolean).length > 1) return { pile, remove };
+  }
+  return null;
+}
+function nimReply(p, board, piles, random) {
+  const best = winningMove(piles), slips = p.parameters.rival_slips;
+  if (!Number.isInteger(slips)) { const options = legalNimMoves(piles); return best || options[Math.floor(random() * options.length)]; }
+  if (best && piles.filter(Boolean).length > 1 && Math.max(...piles) >= SHOW_OFF && rivalSlips(p, board) < slips) { const slip = showOffSlip(piles); if (slip) return slip; }
+  return best || { pile: biggestPile(piles), remove: 1 };
+}
 // Strictly recognize the former first-move format before migrating a saved attempt.
 export function legacyNimBoard(p, board) {
   return object(board) && Object.keys(board).length === 1 && Object.hasOwn(board, 'choice') && (board.choice === null || nimChoice(p.parameters.piles, board.choice));
@@ -188,7 +221,7 @@ const nim = {
     let piles = afterChoice(board.piles, choice);
     const turns = [...board.turns, { player: 'you', ...choice }];
     if (piles.some(Boolean)) {
-      const options = legalNimMoves(piles), reply = winningMove(piles) || options[Math.floor(random() * options.length)];
+      const reply = nimReply(p, board, piles, random);
       piles = afterChoice(piles, reply);
       turns.push({ player: 'opponent', ...reply });
     }
@@ -197,7 +230,8 @@ const nim = {
   hint(p, board) {
     if (!nimValid(p, board)) return { type: 'deadend', text: 'Restart to restore the piles.' };
     if (this.solved(p, board)) return { type: 'done' };
-    if (nimWinner(board)) return { type: 'deadend', text: 'The opponent took the last pebble. Undo or restart to try again.' };
+    // A named rival's win is already the board's status line, so it waits behind Hint.
+    if (nimWinner(board)) return { type: 'deadend', text: `${p.rival || 'The opponent'} took the last pebble. Undo or restart to try again.`, ...(p.rival ? { quiet: true } : {}) };
     const best = winningMove(board.piles), choice = best || legalNimMoves(board.piles)[0];
     return { type: 'move', action: { type: 'choose', ...choice },
       text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
@@ -205,7 +239,7 @@ const nim = {
   // Piles of pebbles, as in the proof duel: lift a pebble and everything above
   // it, then Take. On the road the opponent is a named rival.
   render(p, attempt, ctx = {}) {
-    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1), rival = ctx.encounter?.speaker === 'plume' ? 'Plume' : 'Opponent';
+    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1), rival = p.rival || (ctx.encounter?.speaker === 'plume' ? 'Plume' : 'Opponent');
     const yourTurn = !winner, pick = nimPicks.get(p.id);
     if (pick && (!yourTurn || pick.pile > board.piles.length || pick.from >= board.piles[pick.pile - 1])) nimPicks.delete(p.id);
     const lifted = nimPicks.get(p.id), take = lifted ? board.piles[lifted.pile - 1] - lifted.from : 0;

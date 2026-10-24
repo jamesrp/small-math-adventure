@@ -55,6 +55,10 @@ try {
   if (want.has('scenes')) for (const [i, stop] of STOPS.entries()) {
     for (const size of ['phone', 'desktop']) await shoot(profileAt(firstOf[i]), size, `scene-${i + 1}-${stop.id}-open`, cont);
   }
-  if (want.has('finale')) for (const size of Object.keys(sizes)) await shoot(profileAt(21), size, 'finale', page => page.locator('[data-action="finale"]:visible').first().click().then(() => page.locator('.lr-finale').waitFor()));
+  if (want.has('finale')) for (const size of Object.keys(sizes)) await shoot(profileAt(21), size, 'finale', async page => {
+    // The finished fair opens its stop sheet, which has the finale button.
+    await page.locator('.lr-map-layer:visible .lr-stop[data-id="fair"]').click();
+    await page.getByRole('button', { name: 'Finale' }).click(); await page.locator('.lr-finale').waitFor();
+  });
 } finally { await browser.close(); }
 console.log('wrote', out.pathname);

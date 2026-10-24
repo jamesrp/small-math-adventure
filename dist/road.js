@@ -25,9 +25,11 @@ const PREDICTION_SLACK = { ferry: 2, marsh: 2, ridge: 1, hollow: 1, workshop: 1,
 // (weighings already fix their budget; games and proofs have no count) have
 // no score card. Road routes count the distance walked: their copies allow
 // repeated roads, so the shortest walk that covers every road is the best.
+// Coloring counts paints (each time a lantern changes color), not colors: how
+// many colors a board needs is the question the board asks.
 export const SCORE_UNITS = {
   swap: ['swap', 'swaps'], toggle: ['press', 'presses'], jug: ['step', 'steps'], tile: ['move', 'moves'], route: ['step', 'steps'],
-  latin: ['mark', 'marks'], color: ['color', 'colors'], clock: ['ring', 'rings'], billiard: ['launch', 'launches'], code: ['try', 'tries'],
+  latin: ['mark', 'marks'], color: ['paint', 'paints'], clock: ['ring', 'rings'], billiard: ['launch', 'launches'], code: ['try', 'tries'],
 };
 const PREDICTION = new Set(['clock', 'billiard', 'code']);
 
@@ -37,8 +39,11 @@ export const STOPS = [
   {
     id: 'ferry', title: 'Turtle Ferry', keeper: 'snooze', mood: 'morning',
     encounters: [
+      // Plume's card first appears here, so Plume says what its number is (taunt,
+      // per trail; the numbers are this board's Plume scores, checked by the tests).
       encounter('ferry-seats', 'swap', 'snooze', 'Seats on the shell', pick('swap-k1-05', 'swap-23-04', 'swap-45-04'),
-        { open: 'All aboard. Wiggly passengers make me seasick.', win: 'Everyone’s on. No wiggling.' }, { party: true }),
+        { open: 'All aboard. Wiggly passengers make me seasick.', win: 'Everyone’s on. No wiggling.' },
+        { party: true, taunt: pick('I did it in 4 swaps. Bet you can’t!', 'I did it in 6 swaps. Bet you can’t!', 'I did it in 7 swaps. Bet you can’t!') }),
       encounter('ferry-bell', 'clock', 'snooze', 'Wake-up bell', pick('clock-01', 'clock-03', 'clock-05'),
         { open: 'Zzz… only the right bell wakes me… zzz…', win: 'Hmm? Oh! I’m up. I’m up.' }),
       encounter('ferry-lights', 'toggle', 'snooze', 'Landing lamps', pick('toggle-02', 'toggle-03', 'toggle-05'),
@@ -64,7 +69,7 @@ export const STOPS = [
       encounter('ridge-duel', 'nim', 'plume', 'Pebbles with Plume', pick('nim-02', 'nim-04', 'nim-05'),
         { open: 'You caught up? Pebble game! I never lose. Your move.', win: 'Best two out of three? …No? Fine.' }, { rival: true }),
       encounter('ridge-kites', 'color', 'billie', 'Kites', pick('color-02', 'color-03', 'color-06'),
-        { open: 'Kite time! Make them easy to tell apart!', win: 'Look at them fly!' }),
+        { open: 'Color my kite lanterns! The wind’s perfect!', win: 'Look at them fly!' }),
     ],
   },
   {
@@ -75,7 +80,7 @@ export const STOPS = [
       encounter('hollow-crypt', 'code', 'rattle', 'Crypt door', pick('code-02', 'code-04', 'code-05'),
         { open: 'My crypt door can’t keep a secret. Heh heh.', win: 'Creeeak! It opens!' }),
       encounter('hollow-plots', 'proofgarden', 'rattle', 'The garden nobody covered', pick('proof-garden-01', 'proof-garden-03', 'proof-garden-03'),
-        { open: 'Nobody has EVER covered my garden. Mwahaha!', stuck: 'Stuck? Mwahaha! Maybe nobody can…', win: 'You PROVED it?! Keep the chalk.' }, { grants: 'chalk' }),
+        { open: 'My garden needs covering. Go on, try! Mwahaha!', stuck: 'Stuck? Mwahaha! Maybe nobody can…', win: 'You PROVED it?! Keep the chalk.' }, { grants: 'chalk' }),
     ],
   },
   {
@@ -93,11 +98,11 @@ export const STOPS = [
     id: 'lighthouse', title: 'Stormy Lighthouse', keeper: 'wick', mood: 'storm',
     encounters: [
       encounter('lighthouse-mirrors', 'billiard', 'wick', 'Mirror room', pick('billiard-02', 'billiard-04', 'billiard-05'),
-        { open: 'The ships need light. Send it to the right corner.', win: 'The ships see us. Good.' }),
+        { open: 'The ships need light. Send it to the ringed corner.', win: 'The ships see us. Good.' }),
       encounter('lighthouse-gears', 'clock', 'wick', 'Beacon gears', pick('clock-02', 'clock-04', 'clock-06'),
-        { open: 'The beacon turns on these gears. Set them.', win: 'Steady. Good.' }),
+        { open: 'The beacon’s stuck again. The ships are waiting. Patiently.', win: 'Steady. Good.' }),
       encounter('lighthouse-lamps', 'toggle', 'wick', 'Harbor lamps', pick('toggle-15', 'toggle-09', 'toggle-12'),
-        { open: 'Harbor lamps. Match the card, please.', win: 'Hoo. Well done.' }),
+        { open: 'The fishing boats come home soon. They look for these lamps.', win: 'Hoo. Well done.' }),
     ],
   },
   {
@@ -108,7 +113,7 @@ export const STOPS = [
       encounter('fair-stalls', 'route', 'hops', 'Every stall', pick('route-02', 'route-08', 'route-11'),
         { open: 'The fair lamps are mine too. Every path, please.', win: 'Splendid. Not a lamp missed.' }),
       encounter('fair-final', 'duel', 'plume', 'Plume’s rematch', pick('proof-duel-01', 'proof-duel-02', 'proof-duel-03'),
-        { open: 'I practiced every night. Three in a row, if you can.', win: 'You beat me fair and square. Rematch next year?' }, { rival: true }),
+        { open: 'You made it! I practiced every night for this.', win: 'You beat me fair and square. Rematch next year?' }, { rival: true }),
     ],
   },
 ];
@@ -120,7 +125,7 @@ export const SIDE = [
     { open: 'A pump! Now we can fill and empty. Bath time.', locked: 'Bath time? These jugs only pour into each other.', win: 'Ahhh. Just right.' },
     { stop: 'ferry', requires: 'pump' }),
   encounter('marsh-garden', 'proofgarden', 'hops', 'The other garden', pick('proof-garden-02', 'proof-garden-05', 'proof-garden-06'),
-    { open: 'Chalk! Then show me why nobody can.', locked: 'Nobody has ever covered that garden. Many have tried.', stuck: 'Stuck? So was everyone else.', even: 'Hmm. I’d try stars, myself.', win: 'Well! Now I know why.' },
+    { open: 'Chalk! Splendid. Now, about my other garden…', locked: 'That garden is terribly untidy. Cover it, would you?', stuck: 'Stuck? So was everyone else.', even: 'Hmm. I’d try stars, myself.', win: 'Well! Now I know why.' },
     { stop: 'marsh', requires: 'chalk' }),
 ];
 
@@ -232,6 +237,24 @@ function bathPuzzle(base, band) {
 }
 
 const PROOF_MECHANICS = new Set(['proofgarden', 'duel', 'flipmap', 'sortgarden']);
+// Plume plays both pebble games, so their hints name Plume. The library's
+// copies speak of "the opponent" or "I" and of earlier library boards.
+const ROAD_HINTS = {
+  'ridge-duel': {
+    k1: ['Think about the end of the game. Which piles would you like to leave Plume?'],
+    '23': ['Try a take. If Plume wins, Undo and look at what Plume left you.'],
+    '45': ['Split each pile into bundles of 4, 2 and 1. What could you leave Plume?'],
+  },
+  'fair-final': {
+    k1: ['Lost a game? Same start again replays those piles. Watch what Plume does after each of your takes.', 'If the piles are equal, let Plume start. Then copy Plume’s move on the other pile.', 'If the piles are unequal, go first and make them equal.'],
+    '23': ['Lost a game? Same start again replays those piles. Watch which piles Plume leaves you.', 'Think of the starts you lost after going first. Split each pile into bundles of 4, 2 and 1. What do those starts have in common?', 'When Plume won, what did Plume’s takes leave you each time? Leave Plume piles like those.'],
+  },
+};
+// At the Ridge Plume is showing off: while some pile still has three or more
+// pebbles, Plume throws away its first two chances to win in a game (the nim
+// mechanic's rival_slips, dist/deduction.js). The rematch at the fair is
+// perfect play.
+const RIDGE_SLIPS = 2;
 const catalogs = new WeakMap();
 export function withCampaignPuzzles(puzzles) {
   if (catalogs.has(puzzles)) return catalogs.get(puzzles);
@@ -249,6 +272,10 @@ export function withCampaignPuzzles(puzzles) {
     if (e.requires) copy.requiresTool = e.requires;
     // Checker in the side garden is earned by the painted proof at the Hollow.
     if (copy.parameters?.checkerAfter) copy.parameters = { ...copy.parameters, checkerAfter: campaignId('hollow-plots', band) };
+    if (e.speaker === 'plume' && e.rival) copy.rival = 'Plume';
+    if (e.id === 'ridge-duel') copy.parameters = { ...copy.parameters, rival_slips: RIDGE_SLIPS };
+    const hints = ROAD_HINTS[e.id]?.[band];
+    if (hints && Array.isArray(copy.hints)) { copy.hints = [...hints, ...copy.hints.slice(hints.length)]; copy.hint = copy.hints[0]; }
     // Routes on the road light every lamp by any walk; the shortest walk is
     // Plume's target (an Euler trail where one exists, else the postman tour).
     if (copy.mechanic === 'route') {
@@ -330,19 +357,46 @@ export function optimumOf(p) {
 }
 
 // Plume's number for this encounter on this trail, or null when there is no card.
+// A press budget caps every solve, so Plume's number stays under it: where the
+// fewest presses already fill the budget, any solve would tie Plume, and there
+// is no card and no third star.
 export function rivalScore(e, p) {
   if (!e || e.side || e.rival || !SCORE_UNITS[p.mechanic]) return null;
   const best = optimumOf(p);
   if (best === null) return null;
   const slack = PREDICTION.has(p.mechanic) ? PREDICTION_SLACK[e.stop] : SLACK[e.stop];
   const budget = p.parameters?.press_budget;
-  return budget == null ? best + slack : Math.min(best + slack, budget);
+  if (budget == null) return best + slack;
+  return best < budget ? Math.min(best + slack, budget - 1) : null;
 }
 export const maxStars = (e, p) => (rivalScore(e, p) === null ? 2 : 3);
+// The first Hint is a free nudge (a line about the idea, no place on the
+// board); a hint that shows a move or offers Apply costs the No-hints star. The
+// rematch judges only its winning run: the duel keeps a run's costly hints on
+// its board (`hinted`) and starts each game with the hint level at 0.
+export const hintCostsStar = attempt => Boolean(attempt && (attempt.hintLevel >= 2 || attempt.board?.hinted === true));
 export function starsFor(e, p, attempt) {
   if (!attempt || !isSolved(p, attempt.board)) return 0;
   const rival = rivalScore(e, p);
-  return 1 + (attempt.hintLevel === 0 ? 1 : 0) + (rival !== null && scoreOf(p, attempt) <= rival ? 1 : 0);
+  return 1 + (hintCostsStar(attempt) ? 0 : 1) + (rival !== null && scoreOf(p, attempt) <= rival ? 1 : 0);
+}
+// Plume's first line, on the first board with a score card (the ferry seats).
+export function plumeTaunt(e, band) {
+  return e?.taunt?.[band] ? { text: e.taunt[band], voice: `${e.id}/taunt-${band}` } : null;
+}
+// Stars on a trail: earned, the most there are, and the encounters that still
+// have stars to win (side puzzles once their stop is reached). Stars earned
+// under an older rule stay, so an encounter's most is never below its best.
+export function starTally(profile, puzzles, band = profile.band) {
+  const trail = trailFor(profile, band), list = [];
+  for (const e of [...MAIN, ...SIDE]) {
+    if (e.side ? !stopReached(trail, e.stop) : !trail.started) continue;
+    const p = puzzleForEncounter(e, band, puzzles);
+    if (!p) continue;
+    const stars = trail.stars[e.id] || 0, most = Math.max(maxStars(e, p), stars);
+    list.push({ encounter: e, stars, max: most });
+  }
+  return { earned: list.reduce((sum, x) => sum + x.stars, 0), max: list.reduce((sum, x) => sum + x.max, 0), missing: list.filter(x => x.stars < x.max) };
 }
 export function rivalVerdict(e, p, attempt) {
   const rival = rivalScore(e, p);
@@ -367,8 +421,14 @@ export function recordSolve(profile, puzzleId, encounterId, puzzles) {
   else if (MAIN_IDS[trail.completed.length] === e.id) { trail.completed.push(e.id); first = true; }
   const stars = Math.max(before, starsFor(e, p, attempt));
   trail.stars[encounterId] = stars;
-  const stop = stopOf(e.stop);
-  return { first, stars, newStars: stars - before, max: maxStars(e, p), grants: first && e.grants ? e.grants : null,
+  const stop = stopOf(e.stop), grants = first && e.grants ? e.grants : null;
+  // A side puzzle opens with its tool: Hints pressed while it was locked
+  // (saves from before the locked state had no Hint) are not held against it.
+  if (grants) for (const side of SIDE.filter(x => x.requires === grants)) {
+    const id = campaignId(side.id, band), tried = profile.attempts[id];
+    if (tried && !tried.completed && tried.hintLevel) profile.attempts[id] = { ...tried, hintLevel: 0 };
+  }
+  return { first, stars, newStars: stars - before, max: Math.max(maxStars(e, p), stars), grants,
     stopLit: first && !e.side && stop.encounters.every(x => trail.completed.includes(x.id)), finished: first && trail.completed.length === MAIN.length };
 }
 

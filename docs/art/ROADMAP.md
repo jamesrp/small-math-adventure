@@ -155,6 +155,8 @@ Loops: the Ferris wheel turning, lights twinkling, fireworks.
 
 **Finale (`finale/fair`).** Everyone at the fair under fireworks: the six travelers with their lantern tree, all six keepers, and Plume wearing a “good sport” ribbon. Loop: fireworks, waving, the Ferris wheel.
 
+Under the picture each keeper says goodbye beside its `happy` portrait and Plume concedes beside his `oops` portrait (October 24), then the trail’s medal is awarded. The medal is drawn in code for now (a bronze, silver or gold disc on a red and blue ribbon, the colors of the map’s trail pips); if it wants art later, brief it as three 256×320 transparent stickers, one per trail, matching those pip colors.
+
 **Map.** A cartoon world map: a winding road from the bright harbor through alternating bright and dark regions to the night fair. Each stop’s landmark sits under its mark. Wide and tall layouts are separate pictures with the same world. Loop ideas: water shimmer, glowworms, flags, lighthouse beam, fireworks over the fair.
 
 ### Keeper poses
@@ -227,4 +229,4 @@ After each batch: `node scripts/check-art.mjs`, `npm run build`, `npm test`, `no
 
 ## Voices
 
-[docs/voice-casting/README.md](../voice-casting/README.md) is the brief for casting and recording the six keepers and Plume. Each speech line in the game has a stable ID: `<encounter>/open|win|locked` for encounter lines (and `hollow-plots/stuck`, `marsh-garden/stuck|even` for the proof gardens' reactions, added October 24; the stuck tease shows the keeper's `happy` face) and `<character>/oops-1…3`, `<character>/hint` and `plume/beat-1…3|tie-1…2|lose-1…2|gloat-1…2` for reactions. Audio added to the manifest as `"voice/<line ID>": {"status": "ready", "audio": "voice/….mp3"}` plays when a child taps Listen, and the browser voice is the fallback.
+[docs/voice-casting/README.md](../voice-casting/README.md) is the brief for casting and recording the six keepers and Plume. Each speech line in the game has a stable ID: `<encounter>/open|win|locked` for encounter lines (and `hollow-plots/stuck`, `marsh-garden/stuck|even` for the proof gardens' reactions, added October 24; the stuck tease shows the keeper's `happy` face), `ferry-seats/taunt-k1|23|45` for Plume’s boast on the first scored board of each trail, `<character>/oops-1…3`, `<character>/hint`, `snooze/nudge` (her first, free Hint, which names no place) and `plume/beat-1…3|tie-1…2|lose-1…2|gloat-1…2` for reactions, and `<keeper>/bye` and `plume/concede` for the finale’s goodbyes. Audio added to the manifest as `"voice/<line ID>": {"status": "ready", "audio": "voice/….mp3"}` plays when a child taps Listen, and the browser voice is the fallback.
