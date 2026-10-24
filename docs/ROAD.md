@@ -25,8 +25,9 @@ Design decisions, October 24, 2026 (Claude as product owner, before James's play
 - **A lamp tap shows its ropes.** A tap on a ferry lamp makes the ropes at that lamp glow for a moment. It is never a move: only a press on a rope flips lamps.
 - **Phones get their own crop of each stage.** Each shows its own part of the picture, larger than the middle crop: the seats with anyone standing on the bow, the bow from the bell to the bottom of its wheels, the lamps and their ropes, and the boardwalks down to Hops's bank. Each crop keeps the pieces clear of the keeper's portrait. On a short phone the bell's stage is drawn narrower, so the goal and the whole chart fit under it.
 - **The bell wheel shows the count alone.** The word “bells” beside it could not be drawn large enough to read, so it is gone.
-- **The bell refuses in words.** A missing or too-large count gets a line in the feedback (“Tap a number first.”, “Choose 1 to 30 bells.”), not with the browser's tooltip.
+- **The bell refuses in words.** A missing or too-large count gets a line in the feedback (“Tap a number first.”, “Choose 1 to 30 bells.”), not the browser's tooltip.
 - **Wide, short screens put the scene beside the board.** On a tablet or laptop in landscape the scene and the keeper sit beside the board, so the board starts at the top; Plume's card sits under the keeper there. Stages keep their own layout.
+- **One count of the child's moves.** Plume's card counts them, so the boardwalk stage no longer shows its own steps (it says how many lamps are lit), and Every stall hides its board's Distance line while the card shows. The lamps' "presses left" stays on the ferry and in the lantern boards: it is the board's limit, not the race.
 - **In the Old Workshop, Plume's card moves left.** It sits in the scene's top-left corner, because the workshop art puts Sprocket in the top-right corner reserved for it. The art brief now asks for that corner to be kept clear; once it is, the card can return.
 
 ## Stops

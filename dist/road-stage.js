@@ -331,7 +331,8 @@ export function stageBoard(kind, p, a, ctx = {}) {
 }
 
 // What sits under the picture: the swap pairs, the bell chart, the goal card,
-// or the walk's step count.
+// or how many boardwalk lamps are lit. The walk's steps are counted on Plume's
+// card (dist/road-ui.js), so the stage does not count them again.
 export function stageControls(kind, p, a, ctx = {}) {
   if (kind === 'seats') return `<div class="allowed-pairs stage-pairs"><div>${p.edges.map(([x, y]) => `<button type="button" class="pair-button" data-action="swap-pair" data-pair="${x},${y}" data-focus="action-swap-pair" aria-label="Swap seats ${x + 1} and ${y + 1}">${x + 1} ↔ ${y + 1}</button>`).join('')}</div></div>`;
   if (kind === 'bell') {
@@ -344,5 +345,5 @@ export function stageControls(kind, p, a, ctx = {}) {
     return `<div class="stage-goal-row"><figure class="stage-goal"><figcaption>Goal</figcaption>${lightsGoal(p)}</figure>${left === null ? '' : `<p class="stage-count"><strong>${left}</strong> ${left === 1 ? 'press' : 'presses'} left</p>`}</div><p class="sr-only" role="status">Lit: ${lit}${left === null ? '' : `. ${left} ${left === 1 ? 'press' : 'presses'} left`}</p>`;
   }
   const info = routeInfo(p, a.board), lit = info ? info.uses.filter(n => n > 0).length : 0;
-  return `<p class="stage-count"><strong>${info?.cost ?? 0}</strong> ${info?.cost === 1 ? 'step' : 'steps'}<span>${lit} of ${p.parameters.edges.length} lamps lit</span></p><p class="sr-only" role="status">${a.board.path.map(esc).join(' → ')}</p>`;
+  return `<p class="stage-count is-lit"><strong>${lit}</strong> of ${p.parameters.edges.length} lamps lit</p><p class="sr-only" role="status">${a.board.path.map(esc).join(' → ')}</p>`;
 }

@@ -110,8 +110,14 @@ try {
         // On a wide, short screen the board starts near the top; a staged board fits whole.
         if (size.width === 1180 && !kind) assert.ok(s.panel.top <= 300, `${where}: the board starts at ${Math.round(s.panel.top)} px`);
         if (!phone && kind) assert.ok(s.panel.bottom <= s.vh + 1, `${where}: the controls under the picture end at ${Math.round(s.panel.bottom)} px of ${s.vh}`);
-        // The workshop's art has Sprocket in the top-right: Plume's card keeps off it.
-        if (e.stop === 'workshop' && s.card) assert.ok(s.card.top >= s.art.bottom - 1 || s.card.right <= s.art.left + s.art.width * .55, `${where}: Plume's card clear of Sprocket`);
+        // The workshop's art has Sprocket in its top-right quarter: Plume's card keeps off it.
+        if (e.stop === 'workshop' && s.card) assert.ok(s.card.top >= s.art.bottom - 1 || s.card.right <= s.art.left + s.art.width * .72, `${where}: Plume's card clear of Sprocket (ends at ${Math.round(s.card.right - s.art.left)} of ${Math.round(s.art.width)} px)`);
+        // Plume's card counts the child's moves; neither the stage nor the route's distance line counts them again.
+        if (s.card) {
+          assert.equal(await page.locator('.network-score:visible').count(), 0, `${where}: one count, on Plume's card`);
+          if (kind === 'boardwalks') assert.match(await page.locator('.stage-count').innerText(), /^\d+ of \d+ lamps lit$/, `${where}: the stage counts lamps, not steps`);
+          checks.add("one count of the child's moves, on Plume's card");
+        }
         if (!kind) continue;
         await page.screenshot({ path: new URL(`${band}-${e.id}-${size.width}x${size.height}.png`, output).pathname });
         assert.deepEqual(s.covered, [], `${where}: pieces in the picture and uncovered`);

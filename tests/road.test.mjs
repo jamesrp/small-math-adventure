@@ -336,6 +336,9 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
         assert.equal(count(/class="stage-piece stage-junction/g), p.parameters.vertices.length);
         assert.equal(count(/class="stage-walk /g), p.parameters.edges.length);
         assert.match(html, /class="stage-piece stage-hops"/);
+        // Plume's card counts the steps; the stage counts only the lamps lit, so the child sees one count.
+        assert.equal(count(/class="lr-race"/g), 1, `${band}: Plume's card counts the walk`);
+        assert.equal(html.match(/<p class="stage-count[ "].*?<\/p>/)?.[0], `<p class="stage-count is-lit"><strong>0</strong> of ${p.parameters.edges.length} lamps lit</p>`);
       }
       pr.attempts[p.id] = solve(p, a); recordSolve(pr, p.id, e.id, puzzles);
     }

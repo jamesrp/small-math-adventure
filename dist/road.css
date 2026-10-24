@@ -236,6 +236,9 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-count{margin:0;display:flex;align-items:baseline;justify-content:center;gap:6px 16px;flex-wrap:wrap;color:var(--rd-ink);font-size:1rem}
 .stage-count strong{font-family:var(--rd-display);font-size:1.6rem;font-weight:400}
 .stage-count span{color:var(--rd-muted)}
+.stage-count.is-lit{display:block;text-align:center}
+/* Plume's card counts a road walk ("You 7 · Plume 9 steps"), so the library's own distance line is not shown beside it. */
+.lr-play:has(.lr-rival) .network-score{display:none}
 .stage-goal-row{display:flex;align-items:center;justify-content:center;gap:12px 24px;flex-wrap:wrap}
 .stage-goal{margin:0;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;background:#fbf4dc;border:1px solid #ead9a4}
 .stage-goal figcaption{font-family:var(--rd-display);font-size:1.05rem;color:var(--rd-ink)}

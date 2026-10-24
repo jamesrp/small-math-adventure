@@ -10,6 +10,7 @@ Serve `dist/` (`npm start`, or `PORT=4414 node scripts/serve.mjs` in a worktree)
 node scripts/layout-audit.mjs                          # every module, into <os tmp>/layout-audit/all.json
 TEST_FAMILY=seeds node scripts/layout-audit.mjs        # one module; a comma list works; base-tile ... base-weigh for the base mechanics
 TEST_PUZZLE=seeds-03 node scripts/layout-audit.mjs     # one puzzle
+TEST_FAMILY=road node scripts/layout-audit.mjs         # the road's staged encounters on each trail, at four sizes (see Road stages)
 node scripts/layout-audit.mjs report a.json b.json     # the ranked Markdown below, from saved runs
 ```
 
@@ -60,6 +61,22 @@ Each puzzle opens at `#play/<id>` for a fresh explorer named "Explorer" on the K
 - **Targets that cannot be hit** at any probe point (covered by another element) are kept in the JSON as `covered` and listed as notes; none remained in this run. A thin ring that misses every grid point is probed along its stroke.
 - **Touch after a screenshot.** Playwright's full-page screenshot switches Chromium's touch emulation off, so until October 24 (`claude/layout-marks-ntxcu3`) puzzles measured after a screenshot at the same size were measured with `(pointer:coarse)` and `(hover:none)` false, as with a mouse. The audit now turns touch back on after each screenshot; the results below were measured before that fix.
 - **Severity is not ranked.** The ranking counts distinct problems; a module with one broken board can rank below one with several small labels. The shared causes below come first for that reason.
+
+## Road stages
+
+`TEST_FAMILY=road` measures the Lantern Road instead of the library: each encounter opens with the save a child has on arriving (the trail solved up to the encounter before), on each of the three trails, at the three sizes above and at **1180 × 820** (an iPad in landscape). `TEST_ROAD` chooses the encounters: `staged` (the default: the ferry's seats, bell and lamps and the marsh boardwalks, played inside their picture), `all` (all 21), or a comma list of encounter ids. On the road a board also counts as a problem when less than 120 px of it (or less than all of a shorter one) shows on the first screen ("Board starts below the screen"), at every size.
+
+October 24, 2026, all 21 encounters, before and after the staged-board fixes (`claude/road-stages-ntxcu3`, measured on top of the race fixes):
+
+| | Before | After |
+|---|---|---|
+| Problems (K–1 / 2–3 / 4–5) | 18 / 19 / 18 | 8 / 9 / 11 |
+| Staged boards: thinnest tap target, phones / tablets | 19 / 31–35 px (ferry ropes) | 40 px or more, except the 4–5 lamp tree's lamp taps (23 / 29 px), which only light that lamp's ropes; every rope keeps 40 px |
+| Staged boards: smallest text, phones / tablets | 3.6 / 5.4–5.7 px (lamp letters; on phones also the bell word 5.2, wheel numerals 8.2, platform letters 8.5 and seat-tag numbers 9.4) | 12 px or more, except the keeper's name and Snooze's sleeping "z" (below) |
+| Other encounters at 1180 × 820: lowest board top | 636 px (scene above the board) | 176 px (scene and keeper beside the board) |
+| Staged boards on phones: lowest board top, 390 / 375 | 635 / 620 px | 575 / 544 px |
+
+What the after run still reports on the road: the keeper's Listen button (34 px) and name (11.5 px) in every scene; Snooze's decorative "z" (aria-hidden, 10–11.6 px on phones); the 2–3 Pumpkin patch's wire B–E, 37 px across on phones (the library's lantern board, unchanged); the balance's answer rows wrapping on phones; the 4–5 bell's star box overlapping the "4" beside it by 35% on phones (font boxes only; the ink does not touch); and boards below a phone's first screen under the scene, as on every phone page. `scripts/road-stages-browser-smoke.mjs` is the pass/fail companion for the staged boards.
 
 ## Results, October 24, 2026
 
