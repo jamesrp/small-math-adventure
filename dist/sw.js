@@ -39,12 +39,26 @@ self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith(PREVIEWS))return;
   if(/\/art\/.+\.(mp4|webm|mov|mp3|m4a)$/i.test(url.pathname)){event.respondWith(artMedia(event.request));return;}
   event.respondWith((async()=>{
-    const cache=await caches.open(CACHE),cached=await cache.match(event.request,{ignoreSearch:true});
-    if(cached)return cached;
-    if(event.request.mode==='navigate')return (await cache.match('./index.html'))||fetch(event.request);
+    const cache=await caches.open(CACHE),copy=await cachedCopy(cache,event.request);
+    if(copy)return copy;
+    if(event.request.mode==='navigate')return (await cachedCopy(cache,'./index.html'))||fetch(event.request);
     return fetch(event.request);
   })());
 });
+// A cached file is read whole here and answered from memory. Handed on as it
+// is, a cached body streams to the page through a pipe, and on a busy machine
+// Chromium now and then aborts that stream (net::ERR_ABORTED, "Body reading
+// completed" in its trace): a module import fails and the app can't start
+// (docs/VALIDATION.md, October 24). Read here, the failure is the worker's to
+// see: it reads the file once more, then asks the network.
+async function cachedCopy(cache,request){
+  for(let attempt=0;attempt<2;attempt++){
+    const cached=await cache.match(request,{ignoreSearch:true});
+    if(!cached)return null;
+    try{return new Response(await cached.arrayBuffer(),{status:cached.status,statusText:cached.statusText,headers:cached.headers});}catch{}
+  }
+  return null;
+}
 self.addEventListener('message',event=>{
   if(event.data?.type==='SKIP_WAITING'){self.skipWaiting();return;}
   if(event.data?.type==='CHECK_READY')event.waitUntil((async()=>{

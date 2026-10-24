@@ -19,7 +19,7 @@ cd /Users/jamespfeiffer/business/small-math-adventure
 npm start
 ```
 
-Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses another port. The server binds to the local network so an iPad can try online play using the Mac’s LAN address, but **a normal HTTPS deployment is needed for iPad installation and offline service-worker support**. A Mac’s HTTP LAN address is not the iPad’s localhost.
+Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses another port. The server binds to the local network so an iPad can try online play using the Mac’s LAN address, but **a normal HTTPS deployment is needed for iPad installation and offline service-worker support**. A Mac’s HTTP LAN address is not the iPad’s localhost. The server answers 404 only for a file that isn't there; any other read error (too many open files on a busy machine) is retried and then answered 500 with its code and logged.
 
 ## Included
 
@@ -112,6 +112,8 @@ The navigation regression suite (`node scripts/navigation-browser-smoke.mjs`) us
 
 The start-up suite (`node scripts/boot-failure-browser-smoke.mjs`, same variables and `TEST_PHONE=1`) blocks a family module, a static module, a module that throws and `puzzles.json` on a first visit and checks that each shows the one start-up screen, that Try again starts the app once the file loads, and that a normal or slow start, or an error after the first render, never shows it.
 
+The reload stress harness (`node scripts/reload-stress.mjs`, same variables) asks whether the app starts every time once its service worker is in charge: it opens the app in a fresh browser, waits until the worker has every file, opens a road board and reloads it `RELOAD_COUNT` times (default 200), optionally beside other contexts (`RELOAD_CONTEXTS`) and busy threads (`RELOAD_LOAD`), or with the worker blocked (`RELOAD_WORKER=block`). For a reload that doesn't start it records which requests failed and how: an error from the server (it serves `dist/` itself through `scripts/serve.mjs`), a failed network fetch in the worker, or a request Chromium cancelled, with the browser's trace of the step that gave up. `RELOAD_FAULT=server` or `abort` checks the classifier. See [Start-up under load](docs/VALIDATION.md).
+
 Presentation state lives in each browser-history entry, scoped to the active explorer, separately from puzzle saves. `dist/view-state.js` captures it before replacing the page and restores disclosures before scrolling. Give page disclosures and filters a stable `data-view-key` (use puzzle IDs for catalog entries); render filter-dependent content from the saved values. New history entries use the view's defaults. Ordinary rerenders preserve the current entry.
 
 
@@ -152,7 +154,7 @@ To refresh the expansion from its checked authoring JSON, run `node scripts/impo
 
 Saves belong to this browser/app installation and origin. A new hostname, HTTP-to-HTTPS transition, or separate installed context may need an exported backup imported there. Home Screen installation is not a backup. Source links in the parent area require the internet. See [Apple’s iPad guide](https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados) and [WebKit’s storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/).
 
-If anything stops the app before its first screen (a module or puzzle pack that doesn't load, as on a first visit with a dropped connection, or code that throws), it shows one screen with **Try again**, which reloads ([`dist/index.html`](dist/index.html)); saves are read only once everything has loaded. A failed module isn't retried in the page: Chromium remembers a failed `import()` for the life of the page, so the reload is the retry.
+If anything stops the app before its first screen (a module or puzzle pack that doesn't load, as on a first visit with a dropped connection, or code that throws), it shows one screen with **Try again**, which reloads ([`dist/index.html`](dist/index.html)); saves are read only once everything has loaded. A failed module isn't retried in the page: Chromium remembers a failed `import()` for the life of the page, so the reload is the retry. The service worker reads each cached file whole and answers from memory, because Chromium under heavy load now and then aborted a cached file streamed straight to the page; a cached read that fails is read once more and then fetched (October 24, [Start-up under load](docs/VALIDATION.md)).
 
 A downloaded update waits until every app tab closes or a grown-up taps Reload. A small banner on the map, and the offline status in Grown-ups, say an update is ready; their Reload asks the waiting copy to take over and reloads that tab only. Nothing is shown over a puzzle, and another tab mid-puzzle keeps its board. `node scripts/update-browser-smoke.mjs` checks this on its own server (`UPDATE_PORT` picks the port). Save schema and content versions are explicit. The expansion is additive and keeps version-one saves compatible. A saved attempt at a puzzle that has changed since starts afresh on load and keeps its star, with the untouched save kept under its own key ([Saved progress across a deploy](docs/save-compat.md)); a deliberate migration keeps unfinished progress where it matters. Imports and unsupported save versions are rejected rather than silently reinterpreted.
 
