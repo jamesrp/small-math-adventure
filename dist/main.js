@@ -113,7 +113,8 @@ function render(){
   wireMechanic();
   viewState.restore();
   if(libraryScroll&&view==='library'){libraryScroll=false;const family=app.querySelector('details.satchel-family[open]'),top=family?.getBoundingClientRect().top;if(family&&(top<0||top>innerHeight/2))family.scrollIntoView({block:'start'});}
-  setReading(reading);
+  markReading();
+  answerAloud();
   if(gated&&!currentDialog?.dataset.gate)grownUpGate();
 }
 // What the play screen draws besides the attempt: the moment's selections,
@@ -273,41 +274,57 @@ function helpCopy(p){const e=activeEncounter(),kind=e&&stageKind(e,p);return kin
 // one; otherwise the browser voice reads it. The keeper's portrait (`line`)
 // talks for the line's beat and, once a voice is heard, until it stops
 // (road-ui.js, "The keeper's talk pose"). While a voice is heard the page is
-// `reading`: Listen and Read aloud show a stop square and stop it when tapped.
-let voiceClip=null,utterance=null,readToken=0,reading=false;
-function setReading(on){
-  reading=on;document.body.classList.toggle('is-reading',on);
-  for(const b of app.querySelectorAll('.lr-listen,.play-help [data-action="speak"]')){if(!b.dataset.label)b.dataset.label=b.getAttribute('aria-label')||'';b.setAttribute('aria-label',on?'Stop reading':b.dataset.label);}
+// `reading`, and only the button whose line it is (`heard.owner`: a Listen
+// button's text, or 'speak' for the board's instruction under Read aloud)
+// shows a stop square, is named Stop reading and stops it when tapped. A line
+// with no button of its own (the board's feedback, the solved strip, the
+// medal) marks none; the next move or Listen stops it.
+let voiceClip=null,utterance=null,readToken=0,reading=false,heard=null;
+function setReading(on){reading=on;markReading();}
+function markReading(){
+  let marked=false;
+  for(const b of app.querySelectorAll('.lr-listen,.play-help [data-action="speak"]')){
+    if(!b.dataset.label)b.dataset.label=b.getAttribute('aria-label')||'';
+    const mine=!marked&&reading&&Boolean(heard?.owner)&&(b.dataset.action==='speak'?heard.owner==='speak':heard.owner===b.dataset.text);
+    marked||=mine;
+    b.classList.toggle('is-reading',mine);
+    b.setAttribute('aria-label',mine?'Stop reading':b.dataset.label);
+  }
 }
 function hush(){
-  readToken++;
+  readToken++;heard=null;
   if(voiceClip){voiceClip.onplaying=voiceClip.onended=voiceClip.onpause=voiceClip.onerror=null;voiceClip.pause();voiceClip=null;}
   if(utterance){utterance.onstart=utterance.onend=utterance.onerror=null;utterance=null;}
   window.speechSynthesis?.cancel();
   if(reading)setReading(false);
 }
-// Says each item ({text, voiceId, line}) in turn. `fail(text)` runs when it
-// can't be heard; reading a new screen aloud (no fail) never shows anything.
+// Says each item ({text, voiceId, line, owner, lead}) in turn; a `lead` is said
+// first in the browser voice. `fail(text)` runs when it can't be heard; reading
+// by itself (no fail) never shows anything. An answer (`answer`, below) that
+// has left the screen by its turn is skipped.
 function sayInTurn(items,fail=null){
   hush();const token=readToken,live=()=>token===readToken;
-  const heard=()=>{if(live()&&!reading)setReading(true);};
-  const over=text=>{if(!live())return;if(reading)setReading(false);if(text!==undefined)fail?.(text);};
+  items=items.flatMap(item=>item.lead?[{text:item.lead,owner:item.owner,slot:item.slot,shown:item.text,answer:item.answer},{...item,lead:null}]:[item]);
+  const started=()=>{if(live()&&!reading)setReading(true);};
+  const over=text=>{if(!live())return;heard=null;if(reading)setReading(false);if(text!==undefined)fail?.(text);};
   const voice=(item,next)=>{
     if(!('speechSynthesis' in window)){over(item.text);return;}
     const u=utterance=new SpeechSynthesisUtterance(item.text);u.rate=.86;let talking=0;
-    u.onstart=()=>{if(!live())return;heard();talking=startTalk(item.line);};
+    u.onstart=()=>{if(!live())return;started();talking=startTalk(item.line);};
     u.onend=()=>{stopTalk(talking);if(utterance===u)utterance=null;next();};
     u.onerror=event=>{stopTalk(talking);if(utterance===u)utterance=null;over(['interrupted','canceled'].includes(event.error)?undefined:item.text);};
     window.speechSynthesis.speak(u);
   };
   const step=i=>{
     if(!live())return;
+    while(i<items.length&&items[i].answer&&!stillShown(items[i]))i++;
     if(i>=items.length){over();return;}
     const item=items[i],next=()=>step(i+1),recorded=item.voiceId&&asset(item.voiceId)?.audio;
+    heard=item;if(reading)markReading();
     if(item.line)sayLine(item.line,item.text);
     if(!recorded){voice(item,next);return;}
     const clip=voiceClip=new Audio(artUrl(recorded));let talking=0;
-    clip.onplaying=()=>{if(!live())return;heard();talking=startTalk(item.line);};
+    clip.onplaying=()=>{if(!live())return;started();talking=startTalk(item.line);};
     clip.onpause=()=>stopTalk(talking);
     clip.onended=()=>{stopTalk(talking);if(voiceClip===clip)voiceClip=null;next();};
     clip.onerror=()=>{stopTalk(talking);if(voiceClip===clip){voiceClip=null;voice(item,next);}};
@@ -315,23 +332,76 @@ function sayInTurn(items,fail=null){
   };
   step(0);
 }
-function speak(p){const help=helpCopy(p);sayInTurn([{text:`${help.objective} ${help.instructions}`}],()=>{message='Read-aloud unavailable. Open How to play.';render();});}
-function narrate(text,voiceId,line=null){sayInTurn([{text,voiceId,line}],text=>dialog('Read it together',`<p>${esc(text)}</p>`));}
+function speak(p){const help=helpCopy(p);sayInTurn([{text:`${help.objective} ${help.instructions}`,owner:'speak'}],()=>{message='Read-aloud unavailable. Open How to play.';render();});}
+// A Listen button's line: its recording or the browser voice, after its lead.
+const listenItem=(b,slot=null)=>({text:b.dataset.text,voiceId:b.dataset.voice||null,line:b.closest('.lr-keeper')?.dataset.line||null,owner:b.dataset.text,lead:b.dataset.lead||null,slot});
+function narrate(control){sayInTurn([listenItem(control)],text=>dialog('Read it together',`<p>${esc(text)}</p>`));}
 // For K–1, and wherever a grown-up turned it on, the first time each puzzle
 // screen opens in a visit: each Listen line in the scene (the keeper's, then
-// Plume's where Plume speaks), then the board's
-// instruction (the line above the board or, where the board shows its goal
-// itself, the goal How to play gives). A solved board's line is said alone.
+// Plume's where Plume speaks, after the number on Plume's card it points at),
+// then the board's instruction (the line above the board or, where the board
+// shows its goal itself, the goal How to play gives). A solved board's lines
+// are said alone. The finale reads each goodbye in order, then the medals and
+// stars.
 const heardScreens=new Set();
 function readScreen(){
-  const pr=profile(),p=puzzle();
-  if(route()[0]!=='play'||!p||!readsAloud(pr))return;
+  const pr=profile(),view=route()[0],p=puzzle();
+  if(!readsAloud(pr)||!(view==='play'&&p||view==='finale'&&app.querySelector('.lr-finale')))return;
   const key=`${pr.id}|${location.hash}`;
   if(heardScreens.has(key))return;
   heardScreens.add(key);
-  const lines=[...app.querySelectorAll('.lr-scene .lr-listen')].map(b=>({text:b.dataset.text,voiceId:b.dataset.voice,line:b.closest('.lr-keeper')?.dataset.line||null}));
+  if(view==='finale'){sayInTurn([...[...app.querySelectorAll('.lr-byes .lr-listen')].map(b=>listenItem(b)),{text:app.querySelector('.lr-finale [data-say]')?.dataset.say}].filter(item=>item.text));return;}
+  const lines=[...app.querySelectorAll('.lr-scene .lr-listen')].map(b=>listenItem(b));
   const goal=app.querySelector('.puzzle-goal')?.textContent.trim()||helpCopy(p).objective;
-  sayInTurn([...lines,...(isSolved(p,attempt(p).board)?[]:[{text:goal}])].filter(item=>item.text));
+  sayInTurn([...lines,...(isSolved(p,attempt(p).board)?[]:[{text:goal,owner:'speak'}])].filter(item=>item.text));
+}
+// After the screen's first reading, a road puzzle reads what answers the child
+// as it appears: the keeper's reaction, Plume's line, the board's own visible
+// status lines and feedback (a refusal, a weighing, Plume's reply), the hint
+// card, then the solved strip's sentence. Each has a place (`slot`); a line is
+// new when its place showed something else, or nothing, at the last render, so
+// the same line is never read twice in a row, a line that stays is not read
+// again, and the opening line coming back is not a reaction. A line still
+// being read when it leaves the screen (the child moved again) is stopped,
+// and one waiting its turn is skipped. Only lines on screen are read.
+let shownLines=null;
+const stillShown=item=>shownLines?.slots.get(item.slot)===(item.shown??item.text);
+function answerLines(){
+  const lines=[],keeper=app.querySelector('.lr-keeper[data-reacts] .lr-listen'),plume=app.querySelector('.lr-rival-line .lr-listen'),hint=app.querySelector('.play-sidebar .hint-card .lr-listen'),done=app.querySelector('.lr-done[data-say]');
+  // A mistake's or a solve's face (oops, happy) stays while its line is read by
+  // itself; the portrait talks for it only on Listen (docs/art/ROADMAP.md).
+  if(keeper)lines.push({...listenItem(keeper,'keeper'),line:keeper.closest('.lr-keeper').dataset.pose==='talk'?keeper.closest('.lr-keeper').dataset.line:null});
+  if(plume)lines.push(listenItem(plume,'plume'));
+  const seen={},live=':is([role="status"],[aria-live])';
+  for(const node of app.querySelectorAll(`.puzzle-workspace ${live}`)){
+    if(node.closest('.sr-only,.lr-done,.hint-card')||node.parentElement.closest(`.puzzle-workspace ${live}`)||!node.getClientRects().length)continue;
+    const kind=node.classList[0]||node.tagName,text=node.innerText.replace(/\s+/g,' ').trim();
+    seen[kind]=(seen[kind]||0)+1;
+    if(text)lines.push({text,slot:`board:${kind}:${seen[kind]}`});
+  }
+  if(hint)lines.push(listenItem(hint,'hint'));
+  if(done)lines.push({text:done.dataset.say,slot:'done'});
+  return lines.filter(line=>line.text);
+}
+function answerAloud(){
+  const pr=profile(),screen=route()[0]==='play'&&pr&&activeEncounter()?`${pr.id}|${location.hash}`:null;
+  lastNote=null;if(heard?.slot==='note')hush();
+  if(!screen){shownLines=null;return;}
+  const now=answerLines(),before=shownLines?.screen===screen?shownLines.slots:null;
+  shownLines={screen,slots:new Map(now.map(line=>[line.slot,line.text]))};
+  if(heard?.answer&&!stillShown(heard))hush();
+  if(!before||!readsAloud(pr))return;
+  const fresh=now.filter(line=>before.get(line.slot)!==line.text);
+  if(fresh.length)sayInTurn(fresh.map(line=>({...line,answer:true})));
+}
+// A refused tap on a road puzzle (a platform no boardwalk reaches) answers in
+// a note beside it, outside the redrawn page (ui.js tapNote). It is read like
+// the board's lines, but not again when the same tap repeats it, and the next
+// move (any redraw) stops it. A refused stop on the map is not read.
+let lastNote=null;
+function noteAloud(text){
+  if(route()[0]!=='play'||!activeEncounter()||!readsAloud(profile())||!text||text===lastNote)return;
+  lastNote=text;sayInTurn([{text,slot:'note'}]);
 }
 const updateBanner=()=>'<div class="update-banner" role="status"><span>A new version is ready.</span><button type="button" class="secondary small" data-action="apply-update">Reload</button></div>';
 // The waiting copy takes over only when asked, then this tab reloads; other
@@ -410,7 +480,7 @@ document.addEventListener('click',event=>{
   else if(action==='library'){libraryReturn=route()[0]==='play'&&p&&!p.campaignOnly?familyOf(p):null;libraryScroll=Boolean(libraryReturn);go('library');}
   else if(action==='journal')go('journal');
   else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
-  else if(action==='refuse')tapNote(control,control.dataset.text,event);
+  else if(action==='refuse'){tapNote(control,control.dataset.text,event);noteAloud(control.dataset.text);}
   else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1');}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();
@@ -424,8 +494,8 @@ document.addEventListener('click',event=>{
   else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id),fair=stop?.id==='fair'&&getProgress(profile()).complete;if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),fair?[{label:'Done'},{label:'Finale',run:()=>go('finale')}]:[{label:'Done'}]);}
   else if(action==='finale'&&profile())go('finale');
   else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
-  else if((action==='hear-story'||action==='speak')&&reading)hush();
-  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice,control.closest('.lr-keeper')?.dataset.line);
+  else if((action==='hear-story'||action==='speak')&&control.classList.contains('is-reading'))hush();
+  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control);
   else if(action==='families')document.querySelector('.family-adventures')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   else if(action==='choose-profile'){state.activeProfileId=control.dataset.id;sessionCompleted=new Set();save();go('map');}
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);

@@ -10,7 +10,7 @@ import { waitForOffline } from './browser-offline.mjs';
 import { MAIN, SIDE, CAST, SCORE_UNITS, getEncounter, getProgress, campaignId, withCampaignPuzzles, rivalScore, resolvePuzzle, plumeTaunt, scoreOf, starTally } from '../dist/road.js';
 import { KEEPERS } from '../dist/road-cast.js';
 import { mechanicFor } from '../dist/expansion.js';
-import { freshAttempt, nextHint, move, isSolved } from '../dist/engine.js';
+import { freshAttempt, nextHint, move, isSolved, solveSwaps } from '../dist/engine.js';
 import * as road3 from '../dist/caravan-road3.js';
 import * as legacy from '../dist/caravan-legacy.js';
 import * as rescue from '../dist/caravan-rescue.js';
@@ -31,6 +31,18 @@ const solveFixture = (p, a = freshAttempt(p)) => {
   for (let i = 0; !isSolved(p, a.board) && i < 300; i++) { const h = nextHint(p, a); a = move(p, a, h.action || h.pair); }
   assert.ok(isSolved(p, a.board), `${p.id}: fixture solved`); return a;
 };
+// A K–1 save that has played the road up to an encounter (or to the end), each board solved by its solver or hints.
+async function roadSave(id, until = null) {
+  const { startJourney, beginEncounter, recordSolve } = await import('../dist/road.js');
+  const save = { id, name: id, band: 'k1', avatar: 0, sound: false, attempts: {} };
+  startJourney(save);
+  for (let o = beginEncounter(save, puzzles); o && o.encounter.id !== until && !getProgress(save).complete; o = beginEncounter(save, puzzles)) {
+    let a = save.attempts[o.puzzle.id] || freshAttempt(o.puzzle);
+    for (let i = 0; i < 400 && !isSolved(o.puzzle, a.board); i++) a = move(o.puzzle, a, mechanicFor(o.puzzle)?.solve ? mechanicFor(o.puzzle).solve(o.puzzle, a.board) : (h => h.action || h.pair)(nextHint(o.puzzle, a)));
+    save.attempts[o.puzzle.id] = a; recordSolve(save, o.puzzle.id, o.encounter.id, puzzles);
+  }
+  return save;
+}
 function oldProfile(api, version, count) {
   const profile = { id: `old-${version}`, name: `Earlier ${version}`, band: 'k1', avatar: 0, sound: false, attempts: {} };
   api.startJourney(profile);
@@ -57,6 +69,13 @@ function wire(page) {
   };
 }
 const apos = text => text.replace(/’/g, "'");
+// A stand-in browser voice that says each line at once and logs it (window.said()).
+function autoVoice() {
+  const said = [];
+  Object.defineProperty(window, 'speechSynthesis', { value: { speak(u) { said.push(u.text); setTimeout(() => { u.onstart?.(); setTimeout(() => u.onend?.(), 0); }, 0); }, cancel() {}, getVoices: () => [] }, configurable: true });
+  window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+  window.said = () => said.slice();
+}
 
 try {
   // Earlier stories become archives; the road starts fresh beside them.
@@ -82,6 +101,9 @@ try {
     const viewport = band === 'k1' ? { width: 390, height: 844 } : band === '23' ? { width: 1024, height: 768 } : { width: 1440, height: 1000 };
     // Phone and tablet run with reduced motion: a pressed map button must not jump out from under the finger.
     const context = await browser.newContext({ viewport, hasTouch: band !== '45', reducedMotion: band === '45' ? 'no-preference' : 'reduce' }), page = await context.newPage(), ui = wire(page);
+    // K–1 reads aloud by default: a stand-in voice hears every hint card, solved strip and the finale.
+    const hears = async (text, label) => { if (band === 'k1') await page.waitForFunction(want => window.said().includes(want), text, { timeout: 8000 }).catch(async () => assert.fail(`${label}: “${text}” not read (${JSON.stringify((await page.evaluate(() => window.said())).slice(-4))})`)); };
+    if (band === 'k1') await page.addInitScript(autoVoice);
     const capture = async name => { await ui.fit(`${band}/${name}`); await page.screenshot({ path: new URL(`${band}-${name}.png`, output).pathname, fullPage: true, animations: 'disabled' }); };
     const hintThrice = async () => { for (let i = 0; i < 3; i++) await ui.action('hint').click(); };
     const solveUI = async (p, label) => {
@@ -140,6 +162,7 @@ try {
       await ui.action('hint').click();
       assert.equal((await ui.profile()).attempts[id].hintLevel, 1);
       assert.ok(apos(await ui.bubble()).includes(apos(CAST[e.speaker].nudge || CAST[e.speaker].hint)), `${id}: first hint line`);
+      await hears(await page.locator('.hint-card .lr-listen').getAttribute('data-text'), `${id}: the hint card`);
       for (let i = 0; i < 2; i++) await ui.action('hint').click();
       assert.ok(apos(await ui.bubble()).includes(apos(CAST[e.speaker].hint)) || (CAST[e.speaker].nudge && apos(await ui.bubble()).includes(apos(CAST[e.speaker].nudge))), `${id}: hint line`);
       const saved = (await ui.profile()).attempts[id];
@@ -149,6 +172,8 @@ try {
       const after = await ui.profile(), trail = after.journey.trails[band];
       assert.equal(trail.completed.length, count + 1);
       assert.ok(apos(await ui.bubble()).includes(apos(e.lines.win)), `${id}: win line`);
+      await hears(await page.locator('.lr-done').getAttribute('data-say'), `${id}: the solved strip`);
+      if (band === 'k1') { const heard = await page.evaluate(() => window.said()); assert.ok(heard.lastIndexOf(e.lines.win) < heard.lastIndexOf(await page.locator('.lr-done').getAttribute('data-say')), `${id}: the win line before the strip`); }
       const stars = await page.locator('#completion-heading .lr-stars i.on').count();
       assert.equal(stars, trail.stars[e.id], `${id}: stars shown match stars saved`);
       assert.equal(await page.locator('#completion-heading .lr-stars i').count(), rival === null ? 2 : 3);
@@ -162,6 +187,7 @@ try {
       results.push({ band, id, stars: trail.stars[e.id] });
       if (e.id === 'fair-final') {
         await ui.action('finale').click(); await page.locator('.lr-finale').waitFor(); await capture('finale');
+        for (const line of [...KEEPERS.map(k => CAST[k].bye), CAST.plume.concede, await page.locator('.lr-medal-award').getAttribute('data-say')]) await hears(line, `${band} finale`);
         // Goodbyes, Plume's concession, the medal, stars of the most, and the next trail up.
         assert.equal(await page.locator('.lr-bye').count(), KEEPERS.length + 1);
         assert.ok(apos(await page.locator('.lr-byes').innerText()).includes(apos(CAST.plume.concede)));
@@ -211,6 +237,7 @@ try {
             await page.locator(`.lr-map-layer:visible [data-action=open-encounter][data-id="${side.id}"]`).click(); await page.locator('.board-panel').waitFor();
             assert.ok(apos(await ui.bubble()).includes(apos(side.lines.open)), `${side.id}: unlocked line`);
             await hintThrice(); await solveUI(all.find(q => q.id === campaignId(side.id, band)), side.id);
+            await hears(await page.locator('.lr-done').getAttribute('data-say'), `${side.id}: the solved strip`);
             assert.ok((await ui.profile()).journey.trails[band].side.includes(side.id));
             await capture(`side-${side.id}`);
             await ui.action('finish-encounter').click(); await page.locator('.lr-overview').waitFor();
@@ -226,7 +253,7 @@ try {
     await ui.action('replay').click(); await page.locator('.board-panel').waitFor();
     assert.equal((await ui.profile()).journey.trails[band].completed.length, MAIN.length);
     await context.setOffline(false);
-    checks.push(`${band}: all ${MAIN.length} encounters, finale, offline replay`);
+    checks.push(`${band}: all ${MAIN.length} encounters, finale, offline replay${band === 'k1' ? '; every hint card, solved strip and goodbye read aloud' : ''}`);
     // The Puzzles library opens closed, with the road's mechanics on a shelf of
     // their own at the top and every other family once, under its region.
     await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
@@ -356,47 +383,121 @@ try {
     checks.push('talk: the browser voice, and stills with reduced motion'); await context.close();
   }
 
-  // Reading aloud for K–1: the first time each puzzle screen opens in a visit,
-  // the keeper's line (and Plume's) and then the board's instruction; Listen
-  // (44 px) says Stop reading while a voice is heard and stops it; a revisit or
-  // a re-render reads nothing; Grown-ups turns it off. With reduced motion.
+  // Reading aloud for K–1 (docs/ROAD.md, "K–1 hear the road"): the first time
+  // each puzzle screen opens in a visit, the keeper's line, Plume's (after the
+  // number on Plume's card it points at) and the board's instruction; then
+  // what answers the child as it appears: the hint card (with its own Listen),
+  // a refusal or the board's feedback, one at a time, never the same line twice
+  // in a row and cancelled by the next move, and the solved strip as one
+  // sentence. Only the button whose line is read shows the stop square (44 px,
+  // named Stop reading) and stops it; Read aloud's square shows. A revisit or a
+  // re-render reads nothing; Grown-ups turns it off. With reduced motion.
+  const voiceStub = () => {
+    const voice = { said: [], canceled: [], speaking: null, started: null, speak(u) { this.said.push(u.text); this.speaking = u; setTimeout(() => { if (this.speaking === u) { u.onstart?.(); this.started = u; } }, 0); }, cancel() { const u = this.speaking; this.speaking = null; if (u) this.canceled.push(u.text); u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
+    Object.defineProperty(window, 'speechSynthesis', { value: voice, configurable: true });
+    window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+    window.said = () => voice.said.slice();
+    window.canceled = () => voice.canceled.slice();
+    window.voiceHeard = () => Boolean(voice.speaking) && voice.started === voice.speaking;
+    window.endVoice = () => { const u = voice.speaking; voice.speaking = null; u?.onend?.(); };
+  };
+  const reader = async page => {
+    const said = () => page.evaluate(() => window.said());
+    const heard = () => page.waitForFunction(() => window.voiceHeard(), null, { timeout: 8000 });
+    // The next line in turn: end the one heard and wait for the next to be heard.
+    const next = async () => { await page.evaluate(() => window.endVoice()); await heard(); return (await said()).at(-1); };
+    const quiet = async () => { await page.waitForTimeout(150); return said(); };
+    // Which buttons show the stop square now, by whose line they read.
+    const marked = () => page.evaluate(() => [...document.querySelectorAll('.lr-listen,.play-help [data-action=speak]')].filter(b => b.classList.contains('is-reading') || b.getAttribute('aria-label') === 'Stop reading').map(b => b.dataset.action === 'speak' ? 'speak' : b.dataset.text));
+    return { said, heard, next, quiet, marked };
+  };
   {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' }), page = await context.newPage(), ui = wire(page);
-    await context.addInitScript(() => {
-      const voice = { said: [], speaking: null, started: null, speak(u) { this.said.push(u.text); this.speaking = u; setTimeout(() => { if (this.speaking === u) { u.onstart?.(); this.started = u; } }, 0); }, cancel() { const u = this.speaking; this.speaking = null; u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
-      Object.defineProperty(window, 'speechSynthesis', { value: voice, configurable: true });
-      window.SpeechSynthesisUtterance = function (text) { this.text = text; };
-      window.said = () => voice.said.slice();
-      window.voiceHeard = () => Boolean(voice.speaking) && voice.started === voice.speaking;
-      window.endVoice = () => { const u = voice.speaking; voice.speaking = null; u?.onend?.(); };
-    });
+    await context.addInitScript(voiceStub);
     await page.route('**/art/manifest.json', route => route.fulfill({ json: { version: 1, assets: {} } }));
-    const said = () => page.evaluate(() => window.said()), listen = page.locator('.lr-listen');
-    const heard = () => page.waitForFunction(() => window.voiceHeard(), null, { timeout: 8000 });
-    const quiet = async () => { await page.waitForTimeout(150); return said(); };
+    const { said, heard, next, quiet, marked } = await reader(page), listen = page.locator('.lr-listen');
     await page.goto(base); await page.locator('#nickname').fill('Reader'); await page.locator('#profile-form button[type=submit]').click(); await page.locator('.lr-overview').waitFor();
     assert.deepEqual(await quiet(), [], 'the map is not read aloud');
     await ui.action('start-journey').click(); await page.locator('.board-panel').waitFor(); await heard();
-    const e = MAIN[0];
+    const e = MAIN[0], seats = all.find(q => q.id === campaignId(e.id, 'k1')), rival = rivalScore(e, seats);
     // What the screen should say: each Listen line in the scene (the keeper's,
-    // then Plume's where Plume speaks), then the goal above the board.
-    const expected = await page.evaluate(() => [...document.querySelectorAll('.lr-scene .lr-listen')].map(b => b.dataset.text).concat((document.querySelector('.puzzle-goal')?.textContent || '').trim()).filter(Boolean));
-    assert.equal(apos(expected[0]), apos(e.lines.open));
+    // then Plume's after the number it points at), then the goal; and whose
+    // button shows the stop square meanwhile.
+    const expected = await page.evaluate(() => [...document.querySelectorAll('.lr-scene .lr-listen')].flatMap(b => [...(b.dataset.lead ? [[b.dataset.lead, b.dataset.text]] : []), [b.dataset.text, b.dataset.text]]).concat([[(document.querySelector('.puzzle-goal')?.textContent || '').trim(), 'speak']]).filter(([text]) => text));
+    assert.deepEqual(expected.slice(0, 3).map(([text]) => apos(text)), [apos(e.lines.open), `Plume ${rival} swaps.`, apos(plumeTaunt(e, 'k1').text)], 'the keeper, then Plume’s number and boast');
     assert.deepEqual((await said()).map(apos), [apos(e.lines.open)], 'the keeper’s line first');
-    assert.equal(await listen.first().getAttribute('aria-label'), 'Stop reading', 'Listen stops the reading while a voice is heard');
+    assert.deepEqual(await marked(), [e.lines.open], 'only the keeper’s Listen shows the stop square');
     const box = await listen.first().boundingBox();
     assert.ok(box.width >= 44 && box.height >= 44, `Listen is ${box.width}×${box.height} px`);
-    for (let k = 1; k < expected.length; k++) { await page.evaluate(() => window.endVoice()); await heard(); assert.equal((await said())[k], expected[k], `then line ${k + 1} of the screen`); }
-    if (!await page.locator('.puzzle-goal').count()) { await page.evaluate(() => window.endVoice()); await heard(); expected.push((await said())[expected.length]); assert.ok(expected.at(-1), 'then the goal How to play gives'); }
+    for (let k = 1; k < expected.length; k++) { assert.equal(await next(), expected[k][0], `then line ${k + 1} of the screen`); assert.deepEqual(await marked(), [expected[k][1]], `line ${k + 1}: one stop square, on its own button`); }
+    if (!await page.locator('.puzzle-goal').count()) { expected.push([await next(), 'speak']); assert.ok(expected.at(-1)[0], 'then the goal How to play gives'); assert.deepEqual(await marked(), ['speak'], 'the goal: Read aloud shows the stop square'); }
+    // Read aloud's stop square is drawn (it used to go blank).
+    const square = await page.locator('.play-help [data-action=speak]').evaluate(b => { const after = getComputedStyle(b, '::after'); return { icon: getComputedStyle(b.querySelector('svg')).display, w: after.width, h: after.height, display: after.display }; });
+    assert.deepEqual(square, { icon: 'none', w: '14px', h: '14px', display: 'block' }, 'Read aloud shows a 14 px stop square in place of its speaker');
     await page.evaluate(() => window.endVoice());
-    await page.waitForFunction(() => document.querySelector('.lr-listen')?.getAttribute('aria-label') !== 'Stop reading');
+    await page.waitForFunction(() => !document.querySelector('.is-reading'));
     const n = expected.length;
-    await ui.action('hint').click();
+    assert.equal((await said()).length, n);
+    checks.push(`K–1 hears the screen’s ${n} lines in turn, once, with Plume’s number before “that many”; one stop square at a time; Listen ${box.width}×${box.height} px`);
+    // The hint card is read when it opens, after the keeper's reaction, and has its own Listen.
+    await page.locator('[data-action=cup]').first().click();
     assert.equal((await quiet()).length, n, 'a re-render reads nothing new');
+    await ui.action('hint').click(); await heard();
+    const hintText = await page.locator('.hint-card .lr-listen').getAttribute('data-text');
+    assert.equal(hintText, (await page.locator('.hint-card p').allInnerTexts()).join(' '), 'the hint card’s Listen reads the card');
+    assert.equal(apos((await said()).at(-1)), apos(CAST.snooze.nudge), 'the keeper’s reaction first');
+    assert.equal(await next(), hintText, 'then the hint card');
+    assert.deepEqual(await marked(), [hintText], 'the hint card’s Listen shows the stop square');
+    const hintBox = await page.locator('.hint-card .lr-listen').boundingBox();
+    assert.ok(hintBox.width >= 44 && hintBox.height >= 44, `the hint card’s Listen is ${hintBox.width}×${hintBox.height} px`);
+    await page.locator('.hint-card .lr-listen').click();
+    assert.equal(await page.evaluate(() => window.voiceHeard()), false, 'the hint card’s Listen stops its reading');
+    assert.equal((await quiet()).length, n + 2, 'nothing after it is read');
+    await page.locator('.hint-card .lr-listen').click(); await heard();
+    assert.equal((await said()).at(-1), hintText, 'Listen reads the hint again');
+    await page.evaluate(() => window.endVoice());
+    checks.push('the hint card is read after the keeper’s reaction, with its own 44 px Listen');
+    // A solve: the keeper's win line, Plume's verdict, then the strip as one sentence.
+    const solution = solveSwaps(seats, (await ui.profile()).attempts[seats.id].board);
+    for (const [x, y] of solution) await page.locator(`[data-action=swap-pair][data-pair="${x},${y}"]`).click();
+    await page.locator('#completion-heading').waitFor(); await heard();
+    const strip = await page.locator('.lr-done').getAttribute('data-say'), stars = await page.locator('#completion-heading .lr-stars i.on').count();
+    assert.match(strip, new RegExp(`^${['One', 'Two', 'Three'][stars - 1]} stars?(, with no hints)?!( You (beat|tied) Plume\\.)?$`), `the strip’s sentence says its stars (${strip})`);
+    assert.equal(/with no hints/.test(strip), await page.locator('.lr-star-reasons li.got', { hasText: 'No hints' }).count() === 1, 'and the No-hints star as the strip shows it');
+    const won = [apos(e.lines.win), apos(await page.locator('.lr-rival-line .lr-listen').getAttribute('data-text')), strip];
+    assert.equal(apos((await said()).at(-1)), won[0], 'the win line first');
+    assert.equal(apos(await next()), won[1], 'then Plume’s verdict');
+    assert.equal(await next(), won[2], 'then the strip’s sentence');
+    assert.deepEqual(await marked(), [], 'the strip has no button of its own, so no stop square');
+    await page.evaluate(() => window.endVoice());
+    checks.push(`a solve reads the win line, Plume’s verdict and “${strip}”`);
+    // The bell: a refusal is read, and not again while it stays; the board's
+    // feedback is read, and a stale one is cancelled by the next ring.
+    await ui.action('finish-encounter').click(); await page.locator('#bell-form').waitFor(); await heard();
+    while (await page.evaluate(() => window.voiceHeard())) { await page.evaluate(() => window.endVoice()); await page.waitForTimeout(60); }
+    const bell = all.find(q => q.id === campaignId('ferry-bell', 'k1')), wrong = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(k => !isSolved(bell, { prediction: k }));
+    let count = (await said()).length;
+    await page.locator('#bell-form button[type=submit]').click(); await heard();
+    assert.equal((await said()).at(-1), 'Tap a number first.', 'a refusal is read');
+    await page.evaluate(() => window.endVoice());
+    await page.locator('#bell-form button[type=submit]').click();
+    assert.equal((await quiet()).length, count + 1, 'the same refusal is not read twice in a row');
+    const ring = async k => { await page.locator(`.bell-number:has(input[value="${k}"])`).click(); await page.locator('#bell-form button[type=submit]').click(); await page.locator('.motion-result').waitFor(); };
+    await ring(wrong[0]); await heard();
+    const first = await page.locator('.motion-result').innerText();
+    assert.equal((await said()).at(-1), first, 'the board’s feedback is read after a ring');
+    await ring(wrong[1]); await page.waitForFunction(text => document.querySelector('.motion-result')?.innerText !== text, first); await heard();
+    assert.ok((await page.evaluate(() => window.canceled())).includes(first), 'the next ring cancels the stale feedback');
+    assert.equal((await said()).at(-1), await page.locator('.motion-result').innerText(), 'and its own feedback is read');
+    await page.evaluate(() => window.endVoice());
+    count = (await said()).length;
+    await page.locator('#bell-form button[type=submit]').click();
+    assert.equal((await quiet()).length, count, 'ringing the same count again reads nothing');
+    checks.push('the bell: a refusal read once, feedback read, a stale line cancelled by the next ring');
+    count = (await said()).length;
     await ui.action('map').click(); await page.locator('.lr-overview').waitFor();
     await ui.action('continue-journey').click(); await page.locator('.board-panel').waitFor();
-    assert.equal((await quiet()).length, n, 'a screen already read is not read again');
-    checks.push(`K–1 hears the screen’s ${n} lines in turn, once; Listen ${box.width}×${box.height} px`);
+    assert.equal((await quiet()).length, count, 'a screen already read is not read again');
     // Stopping: a new visit reads the screen again; Listen stops it and nothing after it is read.
     await page.goto(base); await page.locator('.lr-overview').waitFor();
     await ui.action('continue-journey').click(); await page.locator('.board-panel').waitFor(); await heard();
@@ -424,6 +525,93 @@ try {
     await page.evaluate(() => { location.hash = 'play/swap-k1-03'; }); await page.locator('.board-panel').waitFor();
     assert.equal((await quiet()).length, 2, 'with the setting off nothing is read');
     checks.push('Grown-ups turns reading aloud off'); await context.close();
+  }
+
+  // K–1 reading at the Old Workshop, the marsh boardwalks and the finale: a
+  // keeper's reaction, then the refusal, in turn; a legal move while the
+  // reaction is read stops it and skips the refusal waiting behind it; a refused
+  // platform's note once; the finale reads each goodbye in order
+  // (each on its own Listen's stop square), then the medal and the stars.
+  {
+    const workshop = await roadSave('reader-workshop', 'workshop-parts'), marsh = await roadSave('reader-marsh', 'marsh-boardwalks'), done = await roadSave('reader-finale');
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' }), page = await context.newPage(), ui = wire(page);
+    await context.addInitScript(voiceStub);
+    await context.addInitScript(({ key, value }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, value); }, { key: SAVE_KEY, value: JSON.stringify({ ...emptyStore(), activeProfileId: workshop.id, profiles: [workshop, marsh, done] }) });
+    await page.route('**/art/manifest.json', route => route.fulfill({ json: { version: 1, assets: {} } }));
+    const { said, heard, next, quiet, marked } = await reader(page);
+    await page.goto(base); await page.locator('.lr-overview').waitFor();
+    await ui.action('continue-journey').click(); await page.locator('.board-panel').waitFor(); await heard();
+    while (await page.evaluate(() => window.voiceHeard())) { await page.evaluate(() => window.endVoice()); await page.waitForTimeout(60); }
+    const p = all.find(q => q.id === campaignId('workshop-parts', 'k1')), edges = p.edges.map(edge => edge.join(','));
+    const [x, y] = [[1, 2], [1, 3], [2, 3]].find(([a, b]) => !edges.includes(`${a},${b}`));
+    const tap = async (a, b) => { await page.locator(`.cup-button[data-cell="${a}"]`).click(); await page.locator(`.cup-button[data-cell="${b}"]`).click(); };
+    const legal = p.edges.find(([a, b]) => { const board = [...p.start]; [board[a], board[b]] = [board[b], board[a]]; return !isSolved(p, board); });
+    const swap = () => page.locator(`[data-action=swap-pair][data-pair="${legal.join(',')}"]`).click();
+    await tap(x, y); await heard();
+    const oops = await page.locator('.lr-keeper .lr-listen').getAttribute('data-text'), refusal = await page.locator('.feedback').innerText();
+    assert.ok(CAST.sprocket.oops.includes(oops) && refusal, 'a keeper reaction and a refusal');
+    assert.equal((await said()).at(-1), oops, 'the reaction first');
+    assert.deepEqual(await marked(), [oops], 'on the keeper’s Listen');
+    assert.equal(await next(), refusal, 'then the refusal');
+    assert.deepEqual(await marked(), [], 'which has no button of its own');
+    await page.evaluate(() => window.endVoice());
+    // A second mistake: another reaction, then the refusal again (choosing a cup cleared it).
+    await tap(x, y); await heard();
+    const again = await page.locator('.lr-keeper .lr-listen').getAttribute('data-text');
+    assert.notEqual(again, oops, 'a second mistake gets another reaction');
+    assert.equal((await said()).at(-1), again);
+    assert.equal(await next(), refusal);
+    await page.evaluate(() => window.endVoice());
+    let count = (await said()).length;
+    // A legal swap clears both and reads nothing; after a mistake, a legal swap
+    // while its reaction is read stops it and skips the refusal behind it.
+    await swap(); assert.equal((await quiet()).length, count, 'a legal swap with nothing new reads nothing');
+    await tap(x, y); await heard();
+    const third = (await said()).at(-1);
+    assert.equal(third, await page.locator('.lr-keeper .lr-listen').getAttribute('data-text'));
+    count = (await said()).length;
+    await swap();
+    await page.waitForFunction(() => !window.voiceHeard());
+    assert.ok((await page.evaluate(() => window.canceled())).includes(third), 'the next move stops the stale reaction');
+    assert.equal((await quiet()).length, count, 'and the refusal waiting behind it is not read');
+    checks.push('a keeper reaction, then the refusal; the next move stops a stale reaction and skips what waits');
+    // The marsh boardwalks: a refused platform's note (beside the tap, outside
+    // the redrawn page) is read once, not again for the same tap, and the next
+    // walk stops it.
+    const switchTo = async id => { await page.locator('.explorer-toggle').click(); await page.getByRole('button', { name: 'Grown-ups', exact: true }).click(); await page.getByRole('button', { name: 'I’m a grown-up', exact: true }).click(); await page.locator(`[data-action=choose-profile][data-id="${id}"]`).click(); await page.locator('.lr-overview').waitFor(); };
+    const tapAt = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); };
+    await switchTo(marsh.id);
+    await ui.action('continue-journey').click(); await page.locator('.stage-junction').first().waitFor(); await heard();
+    while (await page.evaluate(() => window.voiceHeard())) { await page.evaluate(() => window.endVoice()); await page.waitForTimeout(60); }
+    await tapAt(page.locator('.stage-junction.can-go').first()); await page.locator('.stage-junction[data-action="refuse"]').first().waitFor();
+    while (await page.evaluate(() => window.voiceHeard())) { await page.evaluate(() => window.endVoice()); await page.waitForTimeout(60); }
+    const far = page.locator('.stage-junction[data-action="refuse"]').first(), note = await far.getAttribute('data-text');
+    await tapAt(far); await heard();
+    assert.match(note, /^No boardwalk goes from \w to \w\.$/);
+    assert.equal(await page.locator('.tap-note').innerText(), note, 'the note is on screen');
+    assert.equal((await said()).at(-1), note, 'a refused platform’s note is read');
+    assert.deepEqual(await marked(), [], 'with no stop square');
+    count = (await said()).length;
+    await tapAt(far); assert.equal((await quiet()).length, count, 'the same tap again is not read twice');
+    assert.ok(await page.evaluate(() => window.voiceHeard()), 'and does not stop the note being read');
+    await tapAt(page.locator('.stage-junction.can-go:not(.is-here)').first());
+    await page.waitForFunction(text => window.canceled().includes(text), note);
+    checks.push('a refused boardwalk’s note is read once, not for the same tap again, and the next walk stops it');
+    await page.evaluate(() => window.endVoice());
+    // The finale: each goodbye in order, then the medal and the stars.
+    await switchTo(done.id);
+    await page.locator('.lr-map-layer:visible .lr-stop[data-id="fair"]').click();
+    const before = (await said()).length;
+    await page.getByRole('button', { name: 'Finale', exact: true }).click(); await page.locator('.lr-finale').waitFor(); await heard();
+    const byes = [...KEEPERS.map(id => CAST[id].bye), CAST.plume.concede], award = await page.locator('.lr-medal-award').getAttribute('data-say');
+    const tally = starTally(done, puzzles);
+    assert.equal(award, `Grades K to 1 medal! ${tally.earned} of ${tally.max} stars.`);
+    for (const [k, bye] of byes.entries()) { if (k) assert.equal(await next(), bye, `goodbye ${k + 1}`); else assert.equal((await said()).at(-1), bye, 'the first goodbye'); assert.deepEqual(await marked(), [bye], `goodbye ${k + 1}: its own stop square`); }
+    assert.equal(await next(), award, 'then the medal and the stars');
+    assert.deepEqual(await marked(), [], 'no button of its own');
+    await page.evaluate(() => window.endVoice());
+    assert.equal((await quiet()).length, before + byes.length + 1, 'and nothing more');
+    checks.push(`the finale reads ${byes.length} goodbyes in order, then “${award}”`); await context.close();
   }
 
   assert.deepEqual(errors, []);

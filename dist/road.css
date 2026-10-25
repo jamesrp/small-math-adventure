@@ -46,8 +46,12 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-bubble::before{content:"";position:absolute;left:-9px;top:14px;border:9px solid transparent;border-right-color:var(--rd-card);border-left:0}
 .lr-speaker{display:block;font-size:.78rem;line-height:1.25;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rd-muted);margin-bottom:1px}
 .lr-listen{position:absolute;right:4px;bottom:4px;min-height:44px;width:44px;padding:0;display:grid;place-items:center;border-radius:50%;background:#eef0e2;color:var(--rd-ink);border:0;box-shadow:none}
-.is-reading .lr-listen svg{display:none}
-.is-reading .lr-listen::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}
+/* Only the Listen whose line is being read shows the stop square. */
+.lr-listen.is-reading svg{display:none}
+.lr-listen.is-reading::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}
+/* The hint card's own Listen sits in its top-right corner, like the keeper's in the bubble. */
+.hint-card{position:relative;padding-right:58px}
+.hint-card .lr-listen{top:6px;bottom:auto;right:6px}
 .lr-rival{position:absolute;top:12px;right:12px;z-index:2;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(255,253,245,.94);color:var(--rd-ink);box-shadow:0 3px 0 rgba(0,0,0,.14);max-width:min(60%,330px)}
 .lr-rival .lr-portrait{width:46px;height:46px;border-width:2px;box-shadow:none}
 /* The race: the child's count beside Plume's, and Plume's line under them. */

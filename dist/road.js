@@ -39,11 +39,11 @@ export const STOPS = [
   {
     id: 'ferry', title: 'Turtle Ferry', keeper: 'snooze', mood: 'morning',
     encounters: [
-      // Plume's card first appears here, so Plume says what its number is (taunt,
-      // per trail; the numbers are this board's Plume scores, checked by the tests).
+      // Plume's card first appears here, so Plume says what its number means
+      // (taunt). The card beside it shows the number; the line points at it.
       encounter('ferry-seats', 'swap', 'snooze', 'Seats on the shell', pick('swap-k1-05', 'swap-23-04', 'swap-45-04'),
         { open: 'All aboard. Wiggly passengers make me seasick.', win: 'Everyone’s on. No wiggling.' },
-        { party: true, taunt: pick('I did it in 4 swaps. Bet you can’t!', 'I did it in 6 swaps. Bet you can’t!', 'I did it in 7 swaps. Bet you can’t!') }),
+        { party: true, taunt: 'I did it in that many. Bet you can’t!' }),
       encounter('ferry-bell', 'clock', 'snooze', 'Wake-up bell', pick('clock-01', 'clock-03', 'clock-05'),
         { open: 'Zzz… only the right bell wakes me… zzz…', win: 'Hmm? Oh! I’m up. I’m up.' }),
       encounter('ferry-lights', 'toggle', 'snooze', 'Landing lamps', pick('toggle-02', 'toggle-03', 'toggle-05'),
@@ -402,9 +402,10 @@ export function starsFor(e, p, attempt) {
   const rival = rivalScore(e, p);
   return 1 + (hintCostsStar(attempt) ? 0 : 1) + (rival !== null && scoreOf(p, attempt) <= rival ? 1 : 0);
 }
-// Plume's first line, on the first board with a score card (the ferry seats).
+// Plume's first line, on the first board with a score card (the ferry seats),
+// the same on every trail: the card beside it shows the number.
 export function plumeTaunt(e, band) {
-  return e?.taunt?.[band] ? { text: e.taunt[band], voice: `${e.id}/taunt-${band}` } : null;
+  return e?.taunt && BAND_KEYS.includes(band) ? { text: e.taunt, voice: `${e.id}/taunt` } : null;
 }
 // Stars on a trail: earned, the most there are, and the encounters that still
 // have stars to win (side puzzles once their stop is reached). Stars earned

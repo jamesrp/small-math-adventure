@@ -1,18 +1,18 @@
 # Voices for the Lantern Road
 
-A brief for Dot/Codex: cast and record the six keepers and Plume, who speak 99 short lines on the road (about 525 words, 2,707 characters). The story and its words are Claude's; the voices, recordings and their records are Dot/Codex's; James picks the cast and has the final word. The six travelers do not speak, and there is no narrator. The version-3 casting notes, for the travelers and a narrator, are in [v3-casting.md](v3-casting.md) and do not apply.
+A brief for Dot/Codex: cast and record the six keepers and Plume, who speak 97 short lines on the road (about 510 words, 2,649 characters). The story and its words are Claude's; the voices, recordings and their records are Dot/Codex's; James picks the cast and has the final word. The six travelers do not speak, and there is no narrator. The version-3 casting notes, for the travelers and a narrator, are in [v3-casting.md](v3-casting.md) and do not apply.
 
-Work in two stages with a stop between them: auditions, then James picks, then all 99 lines. Claim each stage's line on [WORKBOARD.md](../../WORKBOARD.md) first.
+Work in two stages with a stop between them: auditions, then James picks, then all 97 lines. Claim each stage's line on [WORKBOARD.md](../../WORKBOARD.md) first.
 
 ## Where the lines play
 
-On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. For a K–1 explorer (and any explorer whose grown-up turned reading aloud on in Grown-ups), the opening line plays by itself the first time a puzzle opens, and the board's instruction follows it in the browser's voice. While a line plays, Listen shows a stop square and stops it. Every other line (a mistake, a hint, a solve, Plume's first boast and verdicts, a locked side puzzle, a stuck or balanced proof garden, the finale's goodbyes) plays only on Listen. The keeper's portrait talks from the moment the recording starts until it ends, so trimmed silence matters to the picture too ([ROADMAP](../art/ROADMAP.md), “When `talk` shows”).
+On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. For a K–1 explorer (and any explorer whose grown-up turned reading aloud on in Grown-ups), the opening line plays by itself the first time a puzzle opens, with Plume's boast after it on the first scored board, and the board's instruction follows in the browser's voice. From then on each line that answers the child plays by itself as it appears (a mistake, a hint, a solve, a lost game, Plume's verdicts, a stuck or balanced proof garden), and the finale plays each goodbye and Plume's concession in turn ([docs/ROAD.md](../ROAD.md), “K–1 hear the road”). For everyone else those lines play only on Listen. While a line plays, its own Listen shows a stop square and stops it. The keeper's portrait talks from the moment the recording starts until it ends, so trimmed silence matters to the picture too ([ROADMAP](../art/ROADMAP.md), “When `talk` shows”).
 
 The board instructions read after the opening line (the goal above each road board) are not part of this brief; they stay with the browser's voice. Recording them in one calm narrator voice, separate from the cast, could be a later batch once children have heard the K–1 trail read aloud.
 
-`node scripts/check-art.mjs --voices` lists all 99 lines with their IDs and speakers. That list is the script. The text comes from `dist/road.js` (each puzzle's `open`, `win`, `locked`, the proof gardens' `stuck` and `even`, and Plume's boast on the first scored board of each trail, `ferry-seats/taunt-k1`, `-23` and `-45`, spoken by Plume) and `dist/road-cast.js` (each character's `hint`, `oops`, Snooze's `nudge`, each keeper's finale `bye`, and Plume's `beat`, `tie`, `lose`, `gloat` and finale `concede`).
+`node scripts/check-art.mjs --voices` lists all 97 lines with their IDs and speakers. That list is the script. The text comes from `dist/road.js` (each puzzle's `open`, `win`, `locked`, the proof gardens' `stuck` and `even`, and Plume's boast on the first scored board of each trail, `ferry-seats/taunt`, spoken by Plume) and `dist/road-cast.js` (each character's `hint`, `oops`, Snooze's `nudge`, each keeper's finale `bye`, and Plume's `beat`, `tie`, `lose`, `gloat` and finale `concede`).
 
-October 24 (before any recording): 14 lines were added (the proof gardens' `hollow-plots/stuck`, `marsh-garden/stuck` and `marsh-garden/even`, the three boasts, `snooze/nudge`, six `<keeper>/bye` and `plume/concede`) and 8 rewritten (`ridge-kites/open`, `hollow-plots/open`, `lighthouse-mirrors/open`, `lighthouse-gears/open`, `lighthouse-lamps/open`, `fair-final/open`, `marsh-garden/open`, `marsh-garden/locked`). Two audition lines are among the rewrites; read the current text.
+October 24 (before any recording): 14 lines were added (the proof gardens' `hollow-plots/stuck`, `marsh-garden/stuck` and `marsh-garden/even`, the three boasts, `snooze/nudge`, six `<keeper>/bye` and `plume/concede`) and 8 rewritten (`ridge-kites/open`, `hollow-plots/open`, `lighthouse-mirrors/open`, `lighthouse-gears/open`, `lighthouse-lamps/open`, `fair-final/open`, `marsh-garden/open`, `marsh-garden/locked`). Two audition lines are among the rewrites; read the current text. Later the same day the three boasts became one line for every trail, `ferry-seats/taunt` (“I did it in that many. Bet you can’t!”), because the card beside it shows Plume's number; the game says the number before it in the browser's voice.
 
 ## The words
 
@@ -30,7 +30,7 @@ All seven are adult character voices: no child imitations and no pitch-shifted s
 | Rattle (he) | 12 | A skeleton gardener who plays at being spooky and is delighted to have visitors. | A hammy stage villain with a dry, clattery edge, relishing long vowels. Bursts into real glee when beaten. Never menacing. |
 | Sprocket (she) | 11 | A raccoon inventor; things go bang around her. | Fast and excitable, words tumbling over each other, a little raspy. The quickest of the cast. |
 | Wick (he) | 11 | A calm owl lighthouse keeper. Few words, dry humor. | Low, unhurried and dry, warmth under the understatement. The pauses are part of the line. |
-| Plume (he) | 21 | The show-off peacock who leads the rival caravan, boasts of his score at the ferry and concedes the race at the fair. | Showy, smug and sing-song, a performer. Huffy and indignant when he loses, then a good sport. |
+| Plume (he) | 19 | The show-off peacock who leads the rival caravan, boasts of his score at the ferry and concedes the race at the fair. | Showy, smug and sing-song, a performer. Huffy and indignant when he loses, then a good sport. |
 
 Billie and Sprocket have no stated gender in the game; this brief casts both as women so the seven aren't five men and two women. James can change that at the audition.
 
@@ -74,13 +74,13 @@ Billie and Sprocket have no stated gender in the game; this brief casts both as 
 - A record, `docs/voice-casting/cast-v4.json`: each candidate's voice name, ID and source link, model, settings, the exact text sent, and the credits used.
 - Then stop. Tell James the page is ready and what you would pick and why. The auditions are what he hears; don't record the full script before he picks.
 
-## Stage 2: all 99 lines (after James picks)
+## Stage 2: all 97 lines (after James picks)
 
 - One voice, model and settings per character across all their lines. Regenerate a bad take rather than drifting the settings.
 - Files at `dist/art/voice/<line ID>.mp3` (for example `dist/art/voice/ferry-seats/open.mp3`, `dist/art/voice/plume/beat-1.mp3`), with manifest entries in `dist/art/manifest.json`: `"voice/ferry-seats/open": {"status": "ready", "audio": "voice/ferry-seats/open.mp3"}`. A line can sit as `"todo"` until it is good.
 - Mono MP3 (M4A also works) at about 64 kbps, under the checker's 200 KB. Trim leading and trailing silence so the line starts the moment Listen is tapped, and bring every clip to the same loudness, for example: `ffmpeg -i take.mp3 -af "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,loudnorm=I=-16:TP=-1.5:LRA=11" -ac 1 -ar 44100 -b:a 64k out.mp3`. A small `scripts/prepare-voice.mjs` that does this and writes the manifest entry, like `prepare-art.mjs`, is welcome in its own commit.
 - Extend `cast-v4.json` with every line: ID, speaker, bubble text, the text sent, voice ID, model, settings and the file's SHA-256.
-- Recordings join the offline install (`npm run build` adds them); all 99 should come to about three megabytes.
+- Recordings join the offline install (`npm run build` adds them); all 97 should come to about three megabytes.
 
 ## Checks
 
@@ -91,7 +91,7 @@ Billie and Sprocket have no stated gender in the game; this brief casts both as 
 
 ## Done
 
-All 99 lines are ready in the manifest, the checks pass, `cast-v4.json` is complete, and the work is on `main` under `AGENTS.md`. Mark the work-board line done and tell James three things to watch for with children:
+All 97 lines are ready in the manifest, the checks pass, `cast-v4.json` is complete, and the work is on `main` under `AGENTS.md`. Mark the work-board line done and tell James three things to watch for with children:
 
 1. Can they tell who is talking without looking?
 2. Do they understand every word, especially Snooze's and Rattle's?

@@ -41,6 +41,8 @@ button{min-height:46px;border-radius:9px;font-size:.95rem;font-weight:600;transi
 /* A newer offline copy is waiting: a small banner on the map (October 24). */
 .update-banner{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;max-width:1040px;margin:0 auto 12px;padding:6px 8px 6px 16px;background:#fbf4dc;border:1px solid #ead9a4;border-radius:10px;font-size:.95rem;color:#4c5a3e}
 .update-banner button{min-height:44px;padding:8px 16px}
-/* While something is read aloud, Read aloud shows a stop square and stops it. */
-.is-reading .play-help [data-action=speak] svg{display:none}
-.is-reading .play-help [data-action=speak]::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}
+/* While the board's instruction is read aloud, Read aloud shows a stop square
+   in place of its speaker (a grid, so the square has a size) and stops it. */
+.play-help [data-action=speak]{display:inline-grid;place-items:center}
+.play-help [data-action=speak].is-reading svg{display:none}
+.play-help [data-action=speak].is-reading::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}

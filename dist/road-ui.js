@@ -2,7 +2,7 @@
 // solved strip, stop sheets, the journal and the fair finale.
 import { BANDS, isSolved, boardCue, nextHint } from './engine.js';
 import { STOPS, SIDE, MAIN, CAST, TOOLS, BAND_KEYS, getProgress, medals, trailFor, stopOf, rivalScore, rivalVerdict, maxStars, starsFor, SCORE_UNITS, campaignId, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, continueAfter, scoreOf, hintCostsStar, plumeTaunt, starTally } from './road.js';
-import { pick, KEEPERS } from './road-cast.js';
+import { KEEPERS } from './road-cast.js';
 import { media, slots, asset } from './art.js';
 import { keeperArt, sceneArt, mapArt, wagonArt, toolArt, finaleArt, MAP_POINTS, MAP_REGIONS, MAP_WAGON } from './road-placeholders.js';
 import * as legacy from './caravan-legacy.js';
@@ -133,28 +133,32 @@ export function roadMapView(profile) {
 
 // Scene above a road puzzle -----------------------------------------------------
 // What the speaker says now, with a stable voice ID for recorded audio
-// (art manifest key "voice/<id>"; see docs/art/ROADMAP.md).
+// (art manifest key "voice/<id>"; see docs/art/ROADMAP.md). `reacts` marks a
+// line that answers something the child did (a solve, a lost game, a mistake,
+// a hint, a board the keeper reacts to); reading aloud reads it when it appears.
 export function encounterLine(e, p, attempt, reaction, held = false) {
   const cast = CAST[e.speaker], solved = isSolved(p, attempt.board) && !held;
   const board = attempt.board, gameLost = (e.mechanic === 'nim' || e.mechanic === 'duel') && Array.isArray(board?.piles) && !board.piles.some(Boolean) && board.turns?.at(-1)?.player === 'opponent';
   const from = (kind, list, seed) => { const i = Math.abs(seed) % list.length; return { text: list[i], voice: `${e.speaker}/${kind}-${i + 1}` }; };
-  if (solved) return { text: e.lines.win, pose: 'happy', voice: `${e.id}/win` };
-  if (gameLost) return { ...from(cast.gloat ? 'gloat' : 'oops', cast.gloat || cast.oops, attempt.moves), pose: 'happy' };
-  if (reaction?.kind === 'oops') return { ...from('oops', cast.oops, reaction.n), pose: 'oops' };
+  if (solved) return { text: e.lines.win, pose: 'happy', voice: `${e.id}/win`, reacts: true };
+  if (gameLost) return { ...from(cast.gloat ? 'gloat' : 'oops', cast.gloat || cast.oops, attempt.moves), pose: 'happy', reacts: true };
+  if (reaction?.kind === 'oops') return { ...from('oops', cast.oops, reaction.n), pose: 'oops', reacts: true };
   // A keeper whose hint line names a place (Snooze's "Try here") says it only
   // when the hint shows a move; the first, free Hint shows none.
   if (reaction?.kind === 'hint') {
     const nudge = cast.nudge && !(attempt.hintLevel >= 2 && nextHint(p, attempt).type === 'move');
-    return nudge ? { text: cast.nudge, pose: 'talk', voice: `${e.speaker}/nudge` } : { text: cast.hint, pose: 'talk', voice: `${e.speaker}/hint` };
+    return nudge ? { text: cast.nudge, pose: 'talk', voice: `${e.speaker}/nudge`, reacts: true } : { text: cast.hint, pose: 'talk', voice: `${e.speaker}/hint`, reacts: true };
   }
   // A board the keeper reacts to while it lasts (a proof garden's stuck cover).
   const cue = boardCue(p, board);
-  if (cue && e.lines[cue]) return { text: e.lines[cue], pose: cue === 'stuck' ? 'happy' : 'talk', voice: `${e.id}/${cue}` };
+  if (cue && e.lines[cue]) return { text: e.lines[cue], pose: cue === 'stuck' ? 'happy' : 'talk', voice: `${e.id}/${cue}`, reacts: true };
   if (e.side && p.missingAbility) return { text: e.lines.locked, pose: 'talk', voice: `${e.id}/locked` };
   return { text: e.lines.open, pose: 'talk', voice: `${e.id}/open` };
 }
-// A line's Listen button: its recording when the manifest has one, else the browser voice.
-const listenButton = (text, voice, name) => `<button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(text)}" data-voice="voice/${esc(voice)}" aria-label="Listen to ${esc(name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button>`;
+// A line's Listen button: its recording when the manifest has one, else the
+// browser voice. `lead` is said first in the browser voice: what the line
+// points at on screen (Plume's number beside "I did it in that many").
+export const listenButton = (text, voice, name, lead = '') => `<button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(text)}"${voice ? ` data-voice="voice/${esc(voice)}"` : ''}${lead ? ` data-lead="${esc(lead)}"` : ''} aria-label="Listen to ${esc(name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button>`;
 // A count Undo can no longer rebuild (more than 120 moves back) shows as a dash.
 const countShown = n => (Number.isFinite(n) ? n : '–');
 // `board` draws a staged puzzle (dist/road-stage.js) in place of the scene picture.
@@ -173,16 +177,28 @@ export function encounterScene(e, profile, p, attempt, { reaction = null, change
   // card first appears, Plume says what the number is.
   const mine = rival === null ? null : countShown(scoreOf(p, attempt));
   const taunt = rival !== null && !verdict && !trail.completed.includes(e.id) ? plumeTaunt(e, p.band) : null;
-  const plumeLine = verdict ? `<span class="lr-rival-line">${esc(pick(CAST.plume[verdict.result], verdict.mine + verdict.rival))}</span>` : taunt ? `<span class="lr-rival-line">${esc(taunt.text)} ${listenButton(taunt.text, taunt.voice, 'Plume')}</span>` : '';
+  // Plume's verdict on a solve, with its voice ID (plume/beat-1 …).
+  const plumeSaid = verdict ? (list => { const seed = Number.isFinite(verdict.mine) ? verdict.mine + verdict.rival : verdict.rival, i = Math.abs(seed) % list.length; return { text: list[i], voice: `plume/${verdict.result}-${i + 1}` }; })(CAST.plume[verdict.result]) : taunt;
+  // The boast points at the number on the card, so its Listen says the number first.
+  const plumeLine = plumeSaid ? `<span class="lr-rival-line">${esc(plumeSaid.text)} ${listenButton(plumeSaid.text, plumeSaid.voice, 'Plume', taunt ? `Plume ${plural(rival, unit)}.` : '')}</span>` : '';
   const plumeCard = rival === null ? '' : `<div class="lr-rival ${verdict ? `is-${verdict.result}` : ''} ${plumeLine ? 'has-line' : ''}" role="group" aria-label="You ${mine}, Plume ${esc(plural(rival, unit))}">${keeperPortrait('plume', verdict ? (verdict.result === 'lose' ? 'happy' : 'oops') : 'idle', 'rival')}<div class="lr-rival-body"><strong class="lr-race" aria-hidden="true"><span class="lr-race-you">You <b>${mine}</b></span> <span class="lr-race-sep">·</span> <span class="lr-race-plume">Plume <b>${rival}</b> ${esc(rival === 1 ? unit[0] : unit[1])}</span></strong>${plumeLine}</div></div>`;
   return `<section class="lr-scene mood-${stop.id} ${board ? 'is-staged' : ''}" data-stop="${stop.id}" data-stage="${stage}" aria-label="${esc(stop.title)}">
     ${board ? board(stage) : media(sceneSlot, sceneArt(stop.id, stage), { key: 'scene', cls: 'lr-scene-art', then: sceneSlot !== slots.scene(stop.id, stage) ? slots.scene(stop.id, stage) : null, loop: sceneSlot === slots.scene(stop.id, stage) })}
-    <div class="lr-keeper" data-line="${esc(line)}" data-speaker="${esc(e.speaker)}" data-pose="${esc(said.pose)}" data-nonce="${esc(nonce)}">${portrait(e.speaker, line, said.pose, nonce)}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} ${listenButton(said.text, said.voice, cast.name)}</p></div>
+    <div class="lr-keeper" data-line="${esc(line)}" data-speaker="${esc(e.speaker)}" data-pose="${esc(said.pose)}" data-nonce="${esc(nonce)}"${said.reacts ? ' data-reacts="1"' : ''}>${portrait(e.speaker, line, said.pose, nonce)}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} ${listenButton(said.text, said.voice, cast.name)}</p></div>
     ${plumeCard}
   </section>`;
 }
 
 // Solved strip ---------------------------------------------------------------------
+// The strip as one short sentence for reading aloud (data-say), from what it
+// shows: this play's stars, what the No-hints and Plume stars were won for,
+// and any tool earned ("Two stars! You beat Plume.").
+const STAR_WORDS = ['No', 'One', 'Two', 'Three'];
+export function stripSentence(now, reasons, tool = null) {
+  const got = kind => reasons.some(r => r.kind === kind && r.got);
+  const plume = reasons.find(r => r.kind === 'plume' && r.got);
+  return [`${STAR_WORDS[now] ?? now} ${now === 1 ? 'star' : 'stars'}${got('hints') ? ', with no hints' : ''}!`, plume ? `You ${plume.name === 'Tied Plume' ? 'tied' : 'beat'} Plume.` : '', tool ? `You got the ${tool.toLowerCase()}!` : ''].filter(Boolean).join(' ');
+}
 // Stars for this play, with what each one was for; the best ever stays on the map.
 export function encounterDone(e, profile, p, attempt, result) {
   // Stars earned under an older rule stay in Best, even above today's most.
@@ -193,12 +209,14 @@ export function encounterDone(e, profile, p, attempt, result) {
   // A hint that cost a star can be won back on a replay; the race shows both counts.
   const unit = SCORE_UNITS[p.mechanic], hinted = hintCostsStar(attempt);
   const reasons = [
-    { icon: '✓', name: 'Solved', got: true },
-    { icon: '💡', name: 'No hints', got: !hinted, detail: hinted && best < max ? 'Replay to win it' : '' },
-    ...(verdict ? [{ icon: keeperArt('plume', 'idle', CAST.plume.color), name: verdict.result === 'tie' ? 'Tied Plume' : 'Beat Plume', got: verdict.result !== 'lose', detail: `You ${countShown(verdict.mine)} · Plume ${plural(verdict.rival, unit)}` }] : []),
-  ].map(r => `<li class="${r.got ? 'got' : ''}"><span class="lr-reason-icon" aria-hidden="true">${r.icon}</span><span>${esc(r.name)}${r.detail ? `<small class="lr-reason-detail">${esc(r.detail)}</small>` : ''}</span></li>`).join('');
+    { kind: 'solved', icon: '✓', name: 'Solved', got: true },
+    { kind: 'hints', icon: '💡', name: 'No hints', got: !hinted, detail: hinted && best < max ? 'Replay to win it' : '' },
+    ...(verdict ? [{ kind: 'plume', icon: keeperArt('plume', 'idle', CAST.plume.color), name: verdict.result === 'tie' ? 'Tied Plume' : 'Beat Plume', got: verdict.result !== 'lose', detail: `You ${countShown(verdict.mine)} · Plume ${plural(verdict.rival, unit)}` }] : []),
+  ];
+  const say = stripSentence(now, reasons, result?.grants ? TOOLS[result.grants].name : null);
+  const items = reasons.map(r => `<li class="${r.got ? 'got' : ''}"><span class="lr-reason-icon" aria-hidden="true">${r.icon}</span><span>${esc(r.name)}${r.detail ? `<small class="lr-reason-detail">${esc(r.detail)}</small>` : ''}</span></li>`).join('');
   const tool = result?.grants ? `<div class="lr-tool-earned">${media(slots.tool(result.grants), toolArt(result.grants), { key: 'earned-tool' })}<strong>${esc(TOOLS[result.grants].name)}</strong></div>` : '';
-  return `<section class="lr-done" aria-label="Puzzle completed" data-keep="done"><h2 id="completion-heading" tabindex="-1">${starRow(now, max, 'big')}<span class="sr-only">Solved. ${now} of ${max} stars.</span></h2><ul class="lr-star-reasons">${reasons}</ul>${best > now ? `<p class="lr-best">Best ${starRow(best, Math.max(max, best))}</p>` : ''}${tool}<div class="lr-done-actions">${button(`${nextLabel} <span aria-hidden="true">→</span>`, finale ? 'finale' : 'finish-encounter', 'primary lr-cta')}${button('Replay', 'replay', 'text-button')}</div></section>`;
+  return `<section class="lr-done" aria-label="Puzzle completed" data-keep="done" data-say="${esc(say)}"><h2 id="completion-heading" tabindex="-1">${starRow(now, max, 'big')}<span class="sr-only">Solved. ${now} of ${max} stars.</span></h2><ul class="lr-star-reasons">${items}</ul>${best > now ? `<p class="lr-best">Best ${starRow(best, Math.max(max, best))}</p>` : ''}${tool}<div class="lr-done-actions">${button(`${nextLabel} <span aria-hidden="true">→</span>`, finale ? 'finale' : 'finish-encounter', 'primary lr-cta')}${button('Replay', 'replay', 'text-button')}</div></section>`;
 }
 
 // Stop sheet, journal, finale ---------------------------------------------------------
@@ -240,7 +258,10 @@ export function finaleView(profile, puzzles) {
   const goodbyes = [...KEEPERS.map(id => say(id, CAST[id].bye, `${id}/bye`, 'happy')), say('plume', CAST.plume.concede, 'plume/concede', 'oops')].join('');
   const missing = tally.missing.map(({ encounter: e, stars, max }) => `<li class="lr-row">${keeperPortrait(e.speaker, 'idle', `missing-${e.id}`)}<span class="lr-row-title">${esc(e.title)}</span>${starRow(stars, max)}${button(stars ? 'Replay' : 'Play', 'open-encounter', 'secondary small', `data-id="${e.id}" ${stars ? 'data-replay="1" ' : ''}aria-label="${stars ? 'Replay' : 'Play'} ${esc(e.title)}"`)}</li>`).join('');
   const others = BAND_KEYS.filter(b => b !== band && STOPS.every(s => won[s.id].includes(b)));
-  return `<section class="lr-finale"><h1>The Lantern Fair</h1>${media(slots.finale(), finaleArt(), { key: 'finale', cls: 'lr-finale-art' })}<ul class="lr-byes">${goodbyes}</ul><div class="lr-medal-award band-${band}" role="img" aria-label="Grades ${esc(BANDS[band].label)} medal${others.length ? `, and ${others.map(b => `Grades ${BANDS[b].label}`).join(', ')}` : ''}">${medalArt(band)}<strong>Grades ${esc(BANDS[band].label)}</strong>${others.map(b => `<span class="lr-medal-other band-${b}"><i></i>${esc(BANDS[b].label)}</span>`).join('')}</div><p class="lr-finale-stars" role="img" aria-label="${tally.earned} of ${tally.max} stars">★ ${tally.earned} <span>of ${tally.max}</span></p>${missing ? `<ul class="lr-rows lr-missing">${missing}</ul>` : ''}<div class="lr-done-actions">${button('Puzzles', 'library', 'primary lr-cta')}${nextBand ? button(`Grades ${esc(BANDS[nextBand].label)} <span aria-hidden="true">→</span>`, 'switch-band', 'secondary', `data-id="${nextBand}"`) : ''}${button('See the road', 'map', 'text-button')}</div></section>`;
+  // Read aloud after the goodbyes: the medals and the stars, as shown ("Grades K to 1 medal! 61 of 62 stars.").
+  const spoken = b => `Grades ${BANDS[b].label.replace('–', ' to ')}`, medalNames = [band, ...others].map(spoken);
+  const award = `${medalNames.join(' and ')} ${medalNames.length > 1 ? 'medals' : 'medal'}! ${tally.earned} of ${tally.max} stars.`;
+  return `<section class="lr-finale"><h1>The Lantern Fair</h1>${media(slots.finale(), finaleArt(), { key: 'finale', cls: 'lr-finale-art' })}<ul class="lr-byes">${goodbyes}</ul><div class="lr-medal-award band-${band}" data-say="${esc(award)}" role="img" aria-label="Grades ${esc(BANDS[band].label)} medal${others.length ? `, and ${others.map(b => `Grades ${BANDS[b].label}`).join(', ')}` : ''}">${medalArt(band)}<strong>Grades ${esc(BANDS[band].label)}</strong>${others.map(b => `<span class="lr-medal-other band-${b}"><i></i>${esc(BANDS[b].label)}</span>`).join('')}</div><p class="lr-finale-stars" role="img" aria-label="${tally.earned} of ${tally.max} stars">★ ${tally.earned} <span>of ${tally.max}</span></p>${missing ? `<ul class="lr-rows lr-missing">${missing}</ul>` : ''}<div class="lr-done-actions">${button('Puzzles', 'library', 'primary lr-cta')}${nextBand ? button(`Grades ${esc(BANDS[nextBand].label)} <span aria-hidden="true">→</span>`, 'switch-band', 'secondary', `data-id="${nextBand}"`) : ''}${button('See the road', 'map', 'text-button')}</div></section>`;
 }
 export function trailOptions(profile) {
   return BAND_KEYS.map(key => { const t = trailFor(profile, key), stars = Object.values(t.stars).reduce((a, b) => a + b, 0); return `<label class="grade-option"><input type="radio" name="band" value="${key}" ${key === profile.band ? 'checked' : ''}><strong>${BANDS[key].label}</strong>${t.started ? `<span aria-label="${stars} stars">★ ${stars}</span>` : ''}</label>`; }).join('');

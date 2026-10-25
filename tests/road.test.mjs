@@ -539,26 +539,66 @@ test('the race: Plume’s first line on the ferry, a live count beside the card,
     const pr = profile(band); startJourney(pr);
     const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles), rival = rivalScore(e, p), taunt = plumeTaunt(e, band);
     assert.equal(e.id, 'ferry-seats');
-    assert.ok(taunt.text.includes(`${rival} swaps`), `${band}: Plume says its real number (${taunt.text})`);
+    // The card shows the number; the boast points at it without repeating it,
+    // and its Listen says the card's number first (replay could, October 24).
+    assert.doesNotMatch(taunt.text, /\d/, `${band}: the boast leaves the number to the card (${taunt.text})`);
     assert.equal(MAIN.filter(x => plumeTaunt(x, band)).length, 1, 'one taunt per trail');
     let a = freshAttempt(p);
     const first = encounterScene(e, pr, p, a);
     assert.match(first, new RegExp(`You <b>0</b>.*Plume <b>${rival}</b> swaps`, 's'));
     assert.ok(first.includes(esc(taunt.text)), 'Plume speaks on the first meeting');
-    assert.match(first, new RegExp(`data-voice="voice/${taunt.voice}"`));
+    assert.match(first, new RegExp(`data-voice="voice/${taunt.voice}" data-lead="Plume ${rival} swaps\\."`), `${band}: Listen says Plume's real number first`);
     a = move(p, a, step(p, a));
     assert.match(encounterScene(e, pr, p, a), /You <b>1<\/b>/, 'the count is live');
     a = solve(p, a); pr.attempts[p.id] = a;
     const result = recordSolve(pr, p.id, e.id, puzzles);
     assert.ok(encounterDone(e, pr, p, a, result).includes(`You ${scoreOf(p, a)} · Plume ${rival} swaps`));
     // A replay meets the card without the taunt.
-    assert.doesNotMatch(encounterScene(e, pr, p, restart(p, a)), /I did it in/);
+    assert.doesNotMatch(encounterScene(e, pr, p, restart(p, a)), /I did it in|data-lead/);
     // A hinted solve says the star can be won back.
     const hinted = { ...a, hintLevel: 2, helpUsed: true }, fresh = profile(band); startJourney(fresh);
     assert.match(encounterDone(e, fresh, p, hinted, null), /Replay to win it/);
     assert.doesNotMatch(encounterDone(e, fresh, p, { ...a, hintLevel: 1 }, null), /Replay to win it/);
   }
   assert.deepEqual(SCORE_UNITS.color, ['paint', 'paints']);
+});
+
+// Reading aloud reads what is on screen (docs/ROAD.md, "K–1 hear the road"):
+// these are the marks dist/main.js reads by.
+test('reading aloud: reactions are marked, Plume’s verdict and the hint card have Listen, the strip and the medal have one sentence each', async () => {
+  const { stripSentence } = await import('../dist/road-ui.js');
+  const { voiceLines } = await import('../dist/art-slots.js');
+  const ids = new Set(voiceLines().map(l => l.id));
+  const pr = profile(); startJourney(pr);
+  const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles);
+  let a = freshAttempt(p);
+  // Only a line that answers the child is a reaction; the opening line coming back is not.
+  assert.equal(encounterLine(e, p, a, null).reacts, undefined);
+  for (const reaction of [{ kind: 'oops', n: 0 }, { kind: 'hint' }]) assert.equal(encounterLine(e, p, a, reaction).reacts, true, reaction.kind);
+  assert.doesNotMatch(encounterScene(e, pr, p, a), /data-reacts/);
+  assert.match(encounterScene(e, pr, p, a, { reaction: { kind: 'oops', n: 1 } }), /class="lr-keeper"[^>]*data-reacts="1"/);
+  // The hint card: its words and a Listen with the same words, on the road and in the library.
+  const card = html => { const section = html.match(/<section class="hint-card"[^]*?<\/section>/)?.[0] || ''; return { words: [...section.matchAll(/<p>([^<]*)<\/p>/g)].map(m => m[1]).join(' '), listen: section.match(/class="lr-listen" data-action="hear-story" data-text="([^"]*)"/)?.[1] }; };
+  for (const [q, level, ctx] of [[p, 1, { encounter: e, profile: pr }], [p, 2, { encounter: e, profile: pr }], [puzzles.find(x => x.id === 'tile-k1-01'), 1, {}], [puzzles.find(x => x.id === 'toggle-02'), 1, {}]]) {
+    const shown = card(playView(q, { ...freshAttempt(q), hintLevel: level }, { pack: fullPack, selected: null, message: '', ...ctx }));
+    assert.ok(shown.words, `${q.id}: hint card words`); assert.equal(shown.listen, shown.words, `${q.id} at hint ${level}: Listen reads the card`);
+  }
+  // A solve: Plume's verdict line has its own Listen and voice line; the strip says its stars in one sentence.
+  a = solve(p, a); pr.attempts[p.id] = a;
+  const result = recordSolve(pr, p.id, e.id, puzzles), scene = encounterScene(e, pr, p, a), verdict = rivalVerdict(e, p, a);
+  const voice = scene.match(/class="lr-rival-line">[^<]*<button type="button" class="lr-listen" data-action="hear-story" data-text="[^"]*" data-voice="voice\/([^"]+)"/)?.[1];
+  assert.match(voice, new RegExp(`^plume/${verdict.result}-\\d$`)); assert.ok(ids.has(voice), voice);
+  assert.match(scene, /class="lr-keeper"[^>]*data-reacts="1"/, 'the win line is a reaction');
+  assert.match(encounterDone(e, pr, p, a, result), /data-say="Three stars, with no hints! You beat Plume\."/);
+  const reasons = (hints, plume) => [{ kind: 'solved', got: true }, { kind: 'hints', got: hints }, ...(plume ? [{ kind: 'plume', got: plume !== 'lose', name: plume === 'tie' ? 'Tied Plume' : 'Beat Plume' }] : [])];
+  assert.equal(stripSentence(2, reasons(false, 'beat')), 'Two stars! You beat Plume.');
+  assert.equal(stripSentence(2, reasons(true, 'lose')), 'Two stars, with no hints!');
+  assert.equal(stripSentence(3, reasons(true, 'tie')), 'Three stars, with no hints! You tied Plume.');
+  assert.equal(stripSentence(1, reasons(false, null), 'Chalk'), 'One star! You got the chalk!');
+  // The finale: the medals and the stars as one sentence, after the goodbyes.
+  while (!getProgress(pr).complete) finish(pr);
+  const tally = starTally(pr, puzzles);
+  assert.match(finaleView(pr, puzzles), new RegExp(`class="lr-medal-award band-k1" data-say="Grades K to 1 medal! ${tally.earned} of ${tally.max} stars\\."`));
 });
 
 test('Pebbles with Plume: Plume shows off while winning, so sensible play can win and random tapping almost never does', () => {
