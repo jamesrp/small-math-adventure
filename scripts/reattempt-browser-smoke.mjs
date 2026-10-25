@@ -41,7 +41,8 @@ try{
  // Reopening through the library also resets solved answers, with no route-only shortcut.
  await goto('swap-k1-01');await page.locator('[data-action=swap-pair]').first().click();await page.locator('#completion-heading').waitFor();
  await page.locator('[data-action=library]').first().click();
- const family=page.locator('.satchel-family').filter({has:page.locator('[data-id="swap-k1-01"]')});await family.locator('summary').click();
+ // The Puzzles tab reopens the family of the puzzle it was pressed from.
+ const family=page.locator('.satchel-family').filter({has:page.locator('[data-id="swap-k1-01"]')});if(!await family.evaluate(e=>e.open))await family.locator('summary').click();
  await page.locator('[data-id="swap-k1-01"]').click();await page.locator('.solved-indicator').waitFor();
  assert.deepEqual((await attempt('swap-k1-01')).board,puzzles.find(p=>p.id==='swap-k1-01').start);
  await page.locator('[data-action=swap-pair]').first().click();await page.locator('#completion-heading').waitFor();

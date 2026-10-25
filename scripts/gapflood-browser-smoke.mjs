@@ -34,7 +34,14 @@ const center = async locator => { const b = await locator.boundingBox(); return 
 const tap = async locator => { const [x, y] = await center(locator); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 const taps = async list => { for (const id of list.split(' ')) await tap(dot(id)); };
 let cdp = null;
+// A slide's points are measured once, so wait for any smooth scroll (Hint
+// brings its card into view) to finish first.
+async function settled() {
+  let y = await page.evaluate(() => scrollY);
+  for (let i = 0; i < 50; i++) { await page.waitForTimeout(100); const z = await page.evaluate(() => scrollY); if (z === y) return; y = z; }
+}
 async function slide(list) {
+  await settled();
   const points = [];
   for (const id of list.split(' ')) points.push(await center(dot(id)));
   if (!phone) {
