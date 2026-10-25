@@ -141,7 +141,8 @@ export function encounterLine(e, p, attempt, reaction, held = false) {
   const board = attempt.board, gameLost = (e.mechanic === 'nim' || e.mechanic === 'duel') && Array.isArray(board?.piles) && !board.piles.some(Boolean) && board.turns?.at(-1)?.player === 'opponent';
   const from = (kind, list, seed) => { const i = Math.abs(seed) % list.length; return { text: list[i], voice: `${e.speaker}/${kind}-${i + 1}` }; };
   if (solved) return { text: e.lines.win, pose: 'happy', voice: `${e.id}/win`, reacts: true };
-  if (gameLost) return { ...from(cast.gloat ? 'gloat' : 'oops', cast.gloat || cast.oops, attempt.moves), pose: 'happy', reacts: true };
+  // A pebble game's own gloat (the rematch, which has no Undo to tease) replaces Plume's shared ones.
+  if (gameLost) return e.lines.gloat ? { text: e.lines.gloat, pose: 'happy', voice: `${e.id}/gloat`, reacts: true } : { ...from(cast.gloat ? 'gloat' : 'oops', cast.gloat || cast.oops, attempt.moves), pose: 'happy', reacts: true };
   if (reaction?.kind === 'oops') return { ...from('oops', cast.oops, reaction.n), pose: 'oops', reacts: true };
   // A keeper whose hint line names a place (Snooze's "Try here") says it only
   // when the hint shows a move; the first, free Hint shows none.
@@ -200,21 +201,23 @@ export function stripSentence(now, reasons, tool = null) {
   return [`${STAR_WORDS[now] ?? now} ${now === 1 ? 'star' : 'stars'}${got('hints') ? ', with no hints' : ''}!`, plume ? `You ${plume.name === 'Tied Plume' ? 'tied' : 'beat'} Plume.` : '', tool ? `You got the ${tool.toLowerCase()}!` : ''].filter(Boolean).join(' ');
 }
 // Stars for this play, with what each one was for; the best ever stays on the map.
-export function encounterDone(e, profile, p, attempt, result) {
+// `from` is where the play was opened: a replay from the finale goes back there.
+export function encounterDone(e, profile, p, attempt, result, from = null) {
   // Stars earned under an older rule stay in Best, even above today's most.
   const trail = trailFor(profile, p.band), best = trail.stars[e.id] || 0, max = maxStars(e, p), now = starsFor(e, p, attempt);
   const verdict = rivalVerdict(e, p, attempt), progress = getProgress(profile, p.band);
-  const finale = e.id === 'fair-final' && progress.complete;
+  const finale = (e.id === 'fair-final' || from === 'finale') && progress.complete;
   const nextLabel = finale ? 'The Lantern Fair' : continueAfter(profile, e, p.band) && p.band === profile.band ? 'Next' : 'See the road';
-  // A hint that cost a star can be won back on a replay; the race shows both counts.
-  const unit = SCORE_UNITS[p.mechanic], hinted = hintCostsStar(attempt);
+  // A star missed this play that a replay can still win (a costly hint, or
+  // Plume's count not beaten) says so; the race shows both counts.
+  const unit = SCORE_UNITS[p.mechanic], hinted = hintCostsStar(attempt), winBack = best < max ? 'Replay to win it' : '';
   const reasons = [
     { kind: 'solved', icon: '✓', name: 'Solved', got: true },
-    { kind: 'hints', icon: '💡', name: 'No hints', got: !hinted, detail: hinted && best < max ? 'Replay to win it' : '' },
-    ...(verdict ? [{ kind: 'plume', icon: keeperArt('plume', 'idle', CAST.plume.color), name: verdict.result === 'tie' ? 'Tied Plume' : 'Beat Plume', got: verdict.result !== 'lose', detail: `You ${countShown(verdict.mine)} · Plume ${plural(verdict.rival, unit)}` }] : []),
+    { kind: 'hints', icon: '💡', name: 'No hints', got: !hinted, detail: [hinted && winBack] },
+    ...(verdict ? [{ kind: 'plume', icon: keeperArt('plume', 'idle', CAST.plume.color), name: verdict.result === 'tie' ? 'Tied Plume' : 'Beat Plume', got: verdict.result !== 'lose', detail: [`You ${countShown(verdict.mine)} · Plume ${plural(verdict.rival, unit)}`, verdict.result === 'lose' && winBack] }] : []),
   ];
   const say = stripSentence(now, reasons, result?.grants ? TOOLS[result.grants].name : null);
-  const items = reasons.map(r => `<li class="${r.got ? 'got' : ''}"><span class="lr-reason-icon" aria-hidden="true">${r.icon}</span><span>${esc(r.name)}${r.detail ? `<small class="lr-reason-detail">${esc(r.detail)}</small>` : ''}</span></li>`).join('');
+  const items = reasons.map(r => `<li class="${r.got ? 'got' : ''}"><span class="lr-reason-icon" aria-hidden="true">${r.icon}</span><span>${esc(r.name)}${(r.detail || []).filter(Boolean).map(d => `<small class="lr-reason-detail">${esc(d)}</small>`).join('')}</span></li>`).join('');
   const tool = result?.grants ? `<div class="lr-tool-earned">${media(slots.tool(result.grants), toolArt(result.grants), { key: 'earned-tool' })}<strong>${esc(TOOLS[result.grants].name)}</strong></div>` : '';
   return `<section class="lr-done" aria-label="Puzzle completed" data-keep="done" data-say="${esc(say)}"><h2 id="completion-heading" tabindex="-1">${starRow(now, max, 'big')}<span class="sr-only">Solved. ${now} of ${max} stars.</span></h2><ul class="lr-star-reasons">${items}</ul>${best > now ? `<p class="lr-best">Best ${starRow(best, Math.max(max, best))}</p>` : ''}${tool}<div class="lr-done-actions">${button(`${nextLabel} <span aria-hidden="true">→</span>`, finale ? 'finale' : 'finish-encounter', 'primary lr-cta')}${button('Replay', 'replay', 'text-button')}</div></section>`;
 }
@@ -248,7 +251,7 @@ export function journalView(profile, puzzles) {
 }
 // The end of a trail: each keeper says goodbye, Plume concedes, the trail's
 // medal, the stars as "55 of 62" with the puzzles that still have stars to win
-// (each starts a fresh replay), then this trail's Puzzles shelf and the next
+// (each starts a fresh replay that comes back here), then this trail's Puzzles shelf and the next
 // trail up. A trail never sends its finisher down to an easier one.
 const medalArt = band => `<svg viewBox="0 0 64 80" aria-hidden="true"><path d="M20 2h10l6 26H26z" fill="#c8513b"/><path d="M34 2h10l-6 26H28z" fill="#3b6fb8"/><circle cx="32" cy="50" r="24" class="medal-disc band-${band}" stroke="#5a4320" stroke-width="3"/><circle cx="32" cy="50" r="16" fill="none" stroke="#fff8" stroke-width="2"/><path d="m32 38 3.6 7.4 8 1.1-5.8 5.6 1.4 8L32 56.3l-7.2 3.8 1.4-8-5.8-5.6 8-1.1z" fill="#fff6" stroke="#5a4320" stroke-width="1.5"/></svg>`;
 export function finaleView(profile, puzzles) {
@@ -256,7 +259,7 @@ export function finaleView(profile, puzzles) {
   const nextBand = BAND_KEYS.slice(BAND_KEYS.indexOf(band) + 1).find(b => trailFor(profile, b).completed.length < MAIN.length);
   const say = (id, text, voice, pose) => `<li class="lr-bye">${keeperPortrait(id, pose, `bye-${id}`)}<p class="lr-bubble"><span class="lr-speaker">${esc(CAST[id].name)}</span> ${esc(text)} ${listenButton(text, voice, CAST[id].name)}</p></li>`;
   const goodbyes = [...KEEPERS.map(id => say(id, CAST[id].bye, `${id}/bye`, 'happy')), say('plume', CAST.plume.concede, 'plume/concede', 'oops')].join('');
-  const missing = tally.missing.map(({ encounter: e, stars, max }) => `<li class="lr-row">${keeperPortrait(e.speaker, 'idle', `missing-${e.id}`)}<span class="lr-row-title">${esc(e.title)}</span>${starRow(stars, max)}${button(stars ? 'Replay' : 'Play', 'open-encounter', 'secondary small', `data-id="${e.id}" ${stars ? 'data-replay="1" ' : ''}aria-label="${stars ? 'Replay' : 'Play'} ${esc(e.title)}"`)}</li>`).join('');
+  const missing = tally.missing.map(({ encounter: e, stars, max }) => `<li class="lr-row">${keeperPortrait(e.speaker, 'idle', `missing-${e.id}`)}<span class="lr-row-title">${esc(e.title)}</span>${starRow(stars, max)}${button(stars ? 'Replay' : 'Play', 'open-encounter', 'secondary small', `data-from="finale" data-id="${e.id}" ${stars ? 'data-replay="1" ' : ''}aria-label="${stars ? 'Replay' : 'Play'} ${esc(e.title)}"`)}</li>`).join('');
   const others = BAND_KEYS.filter(b => b !== band && STOPS.every(s => won[s.id].includes(b)));
   // Read aloud after the goodbyes: the medals and the stars, as shown ("Grades K to 1 medal! 61 of 62 stars.").
   const spoken = b => `Grades ${BANDS[b].label.replace('–', ' to ')}`, medalNames = [band, ...others].map(spoken);

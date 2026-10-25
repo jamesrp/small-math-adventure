@@ -1020,24 +1020,29 @@ function duelSettleHints(p, before, next) {
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five'];
 function duelRender(p, attempt) {
   const board = attempt.board, q = p.parameters, state = ui(p), over = duelOver(board), winner = duelWinner(board), solved = board.streak >= q.streak;
-  const yourTurn = board.first !== null && !over;
+  const yourTurn = board.first !== null && !over, choosing = board.first === null && !solved;
+  // Before a start is chosen a pebble still answers a tap: the status asks who
+  // goes first and Go first / Go second call for attention until one is pressed.
+  if (choosing && state.pick) state.call = true;
+  if (!choosing) state.call = false;
   if (!yourTurn || !state.pick || state.pick.pile > board.piles.length || state.pick.from >= board.piles[state.pick.pile - 1]) state.pick = null;
   const last = board.turns.at(-1)?.player === 'opponent' ? board.turns.at(-1) : null;
   const ghost = last ? { pile: last.pile, count: last.remove } : null;
   const names = q.piles === 2 ? ['left', 'right'] : q.piles === 3 ? ['left', 'middle', 'right'] : Array.from({ length: q.piles }, (_, i) => `number ${i + 1}`);
   // On the road the opponent is Plume (p.rival); in the library it speaks as "I".
-  // Before each game the status says how many wins in a row are still needed,
-  // or that a game from the same start is practice.
+  // Before each game the status says how many more wins in a row are needed,
+  // or that a game from the same start is practice. Before the first win it
+  // says nothing: the goal above the board already asks for the whole run.
   const rival = p.rival || 'I', left = q.streak - board.streak, count = COUNT_WORDS[left] || String(left);
-  const choose = !board.fresh ? 'Wins count from a new start.' : left === q.streak ? `Win ${count} in a row.` : `${count[0].toUpperCase()}${count.slice(1)} more in a row.`;
-  const status = board.first === null ? choose : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : `${rival} took the last pebble.`) :
+  const choose = !board.fresh ? 'Wins count from a new start.' : left === q.streak ? '' : `${count[0].toUpperCase()}${count.slice(1)} more in a row.`;
+  const status = board.first === null ? (state.call ? 'Choose who goes first.' : choose) : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : `${rival} took the last pebble.`) :
     `${last ? `${rival} took ${last.remove} from the ${names[last.pile - 1]} pile. ` : ''}Your turn`;
   const piles = board.piles.map((size, i) => {
     const shown = size + (ghost && ghost.pile === i + 1 ? ghost.count : 0);
     const pebbles = Array.from({ length: shown }, (_, k) => {
       if (k >= size) return '<span class="duel-pebble gone" aria-hidden="true"></span>';
       const take = size - k, lifted = state.pick && state.pick.pile === i + 1 && k >= state.pick.from;
-      return `<button type="button" class="duel-pebble${lifted ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="duel-${i}-${k}" aria-label="Lift ${plural(take, 'pebble', 'pebbles')} from the ${names[i]} pile" aria-pressed="${Boolean(lifted)}" ${yourTurn ? '' : 'disabled'}></button>`;
+      return `<button type="button" class="duel-pebble${lifted ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="duel-${i}-${k}" aria-label="Lift ${plural(take, 'pebble', 'pebbles')} from the ${names[i]} pile" aria-pressed="${Boolean(lifted)}" ${yourTurn || choosing ? '' : 'disabled'}></button>`;
     }).join('');
     return `<div class="duel-bowl" role="group" aria-label="${names[i]} pile, ${plural(size, 'pebble', 'pebbles')}"><div class="duel-pile">${pebbles}</div><span class="duel-base" aria-hidden="true"></span></div>`;
   }).join('');
@@ -1046,7 +1051,7 @@ function duelRender(p, attempt) {
     <div class="proof-roundbar">${pips(q.streak, board.streak, `${board.streak} of ${q.streak} wins in a row`)}</div>
     <p class="duel-status" role="status" tabindex="-1" data-focus="duel-status">${esc(status)}</p>
     <div class="duel-piles">${piles}</div>
-    <div class="proof-actions">${board.first === null ? `${primaryButton('Go first', { type: 'choose', first: 'you' })}${actionButton('Go second', { type: 'choose', first: 'opponent' })}` :
+    <div class="proof-actions${state.call ? ' is-calling' : ''}">${board.first === null ? `${primaryButton('Go first', { type: 'choose', first: 'you' })}${actionButton('Go second', { type: 'choose', first: 'opponent' })}` :
       over ? (solved ? '' : `${winner === 'opponent' ? actionButton('Same start again', { type: 'again' }) : ''}${primaryButton('New start', { type: 'new' })}`) :
       state.pick ? `${moveButton(`Take ${takeCount}`, { type: 'take', pile: state.pick.pile, remove: takeCount }, 'primary')}${uiButton('Cancel', { pick: null }, false)}` : ''}</div>
   </div>`;

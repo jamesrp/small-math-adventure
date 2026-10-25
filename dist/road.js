@@ -113,7 +113,7 @@ export const STOPS = [
       encounter('fair-stalls', 'route', 'hops', 'Every stall', pick('route-02', 'route-08', 'route-11'),
         { open: 'The fair lamps are mine too. Every road, please.', win: 'Splendid. Not a lamp missed.' }),
       encounter('fair-final', 'duel', 'plume', 'Plume’s rematch', pick('proof-duel-01', 'proof-duel-02', 'proof-duel-03'),
-        { open: 'You made it! I practiced every night for this.', win: 'You beat me fair and square. Rematch next year?' }, { rival: true }),
+        { open: 'You made it! I practiced every night for this.', gloat: 'Ha! Told you I practiced!', win: 'You beat me fair and square. Rematch next year?' }, { rival: true }),
     ],
   },
 ];

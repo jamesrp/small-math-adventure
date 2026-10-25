@@ -645,18 +645,34 @@ test('Pebbles with Plume: Plume shows off while winning, so sensible play can wi
   assert.deepEqual(rates, { k1: [14, 57], '23': [11, 28], '45': [14, 39] });
 });
 
-test('Plume’s rematch: Plume speaks, the choose screen says three in a row, and No hints is judged on the winning run', () => {
+test('Plume’s rematch: Plume speaks, says each thing once, gloats in its own words, and No hints is judged on the winning run', () => {
   const e = getEncounter('fair-final'), p = all.find(q => q.id === campaignId('fair-final', 'k1')), m = mechanicFor(p);
   const rnd = () => 0.3, play = action => { a = move(p, a, action, rnd); assert.ok(a, JSON.stringify(action)); };
-  const status = () => m.render(p, a, {});
+  const status = () => m.render(p, a, {}), line = () => status().match(/<p class="duel-status"[^>]*>([^<]*)<\/p>/)[1];
   let a = freshAttempt(p, rnd);
-  assert.match(status(), /Win three in a row\./);
+  // The goal asks for three in a row; the line under it does not say it again.
+  assert.equal(p.objective, 'Win three games in a row.');
+  assert.equal(line(), '', 'the first choose screen adds no line under the goal');
+  // A pebble tapped before a start is chosen asks who goes first, and the buttons call.
+  assert.doesNotMatch(status(), /class="duel-pebble"[^>]*disabled/, 'pebbles answer a tap before the start');
+  m.ui(p, { pick: { pile: 1, from: 0 } });
+  assert.equal(line(), 'Choose who goes first.');
+  assert.match(status(), /class="proof-actions is-calling">[^]*>Go first<[^]*>Go second</);
+  assert.doesNotMatch(status(), /duel-pebble lift/, 'nothing is lifted');
+  m.reset(p);
+  assert.equal(line(), '');
   // A game lost after a hint: the panel closes and the hint is forgotten.
   a = { ...a, hintLevel: 2, helpUsed: true };
+  m.ui(p, { pick: { pile: 1, from: 0 } }); assert.equal(line(), 'Choose who goes first.');
   play({ type: 'choose', first: 'you' });
+  assert.doesNotMatch(status(), /is-calling|Choose who goes first/, 'the call ends with the choice');
   while (a.board.piles.some(Boolean)) play({ type: 'take', pile: a.board.piles.findIndex(Boolean) + 1, remove: 1 });
   assert.equal(a.board.turns.at(-1).player, 'opponent');
   assert.match(status(), /Plume took the last pebble\./); assert.doesNotMatch(status(), /\bI took/);
+  // The rematch has Same start / New start, not Undo: Plume gloats in its own words.
+  const gloat = encounterLine(e, p, a, null);
+  assert.equal(gloat.text, e.lines.gloat); assert.equal(gloat.voice, 'fair-final/gloat'); assert.equal(gloat.pose, 'happy');
+  assert.doesNotMatch(gloat.text, /undo/i); assert.ok(!CAST.plume.gloat.includes(gloat.text));
   assert.equal(a.hintLevel, 0); assert.equal(a.board.hinted, undefined);
   play({ type: 'again' }); assert.match(status(), /Wins count from a new start\./);
   // A run whose first win used a hint keeps that hint until the run ends.
@@ -696,6 +712,36 @@ test('the finale: goodbyes, Plume concedes, the medal, stars out of the most, st
     // The finished fair opens its sheet (with the finale button in main.js).
     assert.match(roadMapView(pr), /data-action="stop-sheet" data-id="fair"/);
   }
+});
+
+test('a star missed on a play says how to win it back, and a replay from the finale goes back to the finale', () => {
+  const nudges = html => (html.match(/Replay to win it/g) || []).length;
+  const plumeRow = html => html.match(/<li class="[^"]*">(?:(?!<li).)*?(?:Beat|Tied) Plume.*?<\/li>/s)?.[0] || '';
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles), rival = rivalScore(e, p);
+    // Swap a pair and back until Plume's count can't be met, then solve: the Plume star is lost.
+    let slow = freshAttempt(p);
+    const there = step(p, slow);
+    for (let i = 0; i < rival; i++) slow = move(p, move(p, slow, there), there);
+    slow = solve(p, slow); pr.attempts[p.id] = slow;
+    assert.equal(rivalVerdict(e, p, slow).result, 'lose');
+    const lost = encounterDone(e, pr, p, slow, recordSolve(pr, p.id, e.id, puzzles));
+    assert.equal(nudges(lost), 1, `${band}: one nudge, for the one star missed`);
+    assert.match(plumeRow(lost), /You \d+ · Plume \d+ swaps<\/small><small class="lr-reason-detail">Replay to win it</, `${band}: under Beat Plume, after the counts`);
+    // Beating Plume needs no nudge; once the best has every star, a slower replay needs none either.
+    const quick = solve(p, restart(p, slow)); pr.attempts[p.id] = quick;
+    assert.equal(nudges(encounterDone(e, pr, p, quick, recordSolve(pr, p.id, e.id, puzzles))), 0);
+    assert.equal(trailFor(pr, band).stars[e.id], maxStars(e, p));
+    assert.equal(nudges(encounterDone(e, pr, p, slow, null)), 0, `${band}: a replay of a 3-star puzzle`);
+  }
+  // From the finale, a replay's strip leads back to it; from anywhere else, to the road.
+  const pr = profile('45'); startJourney(pr);
+  while (!getProgress(pr).complete) finish(pr, undefined, { hints: true });
+  assert.ok((finaleView(pr, puzzles).match(/data-action="open-encounter" data-focus="[^"]*" data-from="finale"/g) || []).length > 0, 'the finale’s replays say where they came from');
+  const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles, 'lighthouse-mirrors'), a = solve(p, restart(p, pr.attempts[p.id]));
+  assert.match(encounterDone(e, pr, p, a, null), /data-action="finish-encounter"[^>]*>See the road/);
+  assert.match(encounterDone(e, pr, p, a, null, 'finale'), /data-action="finale"[^>]*>The Lantern Fair/);
 });
 
 test('the map: the wagon waits at the ferry before the first puzzle, stops show focus, medals are explained, replays start fresh', () => {

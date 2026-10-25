@@ -78,6 +78,8 @@ October 24, 2026, all 21 encounters, before and after the staged-board fixes (`c
 
 The polish raised the keeper's name to 12.5 px and gave the Pumpkin patch's wires 40 px or more (B–E now 41 px on a 375 × 667 phone); the keeper's Listen button measures 44 px. The balance's answer is now a deliberate two-row layout on phones (the pebbles in one line, or two even lines from 7 pebbles on, then Weight beside Check), and `TEST_FAMILY=base-weigh` went from 4 problems to 1 (its board still starts below a phone's first screen).
 
+After the replay fixes of October 24, evening (`claude/replay-pebbles-ntxcu3`), the road run is unchanged at 4 / 3 / 6 problems. The audit measures each board's first screen before anything is tapped, so it cannot see the pebble games' row of buttons that appears with a lifted pebble (it now sticks to the screen's bottom edge on a short screen) or a Hint card opened below the fold (it now scrolls into view): `scripts/road-stages-browser-smoke.mjs` checks those on both phones.
+
 What the polish run still reports on the road: the 4–5 lamp tree's lamp taps (above); Snooze's decorative "z" (aria-hidden, 9.8–11.6 px on phones, and cut off by the scene's edge at the ferry seats); the 4–5 bell's star box overlapping the "4" beside it by 35% on phones (font boxes only; the ink does not touch); the Lighthouse gears' answer form wrapping to two rows on phones (+58 px above a board that runs off the screen); and boards below a phone's first screen under the scene, as on every phone page. `scripts/road-stages-browser-smoke.mjs` is the pass/fail companion for the staged boards.
 
 ## Results, October 24, 2026

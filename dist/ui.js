@@ -49,7 +49,7 @@ function puzzleView(p,a,ctx){
   // A dead end marked `quiet` is told only behind Hint.
   const deadend=!solved&&hint.type==='deadend'&&!hint.quiet;
   const feedback=words(ctx.message)||(deadend&&!a.hintLevel?(expansion?words(hint.text):'This leaves an unfillable gap. Undo or lift a tile.'):'');
-  return `${shown&&ctx.encounter?encounterDone(ctx.encounter,ctx.profile,p,a,ctx.result):''}<div class="play-heading">
+  return `${shown&&ctx.encounter?encounterDone(ctx.encounter,ctx.profile,p,a,ctx.result,ctx.from):''}<div class="play-heading">
     ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">

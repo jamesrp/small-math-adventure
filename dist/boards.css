@@ -96,6 +96,15 @@
 .board-panel .nim-puzzle .duel-pebble:disabled{opacity:1}
 .board-panel .nim-count{font-family:var(--b-display);color:var(--b-muted);font-size:1rem}
 @media (max-width:460px){.board-panel .nim-puzzle .duel-pebble{width:44px;min-width:44px}.board-panel .nim-puzzle .duel-base{width:52px}.board-panel .nim-piles{gap:12px 8px}}
+/* Both pebble games keep the next action on screen. Under the piles when the
+   board fits; on a shorter screen Go first / Go second, Take / Cancel and New
+   start stick to the bottom edge over a paper fade until the board's end
+   scrolls up to meet them. A pebble tapped before a start is chosen makes the
+   two buttons call (a ring, and a pulse unless motion is reduced). */
+.board-panel :is(.nim-puzzle,.proof-duel)>.proof-actions:not(:empty){position:sticky;bottom:0;z-index:2;margin-top:0;padding:16px 0 max(10px,env(safe-area-inset-bottom));background:linear-gradient(#fffdf500,var(--b-card) 16px)}
+.board-panel .proof-duel>.proof-actions.is-calling button{box-shadow:0 0 0 3px var(--b-card),0 0 0 6px var(--b-ochre)}
+@media (prefers-reduced-motion:no-preference){.board-panel .proof-duel>.proof-actions.is-calling button{animation:pebble-call .4s ease-in-out 4 alternate}}
+@keyframes pebble-call{to{transform:scale(1.08)}}
 
 /* Spring-water jugs */
 .board-panel .jug-station h3{font-family:var(--b-display);font-weight:400;font-size:1.3rem}

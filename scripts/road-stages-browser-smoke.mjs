@@ -90,6 +90,87 @@ function survey() {
   return { covered, targets, texts, ropes, stage: stage && box(stage), art: art && box(art), card: card && box(card), panel: panelBox, form: document.querySelector('#bell-form')?.getBoundingClientRect().bottom, heading: panel?.querySelector('h1')?.textContent.trim(), label: document.querySelector('[data-puzzle-id]')?.getAttribute('aria-label'), vh: innerHeight, vw: innerWidth, overflow: document.documentElement.scrollWidth > innerWidth + 1 };
 }
 
+// The pebble games (Pebbles with Plume, Plume's rematch) as a child taps them,
+// by touch on a phone, without scrolling first: the controls needed next are
+// on screen when they are needed (Go first / Go second before the rematch,
+// Take / Cancel once a pebble is lifted, from the top of the page and from its
+// bottom), a pebble tapped before the start asks who goes first and makes the
+// two buttons call, the rematch says "in a row" once, and Hint pressed at the
+// screen's bottom edge brings its card into view. At 390 px wide, a lost
+// rematch game gets the rematch's own gloat.
+async function pebbleGame(page, e, id, size, phone, where, profile) {
+  const onScreen = sel => page.locator(sel).evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { name: el.textContent.trim(), top: Math.round(r.top), bottom: Math.round(r.bottom), on: r.top >= -0.5 && r.bottom <= innerHeight + 0.5 }; }));
+  const allOn = async (sel, names, label) => { const got = await onScreen(sel); assert.deepEqual(got.map(b => b.name), names, `${where}: ${label}`); for (const b of got) assert.ok(b.on, `${where}: ${b.name} on screen when needed (${b.top}–${b.bottom} of ${size.height}) ${label}`); };
+  const tap = async ({ x, y }) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+  // The topmost (or lowest) pebble that shows on screen now, clear of the
+  // button row. When none shows yet, scroll just far enough for the first one,
+  // as a child would, before tapping.
+  const pebble = which => page.evaluate(which => {
+    for (let tries = 0; tries < 6; tries++) {
+      const row = document.querySelector('.proof-actions:not(:empty)')?.getBoundingClientRect(), limit = row && row.top > 0 ? Math.min(row.top, innerHeight) : innerHeight;
+      const all = [...document.querySelectorAll('.duel-pebble:not(.gone):not(:disabled)')].map(n => n.getBoundingClientRect()), seen = all.filter(r => r.top >= 0 && r.bottom <= limit);
+      if (seen.length) { const r = seen.sort((a, b) => which === 'top' ? a.top - b.top : b.bottom - a.bottom)[0]; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+      if (!all.length) return null;
+      scrollBy(0, Math.min(...all.map(r => r.bottom)) - limit + 8);
+    }
+    return null;
+  }, which);
+  const press = async name => { const b = await page.locator('.proof-actions button', { hasText: name }).boundingBox(); await tap({ x: b.x + b.width / 2, y: b.y + b.height / 2 }); };
+  const take = /^Take \d+$/;
+  if (e.mechanic === 'duel') {
+    assert.equal((await page.locator('.board-panel').innerText()).match(/in a row/gi)?.length, 1, `${where}: "in a row" once, in the goal`);
+    await allOn('.proof-actions button', ['Go first', 'Go second'], 'before the start');
+    const first = await pebble('top');
+    assert.ok(first, `${where}: a pebble shows on the first screen`);
+    await tap(first);
+    assert.equal(await page.locator('.duel-status').innerText(), 'Choose who goes first.', `${where}: a pebble tap before the start`);
+    assert.equal(await page.locator('.proof-actions.is-calling').count(), 1, `${where}: the two buttons call`);
+    assert.equal(await page.locator('.duel-pebble.lift').count(), 0, `${where}: nothing lifts before the start`);
+    await allOn('.proof-actions button', ['Go first', 'Go second'], 'after a pebble tap');
+    await press('Go first');
+    assert.equal(await page.locator('.proof-actions.is-calling').count(), 0, `${where}: the call ends with the choice`);
+    checks.add('the rematch: "in a row" once; Go first / Go second on screen; a pebble tap before the start asks who goes first and the buttons call');
+  }
+  await page.evaluate(() => scrollTo(0, 0));
+  for (const which of ['top', 'bottom']) {
+    if (which === 'bottom') await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    const at = await pebble(which);
+    assert.ok(at, `${where}: a pebble shows on screen (${which} of the page)`);
+    await tap(at);
+    const names = (await onScreen('.proof-actions button')).map(b => b.name);
+    assert.ok(names.length === 2 && take.test(names[0]) && names[1] === 'Cancel', `${where}: Take / Cancel (${names})`);
+    await allOn('.proof-actions button', names, `with a pebble lifted (${which} of the page)`);
+    if (which === 'top') await page.screenshot({ path: new URL(`${e.id}-${size.width}x${size.height}-lifted.png`, output).pathname });
+    await press('Cancel');
+  }
+  checks.add('both pebble games: Take / Cancel on screen when a pebble is lifted, at the top of the page and at its bottom');
+  // Hint pressed with its button at the screen's bottom edge: the card comes into view.
+  await page.evaluate(() => { const r = document.querySelector('[data-action=hint]').getBoundingClientRect(); scrollBy(0, r.bottom - innerHeight + 2); });
+  const hint = await page.locator('[data-action=hint]').boundingBox();
+  await tap({ x: hint.x + hint.width / 2, y: hint.y + hint.height / 2 });
+  await page.waitForFunction(() => { const r = document.querySelector('.play-sidebar .hint-card')?.getBoundingClientRect(); return r && r.top >= -0.5 && r.bottom <= innerHeight + 0.5; }, null, { timeout: 4000 }).catch(() => {});
+  await allOn('.play-sidebar .hint-card', [await page.locator('.play-sidebar .hint-card').innerText()], 'after Hint');
+  checks.add('Hint at the bottom edge brings its card into view');
+  if (e.mechanic !== 'duel' || size.width !== 390) return;
+  // Lose a rematch game on purpose: start on the losing side, then take one at a time.
+  await page.locator('[data-action=restart]:visible').click(); await page.locator('.proof-actions button', { hasText: 'Go second' }).waitFor();
+  const start = (await profile()).attempts[id].board.start;
+  await press(start.reduce((a, b) => a ^ b, 0) === 0 ? 'Go first' : 'Go second');
+  for (let i = 0; i < 60; i++) {
+    const board = (await profile()).attempts[id].board;
+    if (!board.piles.some(Boolean)) break;
+    const pile = board.piles.findIndex(Boolean) + 1, n = board.piles[pile - 1];
+    await page.locator(`.duel-pebble[data-ui='${JSON.stringify({ pick: { pile, from: n - 1 } })}']`).click();
+    await press('Take 1');
+  }
+  assert.equal(await page.locator('.duel-status').innerText(), 'Plume took the last pebble.', `${where}: the game is lost`);
+  await allOn('.proof-actions button', ['Same start again', 'New start'], 'after a lost game');
+  const gloat = await page.locator('.lr-bubble').innerText();
+  assert.ok(gloat.includes(e.lines.gloat), `${where}: the rematch's own gloat (${gloat})`);
+  assert.doesNotMatch(gloat, /undo/i, `${where}: no Undo in the rematch's gloat`);
+  checks.add("a lost rematch game gets the rematch's own gloat");
+}
+
 try {
   for (const band of bands) {
     const saves = arrivals(band);
@@ -179,6 +260,7 @@ try {
           assert.ok(await page.locator('.code-mismatch .code-mark-bad').count() > 0, `${where}: a row that doesn't fit is marked ✗`);
           checks.add("the crypt door: lights, old tries, Right, and what to do in view after a wrong Check");
         }
+        if (e.mechanic === 'nim' || e.mechanic === 'duel') await pebbleGame(page, e, id, size, phone, where, profile);
         if (!kind) continue;
         await page.screenshot({ path: new URL(`${band}-${e.id}-${size.width}x${size.height}.png`, output).pathname });
         if (kind === 'boardwalks') {

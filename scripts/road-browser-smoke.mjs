@@ -208,6 +208,29 @@ try {
         await page.locator('.lr-map-layer:visible .lr-stop[data-id="fair"]').click();
         await page.getByRole('button', { name: 'Finale' }).click(); await page.locator('.lr-finale').waitFor();
         checks.push(`${band}: finale goodbyes, medal, stars of ${tally.max}, the fair's sheet`);
+        if (band === 'k1') {
+          // A replay from the finale: lose the Plume star on purpose (a pair
+          // swapped and back), and the solved strip says how to win it back,
+          // then leads back to the finale, also after a reload.
+          const parts = getEncounter('workshop-parts'), pp = all.find(q => q.id === campaignId(parts.id, band)), beat = rivalScore(parts, pp);
+          await page.getByRole('button', { name: `Replay ${parts.title}`, exact: true }).click(); await page.locator('.board-panel').waitFor();
+          assert.equal(await page.evaluate(() => location.hash), `#play/${pp.id}/${parts.id}/finale`, 'the replay remembers the finale');
+          const cups = async ([x, y]) => { await page.locator(`.cup-button[data-cell="${x}"]`).click(); await page.locator(`.cup-button[data-cell="${y}"]`).click(); };
+          for (let i = 0; i < beat; i++) { await cups(pp.edges[0]); await cups(pp.edges[0]); }
+          for (let i = 0; i < 40 && !await page.locator('#completion-heading').count(); i++) { const pr = await ui.profile(); await cups(nextHint(pp, pr.attempts[pp.id]).pair); }
+          const plumeRow = page.locator('.lr-star-reasons li').filter({ hasText: 'Plume' });
+          assert.equal(await plumeRow.getAttribute('class'), '', 'the Plume star is missed');
+          assert.match(await plumeRow.innerText(), /You \d+ · Plume \d+ swaps\s*Replay to win it/, 'the missed Plume star says how to win it back');
+          assert.equal(await page.locator('.lr-star-reasons li').filter({ hasText: 'No hints' }).getAttribute('class'), 'got');
+          assert.equal((await page.locator('.lr-star-reasons').innerText()).match(/Replay to win it/g).length, 1, 'one nudge, for the one star missed');
+          await capture('finale-replay-solved');
+          await page.reload(); await page.locator('#completion-heading').waitFor();
+          const back = page.locator('.lr-done-actions .primary');
+          assert.match(await back.innerText(), /^The Lantern Fair/, 'the strip leads back to the finale');
+          await back.click(); await page.locator('.lr-finale').waitFor();
+          assert.equal(await page.evaluate(() => location.hash), '#finale');
+          checks.push('k1: a missed Plume star says Replay to win it; a replay from the finale returns to #finale');
+        }
         break;
       }
       await ui.action('finish-encounter').click();

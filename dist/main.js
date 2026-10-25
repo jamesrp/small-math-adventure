@@ -117,9 +117,13 @@ function render(){
   answerAloud();
   if(gated&&!currentDialog?.dataset.gate)grownUpGate();
 }
+// A hint opens under Undo, Restart and Hint. On a phone that can be past the
+// screen's bottom edge, where pressing Hint would seem to do nothing, so the
+// card scrolls up into view; a card already on screen stays where it is.
+function revealHint(){const card=app.querySelector('.play-sidebar .hint-card');if(!card)return;const r=card.getBoundingClientRect();if(r.top>=0&&r.bottom<=innerHeight)return;card.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
 // What the play screen draws besides the attempt: the moment's selections,
 // message, keeper reaction and solve.
-function playContext(p,pr,encounter){const here=location.hash,result=solveResult?.key===here?solveResult:null;return {pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:reaction?.key===here?reaction:null,result,changed:Boolean(result?.first)};}
+function playContext(p,pr,encounter){const here=location.hash,result=solveResult?.key===here?solveResult:null;return {pack,profile:pr,encounter,from:encounter&&route()[3]==='finale'?'finale':null,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:reaction?.key===here?reaction:null,result,changed:Boolean(result?.first)};}
 // A piece that changed place (a traveler swapping seats, Hops walking a
 // boardwalk) moves there from where it was instead of jumping.
 function glide(before){
@@ -425,14 +429,16 @@ function grownUpGate(){
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
 // Replay from a stop sheet, the Journal or the finale (replay) starts a fresh attempt.
-function openEncounter(id,replay=false){
+// One opened from the finale keeps that in its address (…/finale), so its
+// solved strip leads back to the finale, even after a reload.
+function openEncounter(id,replay=false,from=null){
   if(!profile())return;
   const next=beginEncounter(profile(),puzzles,id);
   if(!next){go('map');return;}
   const old=profile().attempts[next.puzzle.id];
   if(!old)profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   else if(replay)profile().attempts[next.puzzle.id]=restart(next.puzzle,old);
-  save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
+  save();go(`play/${next.puzzle.id}/${next.encounter.id}${from==='finale'?'/finale':''}`);
 }
 function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);if(!next&&chosenTap)return;selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
 document.addEventListener('keydown',event=>{
@@ -481,7 +487,7 @@ document.addEventListener('click',event=>{
   else if(action==='journal')go('journal');
   else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
   else if(action==='refuse'){tapNote(control,control.dataset.text,event);noteAloud(control.dataset.text);}
-  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1');}
+  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1',control.dataset.from);}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();
     if(!encounter||!isSolved(p,a.board))return;
@@ -515,7 +521,7 @@ document.addEventListener('click',event=>{
   // look after it, both at rest (a clock run drawn whole).
   else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){const atRest=()=>({...playContext(p,profile(),activeEncounter()),clockPresentation:undefined}),shown=a.history.length?playView(p,a,atRest()):null;selected=null;tileSelection=[];highlighted=null;message='';const ctx=atRest();let drawn=null;const next=undoPress(p,a,b=>(drawn={attempt:b,html:playView(p,b,ctx)}).html,shown);put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else{undoDrawn=drawn?.attempt===next?drawn.html:null;render();}}
   else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();let next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);if(action==='restart'&&isExpansion(p)&&mechanicFor(p).carryOnRestart)next={...next,board:mechanicFor(p).carryOnRestart(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if(action==='hint'&&a&&!p.missingAbility){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
+  else if(action==='hint'&&a&&!p.missingAbility){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();revealHint();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
