@@ -236,7 +236,7 @@ Edges: 1–2, 1–3, 2–3, 2–4, 3–4, 3–5, 4–5, 4–6, 5–6, 5–7, 6�
 
 **Player prompt:** Color all ten lanterns with three colors. Every link joins different colors. Line crossings have no lantern and do not add connections.
 
-**Exact board:** Petersen graph: outer pentagon o0–o1–o2–o3–o4–o0; inner star links i0–i2–i4–i1–i3–i0; five matching spokes oj–ij. Vertices: o0, o1, o2, o3, o4, i0, i1, i2, i3, i4.
+**Exact board:** Petersen graph: outer pentagon o0–o1–o2–o3–o4–o0; inner star links i0–i2–i4–i1–i3–i0; five matching spokes oj–ij. Vertices: o0, o1, o2, o3, o4, i0, i1, i2, i3, i4. The board shows them to the child as A–E (outer) and F–J (inner); the ids stay as stored.
 
 Edges: o0–o1, o1–o2, o2–o3, o3–o4, o4–o0, i0–i2, i1–i3, i2–i4, i3–i0, i4–i1, o0–i0, o1–i1, o2–i2, o3–i3, o4–i4.
 

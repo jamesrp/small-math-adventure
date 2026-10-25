@@ -5,13 +5,17 @@
 // text, a tap on a lamp lighting its ropes without a move, the bell's refusals
 // in words, How to play in the stage's own words with Done in reach, the bell's
 // chart on a short phone, the board starting on screen on a tablet in
-// landscape, keepers' names at 12 px, and the balance's answer rows on phones.
+// landscape, keepers' names at 12 px, and the balance's answer rows on phones;
+// since the October 24 replay also the crypt door's words and its line after a
+// wrong Check in view, an answer beside a tap on a stop further on or on a
+// platform no boardwalk reaches, the 44 px Checker switch, and keepers' circles
+// in their colour while their pictures load.
 // Isolated browser profiles only. Environment: PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_BANDS (e.g. "k1"), TEST_PHONE=1 (the two
 // phones only). Screenshots go in test-results/road-stages/.
 import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
-import { MAIN, BAND_KEYS, startJourney, beginEncounter, recordSolve, campaignId, withCampaignPuzzles } from '../dist/road.js';
+import { MAIN, BAND_KEYS, CAST, startJourney, beginEncounter, recordSolve, campaignId, withCampaignPuzzles } from '../dist/road.js';
 import { mechanicFor } from '../dist/expansion.js';
 import { freshAttempt, nextHint, move, isSolved } from '../dist/engine.js';
 import { emptyStore, SAVE_KEY } from '../dist/storage.js';
@@ -96,6 +100,22 @@ try {
       page.on('pageerror', error => errors.push(`${tag}: ${error.message}`));
       const profile = async () => page.evaluate(key => { const s = JSON.parse(localStorage.getItem(key)); return s.profiles.find(p => p.id === s.activeProfileId); }, SAVE_KEY);
       await page.goto(base);
+      // A tap on a stop further along the road answers beside the tap.
+      const tapAt = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(), x = b.x + b.width / 2, y = b.y + b.height / 2; if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+      const noteShown = async (pattern, where) => {
+        const note = page.locator('.tap-note'); await note.waitFor();
+        assert.match(await note.innerText(), pattern, where);
+        const r = await note.evaluate(el => { const b = el.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, px: parseFloat(getComputedStyle(el).fontSize), w: innerWidth, h: innerHeight }; });
+        assert.ok(r.left >= 0 && r.right <= r.w && r.top >= 0 && r.bottom <= r.h && r.px >= 12, `${where}: the note is on screen at ${r.px} px`);
+      };
+      await page.evaluate(([key, value]) => localStorage.setItem(key, value), [SAVE_KEY, saves['ferry-bell']]);
+      await page.goto(`${base}/#map`); await page.locator('.lr-overview').waitFor();
+      const ahead = page.locator('.lr-map-layer:visible .lr-stop[data-id="hollow"]');
+      assert.equal(await ahead.getAttribute('aria-disabled'), 'true', `${tag}: a stop ahead is marked, not dead`);
+      await tapAt(ahead);
+      await noteShown(/^That’s further on!$/, `${tag}: a stop ahead`);
+      assert.equal(await page.locator('.lr-overview').count(), 1, `${tag}: the map stays`);
+      checks.add('a tap on a stop further on says so beside it');
       for (const e of MAIN) {
         const id = campaignId(e.id, band), p = all.find(q => q.id === id), kind = stageKind(e, p);
         await page.evaluate(([key, value]) => localStorage.setItem(key, value), [SAVE_KEY, saves[e.id]]);
@@ -134,8 +154,41 @@ try {
           if (kind === 'boardwalks') assert.match(await page.locator('.stage-count').innerText(), /^\d+ of \d+ lamps lit$/, `${where}: the stage counts lamps, not steps`);
           checks.add("one count of the child's moves, on Plume's card");
         }
+        // The keeper's circle is the keeper's colour until the picture has loaded.
+        const ring = await page.locator('.lr-keeper .lr-portrait').evaluate(el => getComputedStyle(el).backgroundColor);
+        const hex = CAST[e.speaker].color.match(/[0-9a-f]{2}/gi).map(h => parseInt(h, 16));
+        assert.equal(ring, `rgb(${hex.join(', ')})`, `${where}: the portrait's circle takes ${CAST[e.speaker].name}'s colour`);
+        checks.add("keepers' circles in their colour while the picture loads");
+        if (e.mechanic === 'tile') {
+          const toggle = await page.locator('.checker-toggle').boundingBox(), knob = await page.locator('#checker').boundingBox();
+          assert.ok(toggle.height >= 44 - .5 && knob.width >= 44 - .5, `${where}: Checker colors is a 44 px switch (${Math.round(toggle.height)} tall, ${Math.round(knob.width)} wide)`);
+          assert.equal(await page.locator('#checker').getAttribute('role'), 'switch');
+          checks.add('Checker colors is a 44 px switch');
+        }
+        if (e.id === 'hollow-crypt') {
+          // The crypt door in a child's words; after a wrong Check the line saying
+          // what to do comes into view, even when the child scrolled down to Check.
+          assert.deepEqual(await page.locator('.code-transcript thead th').allInnerTexts(), ['Old try', 'Right'], `${where}: the table`);
+          assert.equal(s.heading, 'Each old try shows how many lights were right. Find the code.', `${where}: the goal`);
+          for (let i = 0; i < p.parameters.length; i++) await tapAt(page.getByRole('button', { name: `Light ${i + 1}: 1`, exact: true }));
+          const check = page.locator('.deduction-form-controls button');
+          await check.evaluate(button => scrollTo(0, button.getBoundingClientRect().top + scrollY - 8));
+          await tapAt(check);
+          await page.waitForFunction(() => { const r = document.querySelector('.code-feedback:not([hidden])')?.getBoundingClientRect(); return r && r.top >= 0 && r.bottom <= innerHeight; }, null, { timeout: 5000 });
+          assert.equal(await page.locator('.code-feedback').innerText(), band === 'k1' ? 'Change one light and try again.' : 'Some old tries don’t fit yet. Change a light and check again.');
+          assert.ok(await page.locator('.code-mismatch .code-mark-bad').count() > 0, `${where}: a row that doesn't fit is marked ✗`);
+          checks.add("the crypt door: lights, old tries, Right, and what to do in view after a wrong Check");
+        }
         if (!kind) continue;
         await page.screenshot({ path: new URL(`${band}-${e.id}-${size.width}x${size.height}.png`, output).pathname });
+        if (kind === 'boardwalks') {
+          // A platform no boardwalk reaches from Hops answers a tap, beside it, in the stage's words.
+          if (!await page.locator('.stage-junction[data-action="refuse"]').count()) await tapAt(page.locator('.stage-junction:not([disabled])').first());
+          const far = page.locator('.stage-junction[data-action="refuse"]').first();
+          await tapAt(far);
+          await noteShown(/^No boardwalk goes from \w to \w\.$/, `${where}: a far platform`);
+          checks.add('a tap on a platform no boardwalk reaches says so beside it');
+        }
         assert.deepEqual(s.covered, [], `${where}: pieces in the picture and uncovered`);
         for (const t of s.targets) assert.ok(Math.min(t.width, t.height) >= 40 - .5, `${where}: ${t.name} is ${Math.round(t.width)}×${Math.round(t.height)} px`);
         // The stage's own words, in the heading and the page's name.

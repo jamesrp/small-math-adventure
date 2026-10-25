@@ -64,8 +64,8 @@ export const STOPS = [
   {
     id: 'ridge', title: 'Windy Ridge', keeper: 'billie', mood: 'day',
     encounters: [
-      encounter('ridge-stones', 'weigh', 'billie', 'Cable-car stones', pick('weigh-02', 'weigh-03', 'weigh-05'),
-        { open: 'One stone’s the wrong weight! Find it or we wobble!', win: 'Found it! Up we go!' }),
+      encounter('ridge-stones', 'weigh', 'billie', 'Cable-car pebbles', pick('weigh-02', 'weigh-03', 'weigh-05'),
+        { open: 'One pebble’s the wrong weight! Find it or we wobble!', win: 'Found it! Up we go!' }),
       encounter('ridge-duel', 'nim', 'plume', 'Pebbles with Plume', pick('nim-02', 'nim-04', 'nim-05'),
         { open: 'You caught up? Pebble game! I never lose. Your move.', win: 'Best two out of three? …No? Fine.' }, { rival: true }),
       encounter('ridge-kites', 'color', 'billie', 'Kites', pick('color-02', 'color-03', 'color-06'),
@@ -76,7 +76,7 @@ export const STOPS = [
     id: 'hollow', title: 'Spooky Hollow', keeper: 'rattle', mood: 'spooky',
     encounters: [
       encounter('hollow-pumpkins', 'toggle', 'rattle', 'Pumpkin patch', pick('toggle-16', 'toggle-08', 'toggle-42'),
-        { open: 'Light my pumpkins… if you dare.', win: 'Oooh. Spooky-pretty.' }),
+        { open: 'Light my pumpkin lanterns… if you dare.', win: 'Oooh. Spooky-pretty.' }),
       encounter('hollow-crypt', 'code', 'rattle', 'Crypt door', pick('code-02', 'code-04', 'code-05'),
         { open: 'My crypt door can’t keep a secret. Heh heh.', win: 'Creeeak! It opens!' }),
       encounter('hollow-plots', 'proofgarden', 'rattle', 'The garden nobody covered', pick('proof-garden-01', 'proof-garden-03', 'proof-garden-03'),
@@ -90,8 +90,8 @@ export const STOPS = [
         { open: 'Patch the floor! I keep falling in that hole.', win: 'No more falling! Thanks!' }),
       encounter('workshop-pump', 'jug', 'sprocket', 'The new pump', pick('jug-02', 'jug-08', 'jug-04'),
         { open: 'New pump! Fills! Empties! Try it!', win: 'It works! Keep it. I’ll build another.' }, { grants: 'pump' }),
-      encounter('workshop-parts', 'swap', 'sprocket', 'Turntable parts', pick('swap-k1-12', 'swap-23-10', 'swap-45-09'),
-        { open: 'Parts in their slots! Quick, before it goes bang!', win: 'Sorted! Nothing went bang!' }),
+      encounter('workshop-parts', 'swap', 'sprocket', 'Turntable cups', pick('swap-k1-12', 'swap-23-10', 'swap-45-09'),
+        { open: 'Cups in their slots! Quick, before it goes bang!', win: 'Sorted! Nothing went bang!' }),
     ],
   },
   {
@@ -100,7 +100,7 @@ export const STOPS = [
       encounter('lighthouse-mirrors', 'billiard', 'wick', 'Mirror room', pick('billiard-02', 'billiard-04', 'billiard-05'),
         { open: 'The ships need light. Send it to the ringed corner.', win: 'The ships see us. Good.' }),
       encounter('lighthouse-gears', 'clock', 'wick', 'Beacon gears', pick('clock-02', 'clock-04', 'clock-06'),
-        { open: 'The beacon’s stuck again. The ships are waiting. Patiently.', win: 'Steady. Good.' }),
+        { open: 'The beacon bell’s stuck again. The ships are waiting. Patiently.', win: 'Steady. Good.' }),
       encounter('lighthouse-lamps', 'toggle', 'wick', 'Harbor lamps', pick('toggle-15', 'toggle-09', 'toggle-12'),
         { open: 'The fishing boats come home soon. They look for these lamps.', win: 'Hoo. Well done.' }),
     ],
@@ -109,9 +109,9 @@ export const STOPS = [
     id: 'fair', title: 'The Lantern Fair', keeper: 'plume', mood: 'fair',
     encounters: [
       encounter('fair-prizes', 'weigh', 'billie', 'Prize booth', pick('weigh-03', 'weigh-08', 'weigh-12'),
-        { open: 'Billie’s booth! One prize is a fake! Spot it, it’s yours!', win: 'The real one’s yours! Ha!' }),
+        { open: 'Billie’s booth! One pebble’s a fake! Spot it and win!', win: 'Spotted! Pick a prize! Ha!' }),
       encounter('fair-stalls', 'route', 'hops', 'Every stall', pick('route-02', 'route-08', 'route-11'),
-        { open: 'The fair lamps are mine too. Every path, please.', win: 'Splendid. Not a lamp missed.' }),
+        { open: 'The fair lamps are mine too. Every road, please.', win: 'Splendid. Not a lamp missed.' }),
       encounter('fair-final', 'duel', 'plume', 'Plume’s rematch', pick('proof-duel-01', 'proof-duel-02', 'proof-duel-03'),
         { open: 'You made it! I practiced every night for this.', win: 'You beat me fair and square. Rematch next year?' }, { rival: true }),
     ],
@@ -250,6 +250,27 @@ const ROAD_HINTS = {
     '23': ['Lost a game? Same start again replays those piles. Watch which piles Plume leaves you.', 'Think of the starts you lost after going first. Split each pile into bundles of 4, 2 and 1. What do those starts have in common?', 'When Plume won, what did Plume’s takes leave you each time? Leave Plume piles like those.'],
   },
 };
+// The crypt door is the library's Signal Lanterns board in its own words (the
+// code mechanic's `codeWords`, dist/deduction.js): each position is a light
+// (gold when it is 1), each recorded test an old try, and its number how many
+// lights that try got right. A wrong Check marks each row that doesn't fit (K–1
+// see only ✓ and ✗, older trails also the number the child's code gives) and
+// says what to do next under the table, in view on a phone.
+const CRYPT_COMMON = { position: 'Light', caption: 'Old tries', test: 'Old try', right: 'Right', yours: 'Your code', miss: '✗', showFeedback: true,
+  goal: 'Each old try shows how many lights were right. Find the code.',
+  help: 'Tap 0 or 1 for each light, then Check. A light is right when the old try has the same number in that place.',
+  fits: 'Every old try fits. Check this code.', set: 'Try {value} for light {position}.',
+  rules: ['Each light is 0 or 1, and the same number may repeat.', 'An old try’s number counts its lights that match your code in the same place. It doesn’t say which ones.', 'Every old try is shown from the start. Set a code that fits them all, then Check.'] };
+const CRYPT_WORDS = {
+  k1: { ...CRYPT_COMMON, count: false, feedback: 'Change one light and try again.' },
+  '23': { ...CRYPT_COMMON, count: true, feedback: 'Some old tries don’t fit yet. Change a light and check again.' },
+  '45': { ...CRYPT_COMMON, count: true, feedback: 'Some old tries don’t fit yet. Change a light and check again.' },
+};
+ROAD_HINTS['hollow-crypt'] = {
+  k1: ['Look at 000 and 100. Only the first light changed. Which got more right?'],
+  '23': ['Compare 1110 with 1100: only light 3 is different. Then compare 1110 with 1010.'],
+  '45': ['Compare 00000 with 00101. Only lights 3 and 5 are different. What must they be?'],
+};
 // At the Ridge Plume is showing off: while some pile still has three or more
 // pebbles, Plume throws away its first two chances to win in a game (the nim
 // mechanic's rival_slips, dist/deduction.js). The rematch at the fair is
@@ -274,6 +295,7 @@ export function withCampaignPuzzles(puzzles) {
     if (copy.parameters?.checkerAfter) copy.parameters = { ...copy.parameters, checkerAfter: campaignId('hollow-plots', band) };
     if (e.speaker === 'plume' && e.rival) copy.rival = 'Plume';
     if (e.id === 'ridge-duel') copy.parameters = { ...copy.parameters, rival_slips: RIDGE_SLIPS };
+    if (e.id === 'hollow-crypt') Object.assign(copy, { codeWords: CRYPT_WORDS[band], visibleObjective: CRYPT_WORDS[band].goal, rules: CRYPT_COMMON.rules });
     const hints = ROAD_HINTS[e.id]?.[band];
     if (hints && Array.isArray(copy.hints)) { copy.hints = [...hints, ...copy.hints.slice(hints.length)]; copy.hint = copy.hints[0]; }
     // Routes on the road light every lamp by any walk; the shortest walk is

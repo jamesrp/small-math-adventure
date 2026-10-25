@@ -7,9 +7,9 @@ import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undoPress,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,REPAIR_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
 import { PREVIEW } from './preview.js';
-import { esc,playView,parentView,notesHTML,readsAloud } from './ui.js';
+import { esc,playView,parentView,notesHTML,readsAloud,tapNote } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
-import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
+import { caravanHeader, caravanProfiles, libraryView, familyOf } from './caravan-ui.js';
 import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeeper, sayLine, startTalk, stopTalk, resetTalk } from './road-ui.js';
 import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
@@ -17,6 +17,7 @@ import { stageKind, stageHelp, dress } from './road-stage.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
 const viewState=createViewState(app);
+let libraryReturn=null,libraryScroll=false;
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
 let tileSelection=[],tileGesture=null;
 const clockTimeline=createClockTimeline(()=>render());
@@ -81,7 +82,7 @@ function render(){
   // Grown-ups opens only through its gate; an address typed straight to it
   // shows the road (or the explorers) behind the gate instead.
   const gated=view==='parents'&&!grownUp;
-  const content=view==='parents'&&!gated?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band'],Boolean(waitingUpdate)):!pr||view==='profiles'?caravanProfiles(state,route()[1]==='new'):view==='parents'?roadMapView(pr):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
+  const content=view==='parents'&&!gated?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band'],Boolean(waitingUpdate)):!pr||view==='profiles'?caravanProfiles(state,route()[1]==='new'):view==='parents'?roadMapView(pr):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles,libraryReturn):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
   undoDrawn=null;
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
@@ -111,6 +112,7 @@ function render(){
   wireClockBoard();
   wireMechanic();
   viewState.restore();
+  if(libraryScroll&&view==='library'){libraryScroll=false;const family=app.querySelector('details.satchel-family[open]'),top=family?.getBoundingClientRect().top;if(family&&(top<0||top>innerHeight/2))family.scrollIntoView({block:'start'});}
   setReading(reading);
   if(gated&&!currentDialog?.dataset.gate)grownUpGate();
 }
@@ -403,9 +405,12 @@ document.addEventListener('click',event=>{
   else if(action==='profiles')go('profiles');
   else if(action==='explorer-menu'){accountOpen=!accountOpen;control.closest('.caravan-topbar')?.classList.toggle('account-open',accountOpen);control.setAttribute('aria-expanded',String(accountOpen));}
   else if(action==='map')go('map');
-  else if(action==='library')go('library');
+  // The Puzzles tab from a library puzzle reopens its family (a home-screen app
+  // has no Back button); from anywhere else the library opens closed.
+  else if(action==='library'){libraryReturn=route()[0]==='play'&&p&&!p.campaignOnly?familyOf(p):null;libraryScroll=Boolean(libraryReturn);go('library');}
   else if(action==='journal')go('journal');
   else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
+  else if(action==='refuse')tapNote(control,control.dataset.text,event);
   else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1');}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();

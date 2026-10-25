@@ -302,7 +302,9 @@ function gardenRender(p, attempt, ctx = {}) {
   const answer = painted(pt) && answered === pt.more ? [pt.more ? { text: `${pt.more === 1 ? 'Gold' : 'Green'} has more`, count: counts, state: true } : { text: 'Same counts: paint can’t prove it here.', count: counts, state: 'info' }] : [];
   const proofCards = (st.count ? card('Star proof', [
     { text: 'Stars don’t touch', state: !st.touching },
-    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count > st.partners }
+    // Too few stars yet is not a fault: the count stays "not yet" until it
+    // holds, and only touching stars are marked to fix.
+    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count > st.partners ? true : null }
   ]) : '') + (anyPaint ? card('Paint proof', [
     { text: 'Every square painted', count: pt.blank ? `${pt.blank} blank` : '', state: !pt.blank ? true : null },
     { text: 'Touching squares differ', state: pt.clash ? false : !pt.blank ? true : null },

@@ -8,7 +8,7 @@ import {MAIN,SIDE,BAND_KEYS,trailFor,campaignId} from './road.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,cls='',extra='')=>`<button type="button" class="${cls}" data-action="${action}" data-focus="action-${action}" ${extra}>${label}</button>`;
-const familySymbols={tile:'▰',swap:'⇄',toggle:'☀',clock:'◷',billiard:'↗',route:'♧',latin:'▦',code:'◐',nim:'●',color:'◆',jug:'♒',weigh:'⚖',...Object.fromEntries(newFamilies().map(f=>[f.id,f.symbol]))};
+const familySymbols={tile:'▰',swap:'⇄',toggle:'☀',clock:'◷',billiard:'↗',route:'♧',latin:'▦',code:'◐',nim:'●',color:'◆',jug:'⊔',weigh:'⚖',...Object.fromEntries(newFamilies().map(f=>[f.id,f.symbol]))};
 const familyNames={tile:'Tile gardens',swap:'Cup swaps'};
 
 // Road, Puzzles and Journal are the three places; the explorer's name and
@@ -49,7 +49,7 @@ export function caravanProfiles(state,adding=false){
 // road order; then the road's other families in pack order; then the families
 // on the seam (dist/families.js), newest first. Inside a graded family the
 // explorer's own grade comes first after Proofs.
-const familyOf=p=>p.libraryFamily||p.mechanic;
+export const familyOf=p=>p.libraryFamily||p.mechanic;
 export function roadFamilies(profile,puzzles){
  const byId=new Map(puzzles.map(p=>[p.id,p])),met=[];
  for(const e of [...MAIN,...SIDE])for(const band of BAND_KEYS){
@@ -60,7 +60,10 @@ export function roadFamilies(profile,puzzles){
  }
  return met;
 }
-export function libraryView(profile,puzzles){
+// `openFamily`: the family of the library puzzle the child just left by the
+// Puzzles tab, open again (dist/main.js); from anywhere else every family
+// starts closed.
+export function libraryView(profile,puzzles,openFamily=null){
  puzzles=puzzles.filter(p=>!p.campaignOnly);
  const newest=newFamilies().map(f=>f.id),present=[...new Set(puzzles.map(familyOf))];
  const shelf=roadFamilies(profile,puzzles).filter(id=>present.includes(id));
@@ -71,7 +74,7 @@ export function libraryView(profile,puzzles){
   const graded=core.some(p=>p.band!=='all'),labels={easy:'Easy',medium:'Medium',hard:'Hard',proofs:'Proofs'};
   const named=[...new Set(family.filter(p=>p.band!=='proofs'&&p.group).map(p=>p.group))];
   const groups=[...(family.some(p=>p.band==='proofs')?['proofs']:[]),...(graded?grades:['easy','medium','hard']),...named.map(name=>({name}))];
-  return `<details class="satchel-family" data-view-key="family-${esc(id)}"><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${play?`<button type="button" class="satchel-playground ${profile.attempts?.[play.id]?'started':''}" data-action="open-puzzle" data-id="${esc(play.id)}"><span aria-hidden="true">${familySymbols[id]||'✦'}</span> Playground</button>`:''}${groups.map(group=>{
+  return `<details class="satchel-family" data-view-key="family-${esc(id)}"${id===openFamily?' open':''}><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${play?`<button type="button" class="satchel-playground ${profile.attempts?.[play.id]?'started':''}" data-action="open-puzzle" data-id="${esc(play.id)}"><span aria-hidden="true">${familySymbols[id]||'✦'}</span> Playground</button>`:''}${groups.map(group=>{
    const proofs=group==='proofs',custom=typeof group==='object';
    const list=family.filter(p=>custom?p.band!=='proofs'&&p.group===group.name:proofs?p.band==='proofs':p.band!=='proofs'&&!p.group&&(graded?p.band===group:p.difficulty_level===group)).sort((a,b)=>a.number-b.number);
    if(!list.length)return '';

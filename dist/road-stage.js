@@ -9,7 +9,7 @@
 // of it (`phoneView`): the middle (x 200–1400) for the seats and boardwalks,
 // the bow above the deck for the bell, and the lamps' own box for the lamps,
 // so everything a child needs stays inside that and is drawn larger.
-import { nextHint } from './engine.js';
+import { nextHint, isSolved } from './engine.js';
 import { getEncounter } from './road.js';
 import { PARTY, PARTY_NAMES, CAST } from './road-cast.js';
 import { media, slots, asset } from './art.js';
@@ -17,7 +17,7 @@ import { companionDrawing } from './caravan-art.js';
 import { ferryStage, marshStage, bellArt, hopsArt } from './stage-placeholders.js';
 import { wagonArt } from './road-placeholders.js';
 import { clockFace, clockPlace, bellChart, clockFeedback, clockPeriod } from './motion.js';
-import { routeInfo, networkPositions } from './networks.js';
+import { routeInfo, networkPositions, routeRefusal } from './networks.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const at = (x, y, size) => `--x:${Math.round(x)};--y:${Math.round(y)}${size ? `;--s:${size}` : ''}`;
@@ -206,8 +206,10 @@ function marshLayers(p, a, hint) {
   const cap = q.cost_cap ?? q.target_cost, here = info.current;
   const walks = q.edges.map(([u, v], i) => boardwalk(spots[u], spots[v], info.uses[i] > 0, i)).join('');
   const pads = q.vertices.map(v => { const { x, y } = spots[v]; return `<g class="stage-pad"><ellipse cx="${x}" cy="${y + 10}" rx="66" ry="40" fill="#4a3220"/><ellipse cx="${x}" cy="${y}" rx="66" ry="40" fill="#8d6a43" stroke="#3b2a1a" stroke-width="5"/><ellipse cx="${x - 14}" cy="${y - 8}" rx="30" ry="12" fill="#5d7f45" opacity=".8"/><text x="${x - 62}" y="${y + 50}" class="stage-pad-label">${esc(v)}</text></g>`; }).join('');
+  const done = isSolved(p, a.board);
   const reachable = v => !here || q.edges.some(([u, w, cost]) => (u === here && w === v || w === here && u === v) && info.cost + cost <= cap);
-  const buttons = q.vertices.map(v => { const { x, y } = spots[v], go = reachable(v); return `<button type="button" class="stage-piece stage-junction ${here === v ? 'is-here' : ''} ${go ? 'can-go' : ''} ${hint?.action?.vertex === v ? 'is-hinted' : ''}" style="${at(x, y, 150)}" ${move({ vertex: v })} data-focus="junction-${esc(v)}" aria-label="${here ? `${here === v ? 'Hops is here. ' : ''}Walk to ${esc(v)}` : `Start at ${esc(v)}`}" ${here === v ? 'aria-current="location"' : ''} ${go ? '' : 'disabled'}></button>`; }).join('');
+  // A platform no boardwalk reaches from Hops answers a tap with why, in the stage's words.
+  const buttons = q.vertices.map(v => { const { x, y } = spots[v], go = reachable(v), refusal = go || done ? '' : dress('boardwalks', routeRefusal(p, a.board, v)); return `<button type="button" class="stage-piece stage-junction ${here === v ? 'is-here' : ''} ${go ? 'can-go' : ''} ${hint?.action?.vertex === v ? 'is-hinted' : ''}" style="${at(x, y, 150)}" ${refusal ? `data-action="refuse" data-text="${esc(refusal)}" aria-disabled="true"` : move({ vertex: v })} data-focus="junction-${esc(v)}" aria-label="${here ? `${here === v ? 'Hops is here. ' : ''}Walk to ${esc(v)}` : `Start at ${esc(v)}`}" ${here === v ? 'aria-current="location"' : ''} ${go || refusal ? '' : 'disabled'}></button>`; }).join('');
   return { back: walks + pads, pieces: buttons + hopsPiece(p, here ? spots[here] : MARSH.entrance), info };
 }
 

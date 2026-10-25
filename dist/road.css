@@ -41,7 +41,7 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-scene-art>:is(img,video){object-position:50% 62%}
 .lr-keeper{position:relative;z-index:2;display:flex;align-items:flex-start;gap:12px;margin:-50px 14px 0;pointer-events:none}
 .lr-keeper>*{pointer-events:auto}
-.lr-portrait{flex:none;width:100px;height:100px;border-radius:50%;overflow:hidden;background:var(--rd-card);border:4px solid var(--rd-card);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.lr-portrait{flex:none;width:100px;height:100px;border-radius:50%;overflow:hidden;background:var(--keeper,var(--rd-card));border:4px solid var(--rd-card);box-shadow:0 3px 0 rgba(0,0,0,.18)}
 .lr-bubble{position:relative;margin:58px 0 0;max-width:min(52ch,100%);min-height:52px;background:var(--rd-card);color:var(--rd-ink);border-radius:18px;padding:10px 54px 11px 14px;font-size:1.08rem;line-height:1.35;box-shadow:0 0 0 1px var(--rd-line),0 3px 0 rgba(0,0,0,.12)}
 .lr-bubble::before{content:"";position:absolute;left:-9px;top:14px;border:9px solid transparent;border-right-color:var(--rd-card);border-left:0}
 .lr-speaker{display:block;font-size:.78rem;line-height:1.25;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rd-muted);margin-bottom:1px}
@@ -205,7 +205,7 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-marsh-lamp.is-lit .stage-lamp-glass{fill:#ffe27a;stroke:#9a6b10}
 .stage-pad-label{font:700 30px var(--rd-body);fill:#f3efe0;text-anchor:middle;paint-order:stroke;stroke:#0e2a33;stroke-width:6}
 .stage-junction{translate:-50% -50%;aspect-ratio:150/92;border-radius:50%;cursor:pointer}
-.stage-junction:disabled{cursor:default}
+.stage-junction:is(:disabled,[aria-disabled="true"]){cursor:default}
 .stage-junction.can-go:not(.is-here){box-shadow:0 0 0 3px rgba(255,240,170,.8),0 0 18px 6px rgba(255,214,90,.45)}
 .stage-junction.can-go:not(.is-here):hover{box-shadow:0 0 0 4px #fff3c4,0 0 26px 10px rgba(255,214,90,.7)}
 .stage-junction.is-hinted{box-shadow:0 0 0 4px #b9e6a0,0 0 22px 8px rgba(134,196,111,.7)!important}
@@ -319,12 +319,12 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .lr-map-art>svg,.lr-map-art>img,.lr-map-art>video{object-fit:fill}
 @media (max-width:699px){.lr-map-wide{display:none}.lr-map-tall{display:block}}
 .lr-stop{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);translate:-50% -50%;z-index:3;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;color:var(--rd-ink)}
-.lr-stop:disabled{opacity:1;pointer-events:none}
+.lr-stop:disabled{opacity:1;pointer-events:none}.lr-stop[aria-disabled="true"]{cursor:default}
 .lr-stop:focus-visible{outline:3px solid #fff8d9;outline-offset:0;box-shadow:0 0 0 6px var(--rd-pine)}
 .lr-stop-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s,box-shadow .2s,background .2s}
 .lr-stop.is-current .lr-stop-glow{opacity:1;background:radial-gradient(closest-side,rgba(255,240,170,.34),rgba(255,226,110,.14) 72%,rgba(255,226,110,0));box-shadow:0 0 0 3px rgba(255,248,214,.95),0 0 0 5px rgba(179,136,64,.45),0 0 16px 6px rgba(255,208,70,.8)}
 .lr-stop.is-current:is(:hover,:focus-visible) .lr-stop-glow{background:radial-gradient(closest-side,rgba(255,244,190,.5),rgba(255,226,110,.24) 72%,rgba(255,226,110,0));box-shadow:0 0 0 5px #fff6cc,0 0 34px 14px rgba(255,204,60,.95)}
-.lr-stop:not(.is-current):is(:hover,:focus-visible) .lr-stop-glow{opacity:1;box-shadow:0 0 0 3px rgba(255,253,245,.92),0 0 12px 3px rgba(255,253,245,.55)}
+.lr-stop:not(.is-current):not(.is-ahead):hover .lr-stop-glow,.lr-stop:not(.is-current):focus-visible .lr-stop-glow{opacity:1;box-shadow:0 0 0 3px rgba(255,253,245,.92),0 0 12px 3px rgba(255,253,245,.55)}
 @media (prefers-reduced-motion:no-preference){.lr-stop.is-current:not(:hover):not(:focus-visible) .lr-stop-glow{animation:rd-beckon 2.4s ease-in-out infinite}}
 @keyframes rd-beckon{50%{box-shadow:0 0 0 3px rgba(255,248,214,.85),0 0 0 5px rgba(179,136,64,.3),0 0 28px 11px rgba(255,208,70,.95)}}
 .lr-stop-badge{position:absolute;left:50%;bottom:2%;translate:-50% 0;display:flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:rgba(255,253,245,.92);box-shadow:0 2px 0 rgba(0,0,0,.16);pointer-events:none;white-space:nowrap}
@@ -353,6 +353,10 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @media (prefers-reduced-motion:no-preference){.lr-wagon{transition:left .8s,top .8s}.lr-wagon-party .art-slot{animation:rd-roll 2.4s ease-in-out infinite}}
 @keyframes rd-roll{50%{transform:translateY(-3px) rotate(-1deg)}}
 .lr-map-tall .lr-wagon{width:clamp(52px,13%,78px)}
+/* On the tall map the medal key runs under the HUD, beside the fair, so the
+   fair's stars and pips sit at the top of its region (the wagons wait below
+   the key, MAP_WAGON). */
+.lr-map-tall .lr-stop[data-id="fair"] .lr-stop-badge{bottom:auto;top:6%}
 @media (max-width:699px){.lr-hud{top:8px;right:8px}.lr-total{font-size:1.1rem}.lr-tool{width:34px;height:34px}}
 
 /* Header: the explorer's name and puzzle level sit together. */
@@ -407,6 +411,8 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 /* A side puzzle before its tool: what it needs, where Hint would be. */
 .needs-tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 14px 4px 6px;border-radius:999px;background:#f6edd2;border:1px solid #e3cf98;color:var(--rd-ink);font-weight:650;font-size:.92rem}
 .needs-tool-icon{flex:none;width:34px;height:34px}
+.lr-row .lr-needs{display:inline-flex;align-items:center;gap:4px;max-width:132px;min-height:44px;padding:2px 12px 2px 4px;border-radius:22px;background:#f6edd2;border:1px solid #e3cf98;color:var(--rd-ink);font-weight:650;font-size:.88rem;line-height:1.15;text-align:left}
+.lr-needs-icon{flex:none;width:30px;height:30px}
 
 /* Travelers as the swap pieces ----------------------------------------------------- */
 .party-board .cup-button{background:var(--rd-card);border:2px solid var(--rd-line);border-radius:22px;aspect-ratio:1;padding:4px;color:var(--rd-ink)}

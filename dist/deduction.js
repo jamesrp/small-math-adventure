@@ -111,6 +111,20 @@ function consistentCode(p, bits) { return p.parameters.transcript.every(row => e
 function codeCandidates(p) {
   return Array.from({ length: 2 ** p.parameters.length }, (_, value) => value.toString(2).padStart(p.parameters.length, '0').split('').map(Number)).filter(bits => consistentCode(p, bits));
 }
+// The library's words. A road copy brings its own (`codeWords`, dist/road.js:
+// the crypt door calls each position a light and each test an old try), and
+// shows what to do after a wrong Check under the table, where it is in view.
+const CODE_WORDS = {
+  caption: 'Recorded tests', test: 'Test', right: 'Exact matches', yours: 'Your code', position: 'Position', count: true, miss: '— recheck',
+  feedback: 'Some scores do not match yet. Change a lantern and try again.', showFeedback: false,
+  fits: 'Your lanterns fit every recorded score. Submit this code.',
+  set: (value, position, fresh) => `${fresh ? 'A code that fits every recorded score has' : 'Your current choices cannot fit every score. Try'} ${value} in position ${position}. Count matches in the same positions only.`,
+};
+const codeWords = p => {
+  const own = p.codeWords;
+  if (!own) return CODE_WORDS;
+  return { ...CODE_WORDS, ...own, set: (value, position) => own.set.replace('{value}', value).replace('{position}', position) };
+};
 const code = {
   fresh: p => ({ bits: Array(p.parameters.length).fill(null), submitted: false }),
   valid: codeValid,
@@ -134,19 +148,35 @@ const code = {
     candidates.sort((a, b) => distance(a) - distance(b));
     const answer = candidates[0], wrong = board.bits.findIndex((bit, position) => bit !== null && bit !== answer[position]);
     const position = wrong < 0 ? board.bits.indexOf(null) : wrong;
-    if (position < 0) return { type: 'move', action: { type: 'submit' }, remaining: 1, text: 'Your lanterns fit every recorded score. Submit this code.' };
+    const words = codeWords(p);
+    if (position < 0) return { type: 'move', action: { type: 'submit' }, remaining: 1, text: words.fits };
     return { type: 'move', action: { type: 'set', position, value: answer[position] }, remaining: board.bits.filter((bit, at) => bit !== answer[at]).length + 1,
-      text: `${wrong < 0 ? 'A code that fits every recorded score has' : 'Your current choices cannot fit every score. Try'} ${answer[position]} in position ${position + 1}. Count matches in the same positions only.` };
+      text: words.set(answer[position], position + 1, wrong < 0) };
   },
   render(p, attempt) {
-    const board = attempt.board;
-    return `<div class="deduction-puzzle code-puzzle">
-      <table class="code-transcript"><caption class="sr-only">Recorded tests</caption><thead><tr><th scope="col">Test</th><th scope="col">Exact matches</th>${board.submitted ? '<th scope="col">Your code</th>' : ''}</tr></thead><tbody>${p.parameters.transcript.map(row => { const actual = exactMatches(board.bits, row.guess), good = actual === row.matches; return `<tr${board.submitted && !good ? ' class="code-mismatch"' : ''}><th scope="row"><span class="code-word" role="img" aria-label="${esc(row.guess.split('').join(', '))}">${row.guess.split('').map(bit => `<span class="code-bit code-bit-${bit}" aria-hidden="true">${bit}</span>`).join('')}</span></th><td>${row.matches}</td>${board.submitted ? `<td>${actual} ${good ? '✓' : '— recheck'}</td>` : ''}</tr>`; }).join('')}</tbody></table>
-      <fieldset class="code-choices"><legend>Your code</legend><div class="code-word">${board.bits.map((bit, position) => `<div class="code-position" role="group" aria-label="Position ${position + 1}">${[0, 1].map(value => actionButton(String(value), { type: 'set', position, value }, `data-bit="${value}" aria-label="Position ${position + 1}: ${value}" aria-pressed="${bit === value}"`)).join('')}</div>`).join('')}</div></fieldset><div class="deduction-form-controls">${actionButton('Check', { type: 'submit' }, board.bits.includes(null) || board.submitted ? 'disabled' : '')}</div>
-      <p class="sr-only" role="status">${board.submitted ? this.solved(p, board) ? '' : 'Some scores do not match yet. Change a lantern and try again.' : ''}</p></div>`;
+    const board = attempt.board, words = codeWords(p), solved = this.solved(p, board);
+    const feedback = board.submitted && !solved ? words.feedback : '';
+    const mark = (actual, good) => `${words.count ? `${actual} ` : ''}<span class="code-mark code-mark-${good ? 'good' : 'bad'}">${esc(good ? '✓' : words.miss)}</span>`;
+    return `<div class="deduction-puzzle code-puzzle"${words.showFeedback ? ' data-mechanic-wire="code"' : ''}>
+      <table class="code-transcript"><caption class="sr-only">${esc(words.caption)}</caption><thead><tr><th scope="col">${esc(words.test)}</th><th scope="col">${esc(words.right)}</th>${board.submitted ? `<th scope="col">${esc(words.yours)}</th>` : ''}</tr></thead><tbody>${p.parameters.transcript.map(row => { const actual = exactMatches(board.bits, row.guess), good = actual === row.matches; return `<tr${board.submitted && !good ? ' class="code-mismatch"' : ''}><th scope="row"><span class="code-word" role="img" aria-label="${esc(row.guess.split('').join(', '))}">${row.guess.split('').map(bit => `<span class="code-bit code-bit-${bit}" aria-hidden="true">${bit}</span>`).join('')}</span></th><td>${row.matches}</td>${board.submitted ? `<td>${mark(actual, good)}</td>` : ''}</tr>`; }).join('')}</tbody></table>
+      ${words.showFeedback ? `<p class="deduction-feedback code-feedback" role="status"${feedback ? '' : ' hidden'}>${esc(feedback)}</p>` : ''}
+      <fieldset class="code-choices"><legend>Your code</legend><div class="code-word">${board.bits.map((bit, position) => `<div class="code-position" role="group" aria-label="${esc(words.position)} ${position + 1}">${[0, 1].map(value => actionButton(String(value), { type: 'set', position, value }, `data-bit="${value}" aria-label="${esc(words.position)} ${position + 1}: ${value}" aria-pressed="${bit === value}"`)).join('')}</div>`).join('')}</div></fieldset><div class="deduction-form-controls">${actionButton('Check', { type: 'submit' }, board.bits.includes(null) || board.submitted ? 'disabled' : '')}</div>
+      ${words.showFeedback ? '' : `<p class="sr-only" role="status">${esc(feedback)}</p>`}</div>`;
+  },
+  // A wrong Check's line sits under the table; if the child had scrolled it
+  // away to reach Check, bring it into view once for that Check.
+  wire(root, p, api) {
+    const note = root.querySelector('.code-feedback:not([hidden])');
+    if (!note) { feedbackShown = null; return; }
+    const key = `${p.id}|${api.attempt()?.moves}`;
+    if (feedbackShown === key) return;
+    feedbackShown = key;
+    const box = note.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > innerHeight) note.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   },
   demo: 'A recorded test 10 with zero matches means the secret is 01: both positions must change. Set each lantern, then submit a code that fits all the tests.'
 };
+let feedbackShown = null;
 
 const nimPicks = new Map();
 const NIM_BUNDLES_AFTER = 'proof-duel-01';

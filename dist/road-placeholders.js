@@ -85,8 +85,8 @@ export const MAP_REGIONS = {
   tall: { ferry: [32, 86, 52, 16], marsh: [75, 70, 42, 17], ridge: [27, 52, 40, 19], hollow: [72, 44, 46, 18], workshop: [27, 28, 40, 17], lighthouse: [75, 18, 42, 21], fair: [35, 9, 54, 15] },
 };
 export const MAP_WAGON = {
-  wide: { ferry: [6, 82], marsh: [17, 46], ridge: [41, 74], hollow: [48, 42], workshop: [57, 79], lighthouse: [73, 46], fair: [82, 83] },
-  tall: { ferry: [13, 88], marsh: [60, 77], ridge: [36, 64], hollow: [52, 50], workshop: [45, 37], lighthouse: [63, 29], fair: [46, 16] },
+  wide: { ferry: [6, 82], marsh: [17, 46], ridge: [41, 74], hollow: [48, 42], workshop: [57, 79], lighthouse: [73, 46], fair: [79.5, 82] },
+  tall: { ferry: [13, 88], marsh: [60, 77], ridge: [36, 64], hollow: [52, 50], workshop: [45, 37], lighthouse: [63, 29], fair: [46, 18.5] },
 };
 const mapIcons = {
   ferry: '<path d="M-26 6q2-24 26-26 24 2 26 26z" fill="#6aa86a" ' + line + '/><circle cx="30" cy="0" r="9" fill="#9cc77f" ' + line + '/><path d="M-40 12q40 10 80 0" stroke="#3bb5c8" stroke-width="6" fill="none"/>',

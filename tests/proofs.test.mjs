@@ -283,3 +283,18 @@ test('garden: dominoes stay as outlines in Prove, the first one is filled, and a
   assert.match(css, /\.pf-domino\.tile-color-0\{background:#8cddae/);
   assert.match(css, /\.pf-board\.proving \.pf-domino\{[^}]*border:3px dashed/);
 });
+
+test('garden: too few stars yet is "not yet", and only touching stars are a fault to fix (road replay)', () => {
+  const shared = byId('proof-garden-06'), g = mechanicFor(shared), cells = shared.parameters.cells, cols = shared.parameters.cols;
+  let a = move(shared, freshAttempt(shared), { type: 'mode', mode: 'prove' });
+  a = move(shared, a, { type: 'star', cells: [cells[0]], on: true });
+  const st = starStatus(shared, a.board.stars);
+  assert.ok(st.count <= st.partners, 'one star has at least one partner');
+  assert.match(cardsText(shared, a), /More stars than partners ★ 1 · ◌ \d+ not yet/);
+  assert.doesNotMatch(g.render(shared, a), /proof-check no|fix this/, 'still placing: nothing to fix');
+  // Two stars side by side break the rule, and only that line is marked.
+  const beside = cells.find(cell => cell === cells[0] + 1 && Math.floor(cell / cols) === Math.floor(cells[0] / cols)) ?? cells.find(cell => cell === cells[0] + cols);
+  const touching = move(shared, a, { type: 'star', cells: [beside], on: true });
+  assert.equal((g.render(shared, touching).match(/proof-check no/g) || []).length, 1);
+  assert.match(cardsText(shared, touching), /Stars don’t touch not yet: fix this/);
+});

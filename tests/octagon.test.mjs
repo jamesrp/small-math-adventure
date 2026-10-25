@@ -529,5 +529,5 @@ test('rendering: copy, budgets, record, tabs, focus targets and scoped styles', 
   // The family symbol is unique.
   const symbols = FAMILIES.filter(m => m.family).map(m => m.family.symbol);
   assert.equal(symbols.filter(s => s === '⊚').length, 1, 'a unique symbol');
-  assert.ok(!['▰', '⇄', '☀', '◷', '↗', '♧', '▦', '◐', '●', '◆', '♒', '⚖'].includes('⊚'));
+  assert.ok(!['▰', '⇄', '☀', '◷', '↗', '♧', '▦', '◐', '●', '◆', '⊔', '⚖'].includes('⊚'));
 });

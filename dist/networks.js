@@ -88,6 +88,16 @@ function hintRoute(p,b){
   const path=solveRoute(p,b);
   return path?.length?{type:'move',action:{vertex:path[0]},text:b.path.length?`Follow the road from ${b.path.at(-1)} to ${path[0]}. A complete route is still possible from there.`:`Start at ${path[0]}. This leaves a route that can visit every road.`,remaining:path.length}:{type:'deadend',quiet:true,text:'This route cannot finish within the rules. Undo to before a stranded road or an extra repeat, then choose another road.'};
 }
+// What a child reads for each junction or lantern. Single letters and digits
+// show as they are; longer ids (the Petersen kite's o0…o4, i0…i4) show as
+// letters A, B, C… in their order. Ids stay the board's own: saves keep colors
+// by position and moves name the id.
+const labelMaps=new WeakMap();
+export function vertexLabel(p,v){
+  const q=p.parameters;
+  if(!labelMaps.has(q))labelMaps.set(q,q.vertices.every(x=>String(x).length===1)?null:new Map(q.vertices.map((x,i)=>[x,String.fromCharCode(65+i)])));
+  return labelMaps.get(q)?.get(v)??String(v);
+}
 function validColor(p,b){return object(b)&&Array.isArray(b.colors)&&b.colors.length===p.parameters.vertices.length&&b.colors.every(c=>Number.isInteger(c)&&c>=0&&c<=p.parameters.palette_size)&&Number.isInteger(b.selectedColor)&&b.selectedColor>=1&&b.selectedColor<=p.parameters.palette_size;}
 const conflicts=(p,colors)=>p.parameters.edges.filter(([u,v])=>{const a=colors[p.parameters.vertices.indexOf(u)],b=colors[p.parameters.vertices.indexOf(v)];return a&&a===b;});
 function solvedColor(p,b){return validColor(p,b)&&b.colors.every(Boolean)&&!conflicts(p,b.colors).length;}
@@ -115,12 +125,12 @@ function moveColor(p,b,action){
 function hintColor(p,b){
   if(solvedColor(p,b))return {type:'done'};
   const completion=solveColor(p,b.colors);
-  if(completion){const i=b.colors.indexOf(0);return {type:'move',action:{vertex:p.parameters.vertices[i],color:completion[i]},text:`Give ${p.parameters.vertices[i]} color ${completion[i]} (${marks[completion[i]-1]}). This choice fits a completion of your current picture.`};}
+  if(completion){const i=b.colors.indexOf(0);return {type:'move',action:{vertex:p.parameters.vertices[i],color:completion[i]},text:`Give ${vertexLabel(p,p.parameters.vertices[i])} color ${completion[i]} (${marks[completion[i]-1]}). This choice fits a completion of your current picture.`};}
   // A locally legal partial coloring can still block the rest. Find one mark
   // whose removal restores a completion, without replacing a player's work.
-  for(let i=0;i<b.colors.length;i++)if(b.colors[i]){const copy=[...b.colors];copy[i]=0;if(solveColor(p,copy))return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${p.parameters.vertices[i]} and reconsider its neighbors. The other colors can still be finished.`};}
+  for(let i=0;i<b.colors.length;i++)if(b.colors[i]){const copy=[...b.colors];copy[i]=0;if(solveColor(p,copy))return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${vertexLabel(p,p.parameters.vertices[i])} and reconsider its neighbors. The other colors can still be finished.`};}
   const bad=conflicts(p,b.colors),i=bad.length?p.parameters.vertices.indexOf(bad[0][0]):b.colors.findLastIndex(Boolean);
-  return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${p.parameters.vertices[i]} to open up another possibility. Some earlier colors need to change.`};
+  return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${vertexLabel(p,p.parameters.vertices[i])} to open up another possibility. Some earlier colors need to change.`};
 }
 const marks=['●','▲','■','◆'];
 // Where each junction or lantern sits, in percent of the board (the marsh stage
@@ -143,11 +153,38 @@ export function networkPositions(p){
     'route-06':{A:[50,10],B:[10,85],C:[90,85],D:[50,57]}
   };return layouts[p.sourceId||p.id]||ring(q.vertices);
 }
+// Why a tap on a junction can't walk there now: no road joins it to where the
+// walk stands, the one road is already walked (walk-once boards), or it would
+// pass the longest walk the board allows. A tap on it says so beside it.
+export function routeRefusal(p,b,v){
+  const q=p.parameters,info=routeInfo(p,b),here=info?.current;
+  if(!info||!here||here===v)return '';
+  const roads=q.edges.map((edge,e)=>[edge,e]).filter(([[u,w]])=>u===here&&w===v||w===here&&u===v);
+  if(!roads.length)return `No road goes from ${vertexLabel(p,here)} to ${vertexLabel(p,v)}.`;
+  if(q.mode==='each_edge_once'&&roads.every(([,e])=>info.uses[e]))return `You’ve walked the road from ${vertexLabel(p,here)} to ${vertexLabel(p,v)}.`;
+  return 'That road would make the walk too long.';
+}
+// A control that only answers a tap (dist/main.js, action "refuse").
+export const refusedControl=(html,text)=>html.replace(/data-action="expansion-move" data-move="[^"]*"/,`data-action="refuse" data-text="${esc(text)}" aria-disabled="true"`);
+// A road's label (its length, and ✓ once walked) sits beside the road, on the
+// side away from the middle of the map, so the line never runs through it.
+// Where every road has the same length the lengths say nothing and are left out.
+function roadLabel(xy,center,[x,y],[a,z],text){
+  const dx=a-x,dy=z-y,len=Math.hypot(dx,dy)||1,mx=(x+a)/2,my=(y+z)/2;
+  let nx=-dy/len,ny=dx/len;
+  const out=(mx-center[0])*nx+(my-center[1])*ny;
+  if(out<-1||Math.abs(out)<=1&&(ny>0||ny===0&&nx>0)){nx=-nx;ny=-ny;}
+  const half=[1.4*[...text].length,2.2],off=1.4+Math.abs(nx)*half[0]+Math.abs(ny)*half[1];
+  return `<text x="${(mx+nx*off).toFixed(2)}" y="${(my+ny*off).toFixed(2)}" dominant-baseline="central">${text}</text>`;
+}
 function graph(p,b){
   const q=p.parameters,xy=networkPositions(p),info=p.mechanic==='route'?routeInfo(p,b):null;
-  const lines=q.edges.map(([u,v,w],i)=>{const [x,y]=xy[u],[a,z]=xy[v],used=info?.uses[i]||0,conflict=p.mechanic==='color'&&b.colors[q.vertices.indexOf(u)]&&b.colors[q.vertices.indexOf(u)]===b.colors[q.vertices.indexOf(v)];return `<line x1="${x}" y1="${y}" x2="${a}" y2="${z}" class="${used?'road-used':''} ${conflict?'link-conflict':''}"/>${info?`<text x="${(x+a)/2}" y="${(y+z)/2-2}">${w}${used?` · ✓${used>1?used:''}`:''}</text>`:''}`;}).join('');
+  const lengths=new Set(q.edges.map(edge=>edge[2])).size>1,points=Object.values(xy),center=[points.reduce((t,[x])=>t+x,0)/points.length,points.reduce((t,[,y])=>t+y,0)/points.length];
+  const lines=q.edges.map(([u,v,w],i)=>{const [x,y]=xy[u],[a,z]=xy[v],used=info?.uses[i]||0,conflict=p.mechanic==='color'&&b.colors[q.vertices.indexOf(u)]&&b.colors[q.vertices.indexOf(u)]===b.colors[q.vertices.indexOf(v)];const label=[lengths?w:'',used?`✓${used>1?used:''}`:''].filter(String).join(' · ');return `<line x1="${x}" y1="${y}" x2="${a}" y2="${z}" class="${used?'road-used':''} ${conflict?'link-conflict':''}"/>${info&&label?roadLabel(xy,center,[x,y],[a,z],label):''}`;}).join('');
   const dots=q.vertices.map((v,i)=>{const [x,y]=xy[v],color=b.colors?.[i]||0,current=info?.current===v;const allowed=!info||!info.current||q.edges.some(([u,w],e)=>(u===info.current&&w===v||w===info.current&&u===v)&&(q.mode!=='each_edge_once'||!info.uses[e])&&info.cost+q.edges[e][2]<=capOf(q));
-    return actionButton(`${esc(v)}${p.mechanic==='color'?`<span aria-hidden="true">${color?marks[color-1]:'○'}</span>`:current?'<span aria-hidden="true">✦</span>':''}`,{vertex:v},`style="left:${x}%;top:${y}%" aria-label="${esc(info?`${current?'Current junction. ':''}${info.current?`Travel to ${v}`:`Start at ${v}`}`:`Lantern ${v}, ${color?`color ${color}, ${marks[color-1]}`:'uncolored'}. Apply selected color ${b.selectedColor}`)}" ${!allowed||info&&solvedRoute(p,b)?'disabled':''} data-node="${esc(v)}" data-color="${color}" ${current?'aria-current="location"':''}`);
+    const name=vertexLabel(p,v),html=actionButton(`${esc(name)}${p.mechanic==='color'?`<span aria-hidden="true">${color?marks[color-1]:'○'}</span>`:current?'<span aria-hidden="true">✦</span>':''}`,{vertex:v},`style="left:${x}%;top:${y}%" aria-label="${esc(info?`${current?'Current junction. ':''}${info.current?`Travel to ${name}`:`Start at ${name}`}`:`Lantern ${name}, ${color?`color ${color}, ${marks[color-1]}`:'uncolored'}. Apply selected color ${b.selectedColor}`)}" ${!allowed||info&&solvedRoute(p,b)?'disabled':''} data-node="${esc(v)}" data-color="${color}" ${current?'aria-current="location"':''}`);
+    const refusal=info&&!allowed&&!solvedRoute(p,b)?routeRefusal(p,b,v):'';
+    return refusal?refusedControl(html,refusal).replace(' disabled ',' '):html;
   }).join('');
   return `<div class="network-graph ${p.sourceId||p.id}" role="group" aria-label="${p.mechanic==='route'?'Road map':'Linked lanterns'}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${dots}</div>`;
 }
@@ -161,10 +198,10 @@ function routeHelp(p,a){
 }
 function renderColor(p,a){
   const b=a.board,bad=conflicts(p,b.colors);
-  return `<div class="color-palette" role="group" aria-label="Choose a color">${Array.from({length:p.parameters.palette_size},(_,i)=>actionButton(`${marks[i]} ${i+1}`,{type:'palette',color:i+1},`data-color="${i+1}" aria-label="Select color ${i+1}, ${marks[i]}" aria-pressed="${b.selectedColor===i+1}"`)).join('')}</div>${graph(p,b)}<p class="sr-only" role="status">${bad.length?`Matching neighbors: ${bad.map(([u,v])=>`${esc(u)}–${esc(v)}`).join(', ')}`:''}</p>`;
+  return `<div class="color-palette" role="group" aria-label="Choose a color">${Array.from({length:p.parameters.palette_size},(_,i)=>actionButton(`${marks[i]} ${i+1}`,{type:'palette',color:i+1},`data-color="${i+1}" aria-label="Select color ${i+1}, ${marks[i]}" aria-pressed="${b.selectedColor===i+1}"`)).join('')}</div>${graph(p,b)}<p class="sr-only" role="status">${bad.length?`Matching neighbors: ${bad.map(([u,v])=>`${esc(vertexLabel(p,u))}–${esc(vertexLabel(p,v))}`).join(', ')}`:''}</p>`;
 }
 function colorHelp(p){
-  return `<details><summary>Links</summary><p>${p.parameters.edges.map(([u,v])=>`${esc(u)}–${esc(v)}`).join(', ')}</p></details>`;
+  return `<details><summary>Links</summary><p>${p.parameters.edges.map(([u,v])=>`${esc(vertexLabel(p,u))}–${esc(vertexLabel(p,v))}`).join(', ')}</p></details>`;
 }
 export const networkMechanics={
   route:{fresh:p=>({path:p.parameters.start?[p.parameters.start]:[]}),valid:validRoute,solved:solvedRoute,move:moveRoute,hint:hintRoute,render:renderRoute,help:routeHelp,demo:'Tap a labeled dot to travel along a road. The visited roads change appearance. Undo takes you back one junction. Watch the distance target when repeated trips are allowed.'},

@@ -171,6 +171,13 @@ try {
         assert.equal(await page.locator('[data-action=switch-band]').getAttribute('data-id').catch(() => null), { k1: '23', '23': '45', '45': null }[band], `${band}: never a lower trail`);
         // The finished fair on the map opens its sheet, with the finale.
         await ui.action('map').click(); await page.locator('.lr-overview').waitFor();
+        // The finished map keeps the medal key and the party wagon off the fair's stars and pips.
+        const boxOf = selector => page.locator(selector).first().boundingBox();
+        const [badge, key, wagon] = await Promise.all(['.lr-map-layer:visible .lr-stop[data-id="fair"] .lr-stop-badge', '.lr-medal-key', '.lr-map-layer:visible .lr-wagon-party'].map(boxOf));
+        const overlap = (a, b) => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+        assert.equal(overlap(badge, key), 0, `${band}: the medal key clear of the fair's pips`);
+        assert.equal(overlap(badge, wagon), 0, `${band}: the wagon clear of the fair's pips`);
+        checks.push(`${band}: the finished map keeps the medal key and wagon off the fair's stars`);
         await page.locator('.lr-map-layer:visible .lr-stop[data-id="fair"]').click();
         await page.getByRole('button', { name: 'Finale' }).click(); await page.locator('.lr-finale').waitFor();
         checks.push(`${band}: finale goodbyes, medal, stars of ${tally.max}, the fair's sheet`);
@@ -190,6 +197,13 @@ try {
           assert.match(await page.locator('.needs-tool').innerText(), /Needs the pump/);
           if (band === 'k1') await capture('bath-locked');
           await ui.action('map').click(); checks.push('side puzzle locked before its tool');
+          // The ferry's sheet shows the bath's need, as its map tile does, not Play.
+          await page.locator('.lr-map-layer:visible .lr-stop[data-id="ferry"]').click();
+          const sheet = page.locator('dialog.modal[open]');
+          assert.equal(await sheet.locator('.lr-needs[data-id="ferry-bath"]').innerText(), 'Needs the pump');
+          assert.equal(await sheet.getByRole('button', { name: 'Play Snooze’s bath' }).count(), 0, 'no Play on a locked side puzzle');
+          await sheet.getByRole('button', { name: 'Done' }).click();
+          checks.push('a stop sheet shows what a locked side puzzle needs');
         }
         if (e.stop === 'workshop') {
           for (const side of SIDE) {

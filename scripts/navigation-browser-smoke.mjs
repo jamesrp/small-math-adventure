@@ -55,7 +55,13 @@ try{
   assert.deepEqual(await openFamilies(),expected,'same-route navigation does not reset disclosures');
   await clock.click();await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await page.locator('.caravan-nav [data-action=library]').click();
-  await page.locator('.caravan-library').waitFor();
+  await page.locator('.caravan-library').waitFor();await settle();
+  // The Puzzles tab from a library puzzle (a home-screen app has no Back) reopens
+  // that puzzle's family alone, in view; from the road the library opens closed.
+  assert.deepEqual(await openFamilies(),['Clockwork Gates'],'the Puzzles tab reopens the family just left');
+  const reopened=await family('Clockwork Gates').evaluate(node=>{const r=node.getBoundingClientRect();return [r.top,innerHeight];});
+  assert.ok(reopened[0]>=0&&reopened[0]<=reopened[1]/2+1,`the reopened family is in view (${Math.round(reopened[0])} of ${reopened[1]})`);
+  checks.push('the Puzzles tab from a library puzzle reopens its family, in view');
   for(const details of await page.locator('.satchel-family[open]').all())await details.locator('summary').click();
   await page.locator('.caravan-nav [data-action=map]').click();
   await back('.caravan-library');

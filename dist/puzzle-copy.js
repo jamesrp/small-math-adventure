@@ -39,7 +39,8 @@ export function puzzleObjective(puzzle) {
     case 'latin':
       return `Use 1–${p.order} once in every row and column.`;
     case 'code':
-      return 'Find a code that fits every recorded match count.';
+      // The road's crypt door says it in its own words (dist/road.js).
+      return puzzle.codeWords?.goal || 'Find a code that fits every recorded match count.';
     case 'nim':
       return 'Take the last pebble to win.';
     case 'jug':

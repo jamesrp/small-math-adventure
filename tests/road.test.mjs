@@ -668,3 +668,122 @@ test('the map: the wagon waits at the ferry before the first puzzle, stops show 
   assert.match(stopSheet('ferry', pr, puzzles), /data-id="ferry-seats" data-replay="1"/);
   assert.doesNotMatch(stopSheet('marsh', pr, puzzles), /data-replay/);
 });
+
+// Road replay, October 24 evening ------------------------------------------------
+
+test('the crypt door speaks to a child: lights, old tries, Right, ✗ in the row and what to do, on every trail', async () => {
+  const { puzzleObjective } = await import('../dist/puzzle-copy.js');
+  const crypt = getEncounter('hollow-crypt');
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    const p = all.find(q => q.id === campaignId('hollow-crypt', band)), code = mechanicFor(p), n = p.parameters.length;
+    // A wrong code: every light 1 (no crypt code is all ones).
+    let a = freshAttempt(p);
+    for (let i = 0; i < n; i++) a = move(p, a, { type: 'set', position: i, value: 1 });
+    a = move(p, a, { type: 'submit' });
+    assert.equal(isSolved(p, a.board), false, `${band}: 1…1 is not the code`);
+    const html = playView(p, a, { pack: fullPack, profile: pr, encounter: crypt, selected: null, message: '' });
+    const text = html.replace(/<[^>]*>/g, ' ');
+    assert.match(html, /<h1 class="puzzle-goal">Each old try shows how many lights were right\. Find the code\.<\/h1>/, `${band}: the goal`);
+    assert.match(html, /<th scope="col">Old try<\/th><th scope="col">Right<\/th><th scope="col">Your code<\/th>/, `${band}: the table`);
+    assert.match(html, /aria-label="Light 1: 0"/); assert.match(html, /role="group" aria-label="Light 1"/);
+    assert.doesNotMatch(text, /lantern|Exact matches|recheck|recorded|score|Position/i, `${band}: no adult or library words`);
+    // What to do sits under the table, before the code buttons, and shows.
+    const feedback = html.match(/<p class="deduction-feedback code-feedback" role="status">([^<]+)<\/p>/)?.[1];
+    assert.equal(feedback, band === 'k1' ? 'Change one light and try again.' : 'Some old tries don’t fit yet. Change a light and check again.');
+    assert.ok(html.indexOf('code-feedback') > html.indexOf('</table>') && html.indexOf('code-feedback') < html.indexOf('code-choices'));
+    // K–1 rows show only ✓ or ✗; older trails also the number the code gives.
+    const cells = [...html.matchAll(/<td>([^<]*)<span class="code-mark code-mark-(good|bad)">(✓|✗)<\/span><\/td>/g)];
+    assert.equal(cells.length, p.parameters.transcript.length);
+    for (const [, count] of cells) assert.equal(count.trim() === '', band === 'k1', `${band}: counts in the row`);
+    assert.ok(cells.some(([, , kind]) => kind === 'bad'));
+    // Changing a light clears the line; a fresh board has none.
+    assert.match(code.render(p, move(p, a, { type: 'set', position: 0, value: 0 })), /code-feedback" role="status" hidden>/);
+    // How to play and the hints use the same words.
+    assert.equal(puzzleObjective(p), 'Each old try shows how many lights were right. Find the code.');
+    assert.match(playInstructions(p), /^Tap 0 or 1 for each light, then Check\./);
+    assert.ok(p.rules.every(rule => !/position|display|submit/i.test(rule)), `${band}: plain rules`);
+    assert.match(p.hints[0], /light/); assert.doesNotMatch(p.hints[0], /place|position|score|test/i);
+    const fresh = freshAttempt(p);
+    assert.match(code.hint(p, fresh.board).text, /^Try [01] for light \d\.$/);
+  }
+  // The library keeps its own words.
+  const library = puzzles.find(q => q.id === 'code-02');
+  assert.match(mechanicFor(library).render(library, freshAttempt(library)), /Exact matches[\s\S]*aria-label="Position 1: 0"/);
+  assert.equal(library.codeWords, undefined);
+});
+
+test('one noun per board: each keeper’s line names what the board names', async () => {
+  const { visiblePuzzleObjective, puzzleObjective } = await import('../dist/puzzle-copy.js');
+  const nouns = { 'ridge-stones': /pebble/, 'fair-prizes': /pebble/, 'hollow-pumpkins': /lantern/, 'workshop-parts': /cups?\b/i, 'lighthouse-gears': /bell/, 'fair-stalls': /road/ };
+  for (const [id, noun] of Object.entries(nouns)) {
+    const e = getEncounter(id);
+    assert.match(e.lines.open, noun, `${id}: keeper`);
+    for (const band of BAND_KEYS) {
+      const p = all.find(q => q.id === campaignId(id, band));
+      const board = `${visiblePuzzleObjective(p)} ${puzzleObjective(p)} ${isExpansion(p) ? playInstructions(p) : ''}`;
+      assert.match(board, noun, `${id}/${band}: board`);
+    }
+  }
+  assert.doesNotMatch(getEncounter('ridge-stones').lines.open, /stone/);
+  assert.doesNotMatch(getEncounter('fair-prizes').lines.open, /prize is/);
+  assert.equal(getEncounter('ridge-stones').title, 'Cable-car pebbles');
+  assert.equal(getEncounter('workshop-parts').title, 'Turntable cups');
+});
+
+test('kites and stalls: letters a child can read, road lengths beside their roads and only where they differ', async () => {
+  const { vertexLabel } = await import('../dist/networks.js');
+  const kites = all.find(q => q.id === campaignId('ridge-kites', '45')), color = mechanicFor(kites);
+  assert.deepEqual(kites.parameters.vertices.map(v => vertexLabel(kites, v)), [...'ABCDEFGHIJ']);
+  let a = move(kites, move(kites, freshAttempt(kites), { vertex: 'o0', color: 1 }), { vertex: 'o1', color: 1 });
+  const html = color.render(kites, a);
+  assert.doesNotMatch(html.replace(/data-(node|move|focus)="[^"]*"/g, ''), /\b[oi][0-4]\b/, 'no o0…i4 a child can see or hear');
+  assert.match(html, /aria-label="Lantern A, color 1, ●/); assert.match(html, /Matching neighbors: A–B/);
+  assert.match(color.help(kites, a), /A–B, B–C/);
+  assert.equal(a.board.colors.length, 10, 'saves keep colors by position');
+  // Stall roads: every length 1 on K–1 and 2–3, so none is printed; 4–5 prints each beside its road.
+  for (const band of BAND_KEYS) {
+    const p = all.find(q => q.id === campaignId('fair-stalls', band)), route = mechanicFor(p);
+    const lengths = new Set(p.parameters.edges.map(e => e[2])), svg = route.render(p, freshAttempt(p)).match(/<svg[\s\S]*?<\/svg>/)[0];
+    const labels = [...svg.matchAll(/<text x="([\d.-]+)" y="([\d.-]+)"[^>]*>([^<]*)<\/text>/g)];
+    assert.equal(labels.length, lengths.size > 1 ? p.parameters.edges.length : 0, `${band}: lengths shown only where they differ`);
+    const lines = [...svg.matchAll(/<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)"/g)].map(m => m.slice(1).map(Number));
+    labels.forEach(([, x, y], i) => {
+      const [x1, y1, x2, y2] = lines[i], len = Math.hypot(x2 - x1, y2 - y1), off = Math.abs((x2 - x1) * (y1 - y) - (x1 - x) * (y2 - y1)) / len;
+      assert.ok(off >= 3, `${band}: label ${i} sits beside its road (${off.toFixed(1)})`);
+    });
+  }
+});
+
+test('taps that can’t act answer: a stop further on, a junction no road reaches', async () => {
+  const { stageBoard } = await import('../dist/road-stage.js');
+  const pr = profile('23'); startJourney(pr);
+  const map = roadMapView(pr);
+  assert.match(map, /<button type="button" class="lr-stop[^"]*is-ahead"[^>]*data-action="refuse" data-id="hollow"[^>]*data-text="That’s further on!" aria-disabled="true"/);
+  assert.doesNotMatch(map, /data-action="noop"|lr-stop[^>]*\sdisabled[\s>]/);
+  // The stalls on K–1: from the start no road goes straight to the far side.
+  const stalls = all.find(q => q.id === campaignId('fair-stalls', 'k1')), route = mechanicFor(stalls), q = stalls.parameters;
+  const html = route.render(stalls, freshAttempt(stalls));
+  const refused = [...html.matchAll(/data-action="refuse" data-text="([^"]+)" aria-disabled="true"[^>]*data-node="([^"]+)"/g)];
+  assert.ok(refused.length > 0);
+  for (const [, text, v] of refused) {
+    assert.equal(text, `No road goes from ${q.start} to ${v}.`);
+    assert.ok(!q.edges.some(([u, w]) => [u, w].includes(q.start) && [u, w].includes(v)));
+  }
+  assert.doesNotMatch(html, /data-action="refuse"[^>]*\sdisabled[\s>]/);
+  // The boardwalks say it in the stage's words.
+  const walks = all.find(p => p.id === campaignId('marsh-boardwalks', '23')), w = walks.parameters;
+  let b = freshAttempt(walks); b = move(walks, b, { vertex: w.vertices[0] });
+  const stage = stageBoard('boardwalks', walks, b, { pack: fullPack, profile: pr, sceneStage: 0 });
+  const refusedWalk = [...stage.matchAll(/data-action="refuse" data-text="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(refusedWalk.length > 0 && refusedWalk.every(t => /^No boardwalk goes from /.test(t)), refusedWalk.join());
+});
+
+test('a stop sheet shows what a locked side puzzle needs; keepers’ circles take their colour while art loads', () => {
+  const pr = profile('23'); startJourney(pr);
+  finish(pr);
+  const sheet = stopSheet('ferry', pr, puzzles);
+  assert.match(sheet, /class="secondary small lr-needs" data-action="open-encounter" data-id="ferry-bath"[^>]*aria-label="Snooze’s bath, needs the pump">[\s\S]*Needs the pump<\/button>/);
+  assert.doesNotMatch(sheet, /aria-label="Play Snooze’s bath"/);
+  assert.match(sheet, /<div style="--keeper:#5fa57f" class="art-slot lr-portrait"/);
+});

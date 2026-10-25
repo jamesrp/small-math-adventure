@@ -150,7 +150,7 @@ test('code acceptance exhaustively checks every binary word against exact-positi
     assert.ok(code.solved(p, board));
     const html = code.render(p, { board });
     assert.doesNotMatch(html, /class="code-mismatch"/);
-    assert.match(html, /✓<\/td>/);
+    assert.match(html, /code-mark-good">✓<\/span><\/td>/);
   }
   const p = { parameters: { length: 2, transcript: [{ guess: '00', matches: 1 }] }, solution: { code: '01' } };
   assert.ok(code.solved(p, { bits: [1, 0], submitted: true }), 'accept another code when the transcript allows it');

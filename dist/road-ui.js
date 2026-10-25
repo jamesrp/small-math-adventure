@@ -23,7 +23,9 @@ export function starRow(earned, max, cls = '') {
 // another pose borrows it, talk shows its still.
 const keeperPortrait = (id, wanted, key = 'keeper', nonce = '', heard = false) => {
   const pose = [wanted, ...(wanted === 'talk' ? [] : ['talk']), 'idle'].find(p => asset(slots.keeper(id, p))) || wanted, once = pose === 'happy' || pose === 'oops';
-  return media(slots.keeper(id, pose), keeperArt(id, pose, CAST[id]?.color), { key, cls: 'lr-portrait', then: once ? slots.keeper(id, 'idle') : null, loop: !once, nonce: once ? nonce : '', motion: pose !== 'talk' || (wanted === 'talk' && heard) });
+  // The keeper's colour fills the circle until the picture has loaded.
+  return media(slots.keeper(id, pose), keeperArt(id, pose, CAST[id]?.color), { key, cls: 'lr-portrait', then: once ? slots.keeper(id, 'idle') : null, loop: !once, nonce: once ? nonce : '', motion: pose !== 'talk' || (wanted === 'talk' && heard) })
+    .replace('<div class="art-slot lr-portrait"', `<div style="--keeper:${CAST[id]?.color || 'transparent'}" class="art-slot lr-portrait"`);
 };
 
 // The keeper's talk pose ----------------------------------------------------------
@@ -99,10 +101,11 @@ function stopButton(stop, i, progress, profile, layout) {
   const current = progress.complete ? stop.id === STOPS.at(-1).id : i === progress.stopIndex;
   const reached = trail.started && i <= progress.stopIndex, earned = stop.encounters.reduce((sum, e) => sum + (trail.stars[e.id] || 0), 0);
   const won = medals(profile)[stop.id], open = reached || current;
-  const action = !open ? 'noop' : progress.complete || !current ? 'stop-sheet' : trail.started ? 'continue-journey' : 'start-journey';
+  // A stop further along answers a tap (dist/main.js, action "refuse").
+  const action = !open ? 'refuse' : progress.complete || !current ? 'stop-sheet' : trail.started ? 'continue-journey' : 'start-journey';
   const label = `${stop.title}${lit ? ', lit' : current ? ', next' : reached ? '' : ', ahead'}${reached ? `, ${earned} stars` : ''}`;
   const badge = earned || won.length ? `<span class="lr-stop-badge" aria-hidden="true">${earned ? `<span class="lr-stop-stars">★ ${earned}</span>` : ''}${won.length ? `<span class="lr-medals">${BAND_KEYS.map(b => `<i class="${won.includes(b) ? 'on' : ''} band-${b}"></i>`).join('')}</span>` : ''}</span>` : '';
-  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${open ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%;--w:${w}%;--h:${h}%" data-action="${action}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${open ? '' : 'disabled'} aria-label="${esc(label)}"><span class="lr-stop-glow" aria-hidden="true"></span>${badge}</button>`;
+  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${open ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%;--w:${w}%;--h:${h}%" data-action="${action}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${open ? '' : 'data-text="That’s further on!" aria-disabled="true"'} aria-label="${esc(label)}"><span class="lr-stop-glow" aria-hidden="true"></span>${badge}</button>`;
 }
 function sideButton(side, progress, layout) {
   const [x, y] = MAP_POINTS[layout][side.stop], trail = progress.trail;
@@ -203,8 +206,13 @@ function encounterRow(e, profile, puzzles) {
   const trail = trailFor(profile), stars = trail.stars[e.id] || 0, done = e.side ? trail.side.includes(e.id) : trail.completed.includes(e.id);
   const base = withCampaignPuzzles(puzzles).find(p => p.id === campaignId(e.id, profile.band)), p = resolvePuzzle(base, profile);
   const open = canVisitEncounter(profile, e.id);
-  // Replay of a finished puzzle starts a fresh attempt (data-replay).
-  return `<li class="lr-row">${keeperPortrait(e.speaker, 'idle', `row-${e.id}`)}<span class="lr-row-title">${esc(e.title)}</span>${p ? starRow(stars, Math.max(maxStars(e, p), stars)) : ''}${open ? button(done ? 'Replay' : 'Play', 'open-encounter', 'secondary small', `data-id="${e.id}" ${done ? 'data-replay="1" ' : ''}aria-label="${done ? 'Replay' : 'Play'} ${esc(e.title)}"`) : ''}</li>`;
+  // Replay of a finished puzzle starts a fresh attempt (data-replay). A side
+  // puzzle still waiting for its tool shows what it needs, as its map tile
+  // does, and still opens to be tried.
+  const tool = e.side && !done && p?.missingAbility ? TOOLS[e.requires].name.toLowerCase() : null;
+  const go = tool ? `<button type="button" class="secondary small lr-needs" data-action="open-encounter" data-id="${e.id}" data-focus="action-open-encounter-${e.id}" aria-label="${esc(e.title)}, needs the ${esc(tool)}">${media(slots.tool(e.requires), toolArt(e.requires), { key: `needs-${e.id}`, cls: 'lr-needs-icon' })}Needs the ${esc(tool)}</button>`
+    : button(done ? 'Replay' : 'Play', 'open-encounter', 'secondary small', `data-id="${e.id}" ${done ? 'data-replay="1" ' : ''}aria-label="${done ? 'Replay' : 'Play'} ${esc(e.title)}"`);
+  return `<li class="lr-row">${keeperPortrait(e.speaker, 'idle', `row-${e.id}`)}<span class="lr-row-title">${esc(e.title)}</span>${p ? starRow(stars, Math.max(maxStars(e, p), stars)) : ''}${open ? go : ''}</li>`;
 }
 export function stopSheet(stopId, profile, puzzles) {
   const stop = stopOf(stopId), sides = SIDE.filter(s => s.stop === stopId && getProgress(profile).sides.some(x => x.id === s.id));

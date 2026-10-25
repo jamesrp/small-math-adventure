@@ -142,3 +142,12 @@ test('no top-bar tab is marked current on Grown-ups', () => {
   assert.doesNotMatch(caravanHeader(ada, ''), /aria-current/);
   assert.match(caravanHeader(ada, 'journey'), /class="active"[^>]*aria-current="page">Road/);
 });
+
+test('Puzzles: the family a child just left by the Puzzles tab is open again; Spring-water Jugs has its own glyph', () => {
+  const closed = libraryView(ada, puzzles);
+  assert.doesNotMatch(closed, /<details[^>]* open>/, 'from anywhere else every family starts closed');
+  const back = libraryView(ada, puzzles, 'jug');
+  assert.deepEqual([...back.matchAll(/<details class="satchel-family" data-view-key="family-([^"]+)" open>/g)].map(m => m[1]), ['jug']);
+  assert.doesNotMatch(closed, /♒/, 'not the Aquarius sign');
+  assert.match(closed, /<span class="family-ink-symbol" aria-hidden="true">⊔<\/span><strong>Spring-water Jugs<\/strong>/);
+});
