@@ -214,7 +214,7 @@ export const mixupMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'mixup',
-  family: {id: 'mixup', symbol: '≠', area: 'patterns'},
+  family: {id: 'mixup', symbol: '≠', area: 'patterns', region: 'counting'},
   mechanics: mixupMechanics,
   pack: new URL('./mixup.json', import.meta.url).href,
   css: new URL('./mixup.css', import.meta.url).href,

@@ -416,7 +416,7 @@ export const rainbowMechanics = {rainbow: hooks, starred: hooks};
 // The family seam entry (dist/families.js).
 export default {
   id: 'rainbow',
-  family: {id: 'rainbow', symbol: '◭', area: 'shapes'},
+  family: {id: 'rainbow', symbol: '◭', area: 'shapes', region: 'shape'},
   mechanics: rainbowMechanics,
   pack: new URL('./rainbow.json', import.meta.url).href,
   css: new URL('./rainbow.css', import.meta.url).href,

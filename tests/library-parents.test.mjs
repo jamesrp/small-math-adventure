@@ -1,17 +1,17 @@
 // The Puzzles library's order and the Grown-ups page (road review, October 24):
-// a From the road shelf, every family closed with no count (each solved puzzle
-// carries the road's ✓ instead), each
-// explorer's road in Grown-ups, copies told apart, the mathematics by area,
-// and the read-aloud setting.
+// a From the road shelf, then the other families under their regions, each
+// family once, every family closed with no count (each solved puzzle carries
+// the road's ✓ instead), each explorer's road in Grown-ups, copies told apart,
+// the mathematics by area, and the read-aloud setting.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, nextHint, isSolved} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {MAIN, SIDE, startJourney, beginEncounter, recordSolve, campaignId} from '../dist/road.js';
+import {MAIN, SIDE, BAND_KEYS, startJourney, beginEncounter, recordSolve, campaignId} from '../dist/road.js';
 import {emptyStore, validateStore, parseBackup, importProfiles} from '../dist/storage.js';
-import {libraryView, roadFamilies, explorerNote, caravanHeader, caravanProfiles} from '../dist/caravan-ui.js';
+import {libraryView, roadFamilies, regionOf, explorerNote, caravanHeader, caravanProfiles} from '../dist/caravan-ui.js';
 import {parentView, readsAloud} from '../dist/ui.js';
-import {FAMILIES, AREAS, newFamilies} from '../dist/families.js';
+import {FAMILIES, AREAS, REGIONS, newFamilies} from '../dist/families.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const pack = await loadPack(), puzzles = pack.puzzles;
@@ -29,6 +29,10 @@ const ada = explorer();
 startJourney(ada); for (const e of [...MAIN, ...SIDE]) finish(ada, e.id);
 ada.band = '23'; startJourney(ada); for (const e of MAIN.slice(0, 10)) finish(ada, e.id); ada.band = 'k1';
 const families = html => [...html.matchAll(/data-view-key="family-([^"]+)"/g)].map(m => m[1]);
+// The library's headings in order, each with its region key (none for the
+// road's shelf), its text and the families listed under it.
+const sections = html => html.split('<h2 class="library-shelf').slice(1).map(part => ({region: part.match(/^[^>]*data-region="([^"]+)"/)?.[1] ?? null, heading: part.slice(part.indexOf('>') + 1, part.indexOf('</h2>')), families: families(part)}));
+const byRegion = ids => Object.keys(REGIONS).flatMap(region => ids.filter(id => regionOf(id) === region));
 
 test('Puzzles: a From the road shelf of the families met on the road, in road order, then the rest', () => {
   const fresh = explorer();
@@ -40,13 +44,55 @@ test('Puzzles: a From the road shelf of the families met on the road, in road or
   assert.deepEqual(met, ['swap', 'clock', 'toggle', 'route', 'latin', 'jug', 'weigh', 'nim', 'color', 'code', 'tile', 'billiard'], 'every road family, in the order the road first shows it');
   const html = libraryView(ada, puzzles), order = families(html), newest = newFamilies().map(f => f.id);
   assert.deepEqual(order.slice(0, met.length), met);
-  assert.deepEqual(order.slice(met.length), newest, 'then the new families, newest first');
-  assert.ok(html.indexOf('From the road') < html.indexOf('data-view-key="family-swap"') && html.indexOf('More puzzles') > html.indexOf('data-view-key="family-billiard"'));
+  assert.deepEqual(order.slice(met.length), byRegion(newest), 'then the new families by region, newest first inside each');
+  assert.equal(sections(html)[0].heading, 'From the road');
+  assert.deepEqual(sections(html)[0].families, met);
+  assert.doesNotMatch(html, /More puzzles/, 'regions, not one long list');
   assert.doesNotMatch(html, /<details[^>]*\bopen\b/, 'every family starts closed');
   for (const p of puzzles.filter(p => !p.campaignOnly)) assert.equal(html.split(`data-id="${p.id}"`).length - 1, 1, `${p.id} appears once`);
   // A trail part-way: only what this explorer has met, on any trail.
   const ben = explorer('23'); startJourney(ben); for (const e of MAIN.slice(0, 4)) finish(ben, e.id);
   assert.deepEqual(roadFamilies(ben, puzzles), ['swap', 'clock', 'toggle', 'route']);
+});
+
+test('Puzzles: every family in the pack appears once, on the road’s shelf or under its region, whatever the explorer has met', () => {
+  const all = [...new Set(puzzles.filter(p => !p.campaignOnly).map(familyOf))], newest = newFamilies().map(f => f.id);
+  assert.deepEqual(new Set(all.filter(id => !newest.includes(id))), new Set(['tile', 'swap', 'toggle', 'clock', 'billiard', 'route', 'color', 'latin', 'code', 'nim', 'jug', 'weigh']), 'the twelve base families, and every other one from the seam');
+  for (const id of all) assert.ok(regionOf(id), `${id}: a region (family.region in its module, or the base list in dist/caravan-ui.js)`);
+  // Nothing met; part of each trail; all of each trail with both side puzzles.
+  const explorers = [['nothing met', explorer()]];
+  for (const band of BAND_KEYS) {
+    const part = explorer(band, {id: `part-${band}`}), whole = explorer(band, {id: `all-${band}`});
+    startJourney(part); for (const e of MAIN.slice(0, 5)) finish(part, e.id);
+    startJourney(whole); for (const e of [...MAIN, ...SIDE]) finish(whole, e.id);
+    explorers.push([`part of ${band}`, part], [`all of ${band}`, whole]);
+  }
+  const shelves = new Set();
+  for (const [who, pr] of explorers) {
+    const html = libraryView(pr, puzzles), shelf = roadFamilies(pr, puzzles), at = sections(html);
+    shelves.add(shelf.length);
+    for (const id of all) assert.equal(html.split(`data-view-key="family-${id}"`).length - 1, 1, `${who}: ${id} once`);
+    assert.equal(families(html).length, all.length, `${who}: nothing else`);
+    if (shelf.length) assert.deepEqual(at.shift(), {region: null, heading: 'From the road', families: shelf}, `${who}: the road's shelf first, unchanged`);
+    else assert.doesNotMatch(html, /From the road/, `${who}: no shelf before the road`);
+    const left = [...all.filter(id => !newest.includes(id)), ...newest.filter(id => all.includes(id))].filter(id => !shelf.includes(id));
+    assert.deepEqual(at.map(s => s.region), Object.keys(REGIONS).filter(region => left.some(id => regionOf(id) === region)), `${who}: every region with something left, in order, and nothing else`);
+    for (const s of at) {
+      assert.equal(s.heading, REGIONS[s.region], `${who}: a region heading is only its name`);
+      assert.deepEqual(s.families, left.filter(id => regionOf(id) === s.region), `${who}: ${s.region} holds its families not on the shelf, base first, then newest first`);
+    }
+  }
+  assert.deepEqual([...shelves].sort((a, b) => a - b).slice(0, 1), [0]);
+  assert.ok(shelves.size >= 3, 'empty, part and whole shelves were all checked');
+});
+
+test('Puzzles: each family’s symbol is its own within its region', () => {
+  for (const s of sections(libraryView(explorer(), puzzles))) {
+    const part = libraryView(explorer(), puzzles).split(`data-region="${s.region}"`)[1].split('<h2 class="library-shelf')[0];
+    const symbols = [...part.matchAll(/<summary><span class="family-ink-symbol" aria-hidden="true">([^<]+)<\/span><strong>([^<]+)<\/strong>/g)].map(m => [m[1], m[2]]);
+    assert.equal(symbols.length, s.families.length);
+    for (const [symbol, title] of symbols) assert.equal(symbols.filter(([other]) => other === symbol).length, 1, `${s.heading}: ${title}'s ${symbol} is shared`);
+  }
 });
 
 test('Puzzles: no family carries a solved/total count; each solved puzzle shows the road’s ✓, and the explorer’s grade comes first', () => {
@@ -97,8 +143,12 @@ test('Grown-ups: explorers, offline play, notes and paper first; the mathematics
   assert.match(parentView({...emptyStore(), profiles: [ada], activeProfileId: ada.id}, ada, pack, 'A new version of the app is ready.', 'k1', true), /data-action="apply-update"/);
 });
 
-test('every family module names an area of mathematics', () => {
-  for (const m of FAMILIES.filter(m => m.family)) assert.ok(Object.hasOwn(AREAS, m.family.area), `${m.id}: area ${m.family.area}`);
+test('every family module names an area of mathematics and a region of the library', () => {
+  for (const m of FAMILIES.filter(m => m.family)) {
+    assert.ok(Object.hasOwn(AREAS, m.family.area), `${m.id}: area ${m.family.area}`);
+    assert.ok(Object.hasOwn(REGIONS, m.family.region), `${m.id}: region ${m.family.region}`);
+  }
+  for (const name of Object.values(REGIONS)) assert.match(name, /^[A-Z][a-z]+(?: [a-z]+)*$/, `${name}: a short name, no count or teaser`);
 });
 
 test('an imported explorer that shares a name is labelled with the day it arrived', () => {

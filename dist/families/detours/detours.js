@@ -355,7 +355,7 @@ export const detoursMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'detours',
-  family: {id: 'detours', symbol: '⥂', area: 'networks'},
+  family: {id: 'detours', symbol: '⥂', area: 'networks', region: 'symmetry'},
   mechanics: detoursMechanics,
   pack: new URL('./detours.json', import.meta.url).href,
   css: new URL('./detours.css', import.meta.url).href,

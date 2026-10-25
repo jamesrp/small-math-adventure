@@ -108,7 +108,8 @@ export const newFamilies = () => FAMILIES.filter(m => m.family).map(m => m.famil
 
 // The areas of mathematics that Grown-ups groups the families' notes under. A
 // module's family names one (`family.area`); the twelve base mechanics have
-// theirs in dist/ui.js. A family without one is listed under More.
+// theirs in dist/ui.js. A family without one is listed under More. (The
+// Puzzles library has its own regions, REGIONS below.)
 export const AREAS = {
   games: 'Games and strategy',
   logic: 'Logic and information',
@@ -119,6 +120,23 @@ export const AREAS = {
   geometry: 'Geometry and symmetry',
   surfaces: 'Surfaces and knots',
   chance: 'Chance and fairness',
+};
+
+// The regions of the Puzzles library, in the order it shows them, named in a
+// child's words. The keys are the worksheet catalog's eight areas
+// (catalog/concepts.toml in the worksheets repository), which decide where a
+// family goes: a module's family names one (`family.region`); the twelve base
+// mechanics have theirs in dist/caravan-ui.js. docs/library.md lists every
+// family's region and why.
+export const REGIONS = {
+  games: 'Games and choices',
+  networks: 'Maps and networks',
+  shape: 'Shapes and spaces',
+  symmetry: 'Patterns and symmetry',
+  number: 'Numbers',
+  counting: 'Counting and arranging',
+  logic: 'Codes and logic',
+  chance: 'Chance and machines',
 };
 
 // The app's single pack: the base pack, then each module's pack in registry order.

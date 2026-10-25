@@ -853,7 +853,7 @@ export const cornerMechanics = {
 
 export default {
   id: 'corners',
-  family: {id: 'corners', symbol: '∡', area: 'geometry'},
+  family: {id: 'corners', symbol: '∡', area: 'geometry', region: 'networks'},
   mechanics: cornerMechanics,
   pack: new URL('./corners.json', import.meta.url).href,
   css: new URL('./corners.css', import.meta.url).href,

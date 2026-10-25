@@ -825,7 +825,7 @@ export const cardMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'cardmachines',
-  family: {id: 'cardmachines', symbol: '◎', area: 'logic'},
+  family: {id: 'cardmachines', symbol: '◎', area: 'logic', region: 'logic'},
   mechanics: cardMechanics,
   pack: new URL('./cardmachines.json', import.meta.url).href,
   css: new URL('./cardmachines.css', import.meta.url).href,

@@ -553,7 +553,7 @@ export const averagesMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'averages',
-  family: {id: 'averages', symbol: '⊜', area: 'numbers'},
+  family: {id: 'averages', symbol: '⊜', area: 'numbers', region: 'chance'},
   mechanics: averagesMechanics,
   pack: new URL('./averages.json', import.meta.url).href,
   css: new URL('./averages.css', import.meta.url).href,

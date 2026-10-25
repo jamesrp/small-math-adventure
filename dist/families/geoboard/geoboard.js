@@ -858,7 +858,7 @@ export const geoboardMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'geoboard',
-  family: {id: 'geoboard', symbol: '∷', area: 'shapes'},
+  family: {id: 'geoboard', symbol: '∷', area: 'shapes', region: 'shape'},
   mechanics: geoboardMechanics,
   pack: new URL('./geoboard.json', import.meta.url).href,
   css: new URL('./geoboard.css', import.meta.url).href,

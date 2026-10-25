@@ -510,7 +510,7 @@ export const deckMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'decks',
-  family: {id: 'decks', symbol: '♢', area: 'chance'},
+  family: {id: 'decks', symbol: '♢', area: 'chance', region: 'chance'},
   mechanics: deckMechanics,
   pack: new URL('./decks.json', import.meta.url).href,
   css: new URL('./decks.css', import.meta.url).href,

@@ -826,7 +826,7 @@ export const strandMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'strands',
-  family: {id: 'strands', symbol: '≀', area: 'surfaces'},
+  family: {id: 'strands', symbol: '≀', area: 'surfaces', region: 'shape'},
   mechanics: strandMechanics,
   pack: new URL('./strands.json', import.meta.url).href,
   css: new URL('./strands.css', import.meta.url).href,

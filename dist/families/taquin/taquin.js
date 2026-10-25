@@ -485,7 +485,7 @@ export const taquinMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'taquin',
-  family: {id: 'taquin', symbol: '◰', area: 'patterns'},
+  family: {id: 'taquin', symbol: '◰', area: 'patterns', region: 'counting'},
   mechanics: taquinMechanics,
   pack: new URL('./taquin.json', import.meta.url).href,
   css: new URL('./taquin.css', import.meta.url).href,

@@ -619,7 +619,7 @@ export const sitesMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sites',
-  family: {id: 'sites', symbol: '⬡', area: 'geometry'},
+  family: {id: 'sites', symbol: '⬡', area: 'geometry', region: 'shape'},
   mechanics: sitesMechanics,
   pack: new URL('./sites.json', import.meta.url).href,
   css: new URL('./sites.css', import.meta.url).href,

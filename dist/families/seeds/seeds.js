@@ -432,7 +432,7 @@ export const seedMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'seeds',
-  family: {id: 'seeds', symbol: '✿', area: 'shapes'},
+  family: {id: 'seeds', symbol: '✿', area: 'shapes', region: 'chance'},
   mechanics: seedMechanics,
   pack: new URL('./seeds.json', import.meta.url).href,
   css: new URL('./seeds.css', import.meta.url).href,

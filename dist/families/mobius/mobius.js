@@ -817,7 +817,7 @@ export const mobiusMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'mobius',
-  family: {id: 'mobius', symbol: '∾', area: 'surfaces'},
+  family: {id: 'mobius', symbol: '∾', area: 'surfaces', region: 'shape'},
   mechanics: mobiusMechanics,
   pack: new URL('./mobius.json', import.meta.url).href,
   css: new URL('./mobius.css', import.meta.url).href,

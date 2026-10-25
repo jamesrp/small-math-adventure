@@ -20,7 +20,7 @@ const mech = mechanicFor(byId('leftovers-01'));
 const reset = p => mech.reset(p);
 
 test('the family entry and its symbol', () => {
-  assert.deepEqual(leftoversModule.family, {id: 'leftovers', symbol: '⊟', area: 'numbers'});
+  assert.deepEqual(leftoversModule.family, {id: 'leftovers', symbol: '⊟', area: 'numbers', region: 'number'});
   const others = FAMILIES.filter(m => m.family && m.id !== 'leftovers').map(m => m.family.symbol);
   assert.ok(!others.includes('⊟'), 'no other family uses ⊟');
   assert.equal(pack.puzzles.filter(p => p.band !== 'playground').length, 12);

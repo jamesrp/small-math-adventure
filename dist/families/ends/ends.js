@@ -838,7 +838,7 @@ export const endsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'ends',
-  family: {id: 'ends', symbol: '∞', area: 'networks'},
+  family: {id: 'ends', symbol: '∞', area: 'networks', region: 'networks'},
   mechanics: endsMechanics,
   pack: new URL('./ends.json', import.meta.url).href,
   css: new URL('./ends.css', import.meta.url).href,

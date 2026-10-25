@@ -420,7 +420,7 @@ export const mstMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'mst',
-  family: {id: 'mst', symbol: '⋔', area: 'networks'},
+  family: {id: 'mst', symbol: '⋔', area: 'networks', region: 'networks'},
   mechanics: mstMechanics,
   pack: new URL('./mst.json', import.meta.url).href,
   css: new URL('./mst.css', import.meta.url).href,

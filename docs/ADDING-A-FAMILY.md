@@ -41,7 +41,7 @@ Every family's stylesheet is loaded on every screen, so a rule that names anothe
 ```js
 export default {
   id: 'chips',
-  family: {id: 'chips', symbol: '◉', area: 'networks'},
+  family: {id: 'chips', symbol: '◉', area: 'networks', region: 'networks'},
   mechanics: chipMechanics,
   pack: new URL('./chips.json', import.meta.url).href,
   css: new URL('./chips.css', import.meta.url).href,
@@ -49,7 +49,7 @@ export default {
 };
 ```
 
-- `family` is the satchel family the module adds, with a one-character symbol and the area of mathematics that Grown-ups files its notes under (a key of `AREAS` in `dist/families.js`; `tests/library-parents.test.mjs` checks every family has one). Leave it out when the module's puzzles join existing families.
+- `family` is the satchel family the module adds, with a one-character symbol, the area of mathematics that Grown-ups files its notes under (a key of `AREAS` in `dist/families.js`), and the Puzzles library region a child finds it under (a key of `REGIONS` in the same file; see Where it appears). `tests/library-parents.test.mjs` checks every family has both. Leave it out when the module's puzzles join existing families.
 - `mechanics` maps each mechanic id to its hooks. A mechanic id must be new; `tests/families.test.mjs` fails on a clash.
 - `pack` and `css` are resolved from the module's own location, so they work in the browser and in Node.
 - `focus` is optional: the control that takes focus when the focused one disappears after a move.
@@ -101,7 +101,7 @@ Every group gets its own mechanic id, even when the move is the family's own, be
 
 ## Where it appears
 
-- **Satchel.** The road's families come first (on a From the road shelf once an explorer has met them), then the families from the seam, newest first. Every family starts closed, with no count; each puzzle the explorer has solved shows a ✓. A playground opens from a button above the groups.
+- **Satchel.** The road's families come first, on a From the road shelf once an explorer has met them. Every other family appears once, under its **region**. A new family must name its region in its module entry (`family.region`, a key of `REGIONS` in `dist/families.js`; the base mechanics' regions are `BASE_REGIONS` in `dist/caravan-ui.js`) and add its row, with the reason, to [the library's region table](library.md). The region is the worksheet catalog's area for the family's week (`catalog/weeks/week-NN.toml`: the area of its first concept); a family built from weeks in different areas goes where what a child does on its board belongs. Inside a region the base families come first, then the families from the seam, newest first. The family's symbol must differ from every other symbol in its region. Every family starts closed, with no count; each puzzle the explorer has solved shows a ✓. A playground opens from a button above the groups.
 - **Grown-ups.** The family's notes appear under its area in Mathematics, closed until opened.
 - **Not on the road.** A family goes onto a road only after children have played it. That is a separate change to the road, and Claude owns the story.
 - **Offline.** `npm run build` adds the module's files to the offline copy (`dist/sw.js`). Nothing reaches the live site until James asks for a release.

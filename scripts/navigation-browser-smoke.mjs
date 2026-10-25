@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {loadPack,newFamilies} from './packs.mjs';
+import {REGIONS} from '../dist/families.js';
 const playwright=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await playwright[process.env.TEST_BROWSER||'chromium'].launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const context=await browser.newContext({viewport:process.env.TEST_PHONE?{width:390,height:844}:{width:1024,height:768},serviceWorkers:'block'});
@@ -24,8 +25,18 @@ try{
   await page.locator('#profile-form button[type=submit]').click();
   await page.locator('.caravan-nav [data-action=library]').click();
   assert.deepEqual(await openFamilies(),[],'the library opens with every family closed');
-  assert.equal(await page.locator('.satchel-family').first().locator('summary strong').textContent(),'Tile gardens','the road’s families come first, then the newer ones');
-  assert.doesNotMatch(await page.locator('.satchel-family summary').allInnerTexts().then(t=>t.join('|')),/\d/,'no family shows a solved/total count (AGENTS.md)');
+  // Regions by kind of mathematics (docs/library.md): headings that are only a
+  // name, each family once under its region; before the road, no shelf.
+  const library=await page.locator('.caravan-library').evaluate(root=>{const out=[];for(const n of root.children){if(n.matches('h2.library-shelf'))out.push({heading:n.textContent,families:[]});else if(n.matches('details.satchel-family'))out.at(-1).families.push(n.querySelector('summary strong').textContent);}return out;});
+  assert.deepEqual(library.map(s=>s.heading),Object.values(REGIONS),'a new explorer sees every region in order, and no road shelf');
+  const titles=library.flatMap(s=>s.families);
+  assert.equal(new Set(titles).size,titles.length,'each family once');
+  assert.equal(titles.length,await page.locator('.satchel-family').count(),'every family sits under a region');
+  assert.equal(titles[0],'Pebble Duel','the first region’s base family comes first');
+  assert.equal(await page.locator('.caravan-library details:not(.satchel-family)').count(),0,'regions are headings, not disclosures');
+  assert.doesNotMatch(await page.locator('.satchel-family summary, .library-shelf').allInnerTexts().then(t=>t.join('|')),/\d/,'no family or region shows a count (AGENTS.md)');
+  const lastFamily=titles.at(-1);
+  await family(lastFamily).locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await family('Cup swaps').locator('summary').click();
   const expected=await openFamilies();
@@ -38,13 +49,13 @@ try{
   await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await back('.caravan-library');
   assert.deepEqual(await openFamilies(),expected,`Back restores every family, including closed ${newest}`);
-  checks.push('the library opens closed, road families first, no counts; a family, then a puzzle');
+  checks.push(`the library opens closed in ${library.length} regions, each family once, no counts; a family, then a puzzle`);
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'Back restores the library scroll position');
   await forward('[data-puzzle-id="clock-10"]');
   await back('.caravan-library');
   assert.deepEqual(await openFamilies(),expected,'repeated Back/Forward preserves library state');
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'repeated Back/Forward restores scroll');
-  checks.push('Clockwork Gates 10: groups and scroll through repeated Back/Forward');
+  checks.push(`Clockwork Gates 10: families in three regions (${lastFamily} last) and scroll through repeated Back/Forward`);
 
   await page.reload();await page.locator('.caravan-library').waitFor();await settle();
   assert.deepEqual(await openFamilies(),expected,'reload preserves the history entry');

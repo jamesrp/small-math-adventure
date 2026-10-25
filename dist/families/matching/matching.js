@@ -623,7 +623,7 @@ export const matchingMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'matching',
-  family: {id: 'matching', symbol: '⊶', area: 'chance'},
+  family: {id: 'matching', symbol: '⊶', area: 'chance', region: 'networks'},
   mechanics: matchingMechanics,
   pack: new URL('./matching.json', import.meta.url).href,
   css: new URL('./matching.css', import.meta.url).href,

@@ -889,7 +889,7 @@ export const friezeMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'friezes',
-  family: {id: 'friezes', symbol: 'Ⅎ', area: 'geometry'},
+  family: {id: 'friezes', symbol: 'Ⅎ', area: 'geometry', region: 'symmetry'},
   mechanics: friezeMechanics,
   pack: new URL('./friezes.json', import.meta.url).href,
   css: new URL('./friezes.css', import.meta.url).href,

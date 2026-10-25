@@ -388,7 +388,7 @@ export const sumsetsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sumsets',
-  family: {id: 'sumsets', symbol: '∔', area: 'numbers'},
+  family: {id: 'sumsets', symbol: '∔', area: 'numbers', region: 'number'},
   mechanics: sumsetsMechanics,
   pack: new URL('./sumsets.json', import.meta.url).href,
   css: new URL('./sumsets.css', import.meta.url).href,

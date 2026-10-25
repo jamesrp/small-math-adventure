@@ -709,7 +709,7 @@ export const radonMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'radon',
-  family: {id: 'radon', symbol: '⋈', area: 'geometry'},
+  family: {id: 'radon', symbol: '⋈', area: 'geometry', region: 'shape'},
   mechanics: radonMechanics,
   pack: new URL('./radon.json', import.meta.url).href,
   css: new URL('./radon.css', import.meta.url).href,

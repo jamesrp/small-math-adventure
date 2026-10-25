@@ -490,7 +490,7 @@ export const rotorMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'rotor',
-  family: {id: 'rotor', symbol: '⋎', area: 'numbers'},
+  family: {id: 'rotor', symbol: '⋎', area: 'numbers', region: 'networks'},
   mechanics: rotorMechanics,
   pack: new URL('./rotor.json', import.meta.url).href,
   css: new URL('./rotor.css', import.meta.url).href,

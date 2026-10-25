@@ -394,7 +394,7 @@ export const catchMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'catches',
-  family: {id: 'catches', symbol: '⊙', area: 'chance'},
+  family: {id: 'catches', symbol: '⊙', area: 'chance', region: 'chance'},
   mechanics: catchMechanics,
   pack: new URL('./catches.json', import.meta.url).href,
   css: new URL('./catches.css', import.meta.url).href,

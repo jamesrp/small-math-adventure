@@ -574,7 +574,7 @@ export const shieldMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'shields',
-  family: {id: 'shields', symbol: '⊠', area: 'surfaces'},
+  family: {id: 'shields', symbol: '⊠', area: 'surfaces', region: 'shape'},
   mechanics: shieldMechanics,
   pack: new URL('./shields.json', import.meta.url).href,
   css: new URL('./shields.css', import.meta.url).href,

@@ -299,7 +299,7 @@ export const bracesMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'braces',
-  family: {id: 'braces', symbol: '▧', area: 'networks'},
+  family: {id: 'braces', symbol: '▧', area: 'networks', region: 'networks'},
   mechanics: bracesMechanics,
   pack: new URL('./braces.json', import.meta.url).href,
   css: new URL('./braces.css', import.meta.url).href,

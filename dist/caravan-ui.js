@@ -3,13 +3,19 @@ import {PARTY} from './road-cast.js';
 import {companionSvg,lanternSvg} from './caravan-art.js';
 import {mapArt} from './road-placeholders.js';
 import {media,slots} from './art.js';
-import {newFamilies} from './families.js';
+import {newFamilies,REGIONS} from './families.js';
 import {MAIN,SIDE,BAND_KEYS,trailFor,campaignId} from './road.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,cls='',extra='')=>`<button type="button" class="${cls}" data-action="${action}" data-focus="action-${action}" ${extra}>${label}</button>`;
 const familySymbols={tile:'▰',swap:'⇄',toggle:'☀',clock:'◷',billiard:'↗',route:'♧',latin:'▦',code:'◐',nim:'●',color:'◆',jug:'⊔',weigh:'⚖',...Object.fromEntries(newFamilies().map(f=>[f.id,f.symbol]))};
 const familyNames={tile:'Tile gardens',swap:'Cup swaps'};
+// Each family's region in the Puzzles library (REGIONS in dist/families.js): a
+// module's family names its own; the twelve base mechanics are here, placed by
+// what a child does on the board. docs/library.md gives every reason.
+const BASE_REGIONS={tile:'shape',swap:'symmetry',toggle:'symmetry',clock:'number',billiard:'shape',route:'networks',color:'networks',latin:'logic',code:'logic',nim:'games',jug:'number',weigh:'logic'};
+const familyRegions={...BASE_REGIONS,...Object.fromEntries(newFamilies().map(f=>[f.id,f.region]))};
+export const regionOf=id=>Object.hasOwn(REGIONS,familyRegions[id]??'')?familyRegions[id]:null;
 
 // Road, Puzzles and Journal are the three places; the explorer's name and
 // puzzle level sit together on the right. On a phone the bar is one row: the
@@ -44,11 +50,14 @@ export function caravanProfiles(state,adding=false){
 // opens from a button above its groups. Every family starts closed. A family
 // carries no solved/total count (AGENTS.md: no counters in puzzle selection);
 // each puzzle this explorer has solved shows the road's Solved mark, a ✓.
-// Order (decided October 24, docs/ROAD.md): a From the road shelf of the
-// families whose boards the explorer has opened on the road (any trail), in
-// road order; then the road's other families in pack order; then the families
-// on the seam (dist/families.js), newest first. Inside a graded family the
-// explorer's own grade comes first after Proofs.
+// Order (decided October 24, docs/ROAD.md and docs/library.md): a From the
+// road shelf of the families whose boards the explorer has opened on the road
+// (any trail), in road order; then every other family under its region, the
+// regions in REGIONS order, each region's base families in pack order and then
+// its families from the seam (dist/families.js), newest first. A heading is
+// only the region's name, and a region with nothing left in it has none. Each
+// family appears once. Inside a graded family the explorer's own grade comes
+// first after Proofs.
 export const familyOf=p=>p.libraryFamily||p.mechanic;
 export function roadFamilies(profile,puzzles){
  const byId=new Map(puzzles.map(p=>[p.id,p])),met=[];
@@ -68,6 +77,9 @@ export function libraryView(profile,puzzles,openFamily=null){
  const newest=newFamilies().map(f=>f.id),present=[...new Set(puzzles.map(familyOf))];
  const shelf=roadFamilies(profile,puzzles).filter(id=>present.includes(id));
  const rest=[...present.filter(id=>!newest.includes(id)),...newest.filter(id=>present.includes(id))].filter(id=>!shelf.includes(id));
+ // A family without a known region (tests/library-parents.test.mjs fails on
+ // one) still shows, last, under More puzzles.
+ const regions=[...Object.entries(REGIONS),['more','More puzzles']].map(([key,name])=>[key,name,rest.filter(id=>(regionOf(id)??'more')===key)]).filter(([,,list])=>list.length);
  const own=BAND_KEYS.includes(profile.band)?profile.band:null,grades=own?[own,...BAND_KEYS.filter(b=>b!==own)]:BAND_KEYS;
  const familyHTML=id=>{
   const all=puzzles.filter(p=>familyOf(p)===id),play=all.find(p=>p.band==='playground'),family=all.filter(p=>p!==play),core=family.filter(p=>p.band!=='proofs'&&!p.group),title=(core[0]||family[0]).familyTitle||familyNames[id]||id;
@@ -85,5 +97,5 @@ export function libraryView(profile,puzzles,openFamily=null){
    }).join('')}</div></div>`;
   }).join('')}</div></details>`;
  };
- return `<h1 class="sr-only">Puzzles</h1><div class="caravan-library">${shelf.length?`<h2 class="library-shelf">From the road</h2>${shelf.map(familyHTML).join('')}<h2 class="library-shelf">More puzzles</h2>`:''}${rest.map(familyHTML).join('')}</div>`;
+ return `<h1 class="sr-only">Puzzles</h1><div class="caravan-library">${shelf.length?`<h2 class="library-shelf">From the road</h2>${shelf.map(familyHTML).join('')}`:''}${regions.map(([key,name,list])=>`<h2 class="library-shelf library-region" data-region="${key}">${esc(name)}</h2>${list.map(familyHTML).join('')}`).join('')}</div>`;
 }

@@ -712,7 +712,7 @@ export const voteMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'votes',
-  family: {id: 'votes', symbol: '≻', area: 'chance'},
+  family: {id: 'votes', symbol: '≻', area: 'chance', region: 'games'},
   mechanics: voteMechanics,
   pack: new URL('./votes.json', import.meta.url).href,
   css: new URL('./votes.css', import.meta.url).href,

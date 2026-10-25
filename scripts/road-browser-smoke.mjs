@@ -15,6 +15,7 @@ import * as road3 from '../dist/caravan-road3.js';
 import * as legacy from '../dist/caravan-legacy.js';
 import * as rescue from '../dist/caravan-rescue.js';
 import { emptyStore, parseBackup, SAVE_KEY } from '../dist/storage.js';
+import { REGIONS } from '../dist/families.js';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
@@ -226,12 +227,19 @@ try {
     assert.equal((await ui.profile()).journey.trails[band].completed.length, MAIN.length);
     await context.setOffline(false);
     checks.push(`${band}: all ${MAIN.length} encounters, finale, offline replay`);
-    // The Puzzles library opens closed, with the road's mechanics on a shelf of their own at the top.
+    // The Puzzles library opens closed, with the road's mechanics on a shelf of
+    // their own at the top and every other family once, under its region.
     await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
     assert.equal(await page.locator('.satchel-family[open]').count(), 0, `${band}: the library opens with every family closed`);
     const shelves = await page.locator('.caravan-library').evaluate(root => { const out = {}; let at = null; for (const n of root.children) { if (n.matches('.library-shelf')) out[at = n.textContent] = []; else if (at && n.matches('.satchel-family')) out[at].push({ title: n.querySelector('summary strong').textContent, summary: n.querySelector('summary').textContent }); } return out; });
-    assert.deepEqual(Object.keys(shelves), ['From the road', 'More puzzles'], `${band}: the road's shelf comes first`);
+    const [shelfName, ...regionNames] = Object.keys(shelves);
+    assert.equal(shelfName, 'From the road', `${band}: the road's shelf comes first`);
     assert.ok(shelves['From the road'].some(f => f.title === 'Cup swaps') && shelves['From the road'].length >= 8, `${band}: the shelf holds the road's mechanics`);
+    assert.deepEqual(regionNames, Object.values(REGIONS).filter(name => regionNames.includes(name)), `${band}: then the regions in order, each heading only its name`);
+    assert.ok(regionNames.length >= 6, `${band}: the other families sit in regions (${regionNames.join(', ')})`);
+    const titles = Object.values(shelves).flat().map(f => f.title);
+    assert.equal(new Set(titles).size, titles.length, `${band}: a family on the shelf is not listed again under its region`);
+    assert.equal(titles.length, await page.locator('.satchel-family').count(), `${band}: every family is on the shelf or under a region`);
     // AGENTS.md: no total/explored counters in puzzle selection; a solved puzzle shows the road's ✓ instead.
     assert.ok(Object.values(shelves).flat().every(f => !/\d/.test(f.summary)), `${band}: no family shows a count`);
     await page.locator('.satchel-family').first().locator('summary').click();
@@ -249,7 +257,7 @@ try {
     assert.equal(await page.locator('.puzzle-check').count(), 1, `${band}: only the solved puzzle carries the mark`);
     assert.ok(!/\d/.test(await solvedFamily.locator('summary').innerText()), `${band}: still no count once a puzzle is solved`);
     await capture('library-solved');
-    checks.push(`${band}: library opens closed, road shelf first, two taps to a board, no family counts, a solved puzzle marked ✓`);
+    checks.push(`${band}: library opens closed, road shelf first then ${regionNames.length} regions with each family once, two taps to a board, no family counts, a solved puzzle marked ✓`);
     await context.close();
   }
 

@@ -224,9 +224,42 @@ Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): ever
 5. Scene loops and change clips, then map and finale loops: [batch 2](batches/02-scene-motion.md).
 6. Stages for the ferry and the marsh, where four puzzles are now played in the picture: [batch 3](batches/03-stage-boards.md). Five new slots, placeholders until then.
 
-Keeper `idle` and `talk` loops can now be briefed as their own batch: “When `talk` shows” and the loop brief under Keeper poses say how the game uses them. Region and family icons, the lantern tree, and scenes and keepers for a second road come later, each with a brief from Claude.
+Keeper `idle` and `talk` loops can now be briefed as their own batch: “When `talk` shows” and the loop brief under Keeper poses say how the game uses them. Family icons have a brief (below). The lantern tree and scenes and keepers for a second road come later, each with a brief from Claude.
 
 After each batch: `node scripts/check-art.mjs`, `npm run build`, `npm test`, `node scripts/road-browser-smoke.mjs`, look in the app at phone and iPad sizes, and commit the art with its prompts in `artwork/road4/prompts.json` (prompt, tool, date, source file, slot).
+
+## Region and family icons: brief (October 24)
+
+From Claude, after the Puzzles library was grouped into regions ([docs/library.md](../library.md)). Nothing here is drawn yet, and no symbol was changed.
+
+**Where they show.** Each family in Puzzles has a 43 px tile beside its name (on the From the road shelf and under its region), and the same mark on its Playground button. Today the tile holds a text symbol: `family.symbol` in each family's module, and `familySymbols` in `dist/caravan-ui.js` for the twelve base families. Region headings stay plain words: no region icon is wanted (the copy rules in `AGENTS.md`).
+
+**What the check found.** No two families in one region share a symbol (`tests/library-parents.test.mjs` now keeps it so). But:
+
+- Two symbols are shared across regions: ◐ is both Signal Lanterns (Codes and logic) and Cops and robbers (Maps and networks); ▦ is both Symbol Orchard (Codes and logic) and Garden fences (Counting and arranging).
+- Five already mean something else to a child or a grown-up: ⌘ Knot colours (the Mac Command key), ▷ Take it or pass (a Play button), ≡ Paint rows (a menu button), ⧖ Mirror twins (an hourglass: "wait"), ♧ Bridge Courier (the clubs card suit, a pun on the card game).
+- Look-alikes sit in the same region and blur at tile size: ⊠ ⊞ ⊡ (Portal shields, Glued squares, Area traps) and ⦾ ⊚ ◍ (Loop worlds, Octagon streets, Ball triangles) in Shapes and spaces; ▤ ▣ (Joining strips, Nesting cards) in Counting and arranging; ⊙ ⊜ ⊕ (Catch and mark, Sharing circles, Copying bags) in Chance and machines. ⇄ Cup swaps and ⇆ Ticket shuffles are mirror images, in different regions.
+- Several are adult notation that pictures nothing on the board: ⊨ Who knows, ≀ Strands, ⋈ Stretch bands, ∏ Prime bags.
+- ☀ (Lantern Wires) and ⚖ (Odd-pebble Balance) may draw as colour emoji on some iPads; not yet checked on one.
+
+**Proposal.** A batch of family icons, one per family (80 today; a new family adds one), as art slots `family/<id>` of the existing `icon` shape (256 × 256, transparent, 60–80 KB). Claude adds the slots and the code that shows them in a separate commit before the batch; the text symbol stays as each slot's placeholder. Each icon is the board's own main object, in the boards' look (ink outline, sun and leaf fills, pine for the chosen thing), drawn to read at 28 px inside the tile, with no letters or numbers, and with a silhouette no other icon in its region shares. Start with the families above:
+
+| Family | Region | Draw |
+|---|---|---|
+| Cops and robbers | Maps and networks | A cop's cap and a robber's mask on two dots of a road |
+| Garden fences | Counting and arranging | A little fence round a shape of squares |
+| Knot colours | Shapes and spaces | A trefoil loop in three colours |
+| Take it or pass | Chance and machines | A hand passing a ticket along |
+| Paint rows | Chance and machines | Two short rows of painted squares |
+| Mirror twins | Patterns and symmetry | Two tetrahedra facing across a mirror line |
+| Bridge Courier | Maps and networks | An arched bridge between two dots |
+| Portal shields, Glued squares, Area traps | Shapes and spaces | A shield in a square room; a square with matching arrows on opposite edges; a shape with a grid inside and outside it |
+| Loop worlds, Octagon streets, Ball triangles | Shapes and spaces | A loop inside a loop; an octagon of streets; a triangle on a ball |
+| Joining strips, Nesting cards | Counting and arranging | Strips joined end to end; cards nested one inside another |
+| Catch and mark, Sharing circles, Copying bags | Chance and machines | A net with one marked fish; a ring of cups sharing water; a bag beside its copy |
+| Who knows, Strands, Stretch bands, Prime bags | Codes and logic; Shapes and spaces; Shapes and spaces; Numbers | Two faces with headbands; strands twisting round a cylinder; two bands crossing round pegs; a bag of counters |
+
+The other families follow in their region's order, each showing what its board shows (the family's `docs/<id>/README.md` describes it). Until the icons arrive, a code lane may swap the two shared symbols as a stopgap if James wants: ⌖ for Cops and robbers and ⬚ for Garden fences (both unused, and unchecked in iPad fonts).
 
 ## Voices
 

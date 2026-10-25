@@ -381,7 +381,7 @@ export const sideMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sides',
-  family: {id: 'sides', symbol: '◧', area: 'chance'},
+  family: {id: 'sides', symbol: '◧', area: 'chance', region: 'chance'},
   mechanics: sideMechanics,
   pack: new URL('./sides.json', import.meta.url).href,
   css: new URL('./sides.css', import.meta.url).href,

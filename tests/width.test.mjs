@@ -285,7 +285,7 @@ test('the playground: shapes, turning, the band, no hints', () => {
 
 test('the family entry and its symbol', () => {
   assert.equal(widthModule.id, 'width');
-  assert.deepEqual(widthModule.family, {id: 'width', symbol: '⌓', area: 'geometry'});
+  assert.deepEqual(widthModule.family, {id: 'width', symbol: '⌓', area: 'geometry', region: 'shape'});
   const others = FAMILIES.filter(m => m.family && m.id !== 'width').map(m => m.family.symbol);
   assert.ok(!others.includes('⌓'), 'no other family uses ⌓');
 });

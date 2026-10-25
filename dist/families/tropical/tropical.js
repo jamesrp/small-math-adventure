@@ -737,7 +737,7 @@ export const tropicalMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'tropical',
-  family: {id: 'tropical', symbol: '∟', area: 'geometry'},
+  family: {id: 'tropical', symbol: '∟', area: 'geometry', region: 'shape'},
   mechanics: tropicalMechanics,
   pack: new URL('./tropical.json', import.meta.url).href,
   css: new URL('./tropical.css', import.meta.url).href,

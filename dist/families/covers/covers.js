@@ -790,7 +790,7 @@ export const coversMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'covers',
-  family: {id: 'covers', symbol: '⊡', area: 'shapes'},
+  family: {id: 'covers', symbol: '⊡', area: 'shapes', region: 'shape'},
   mechanics: coversMechanics,
   pack: new URL('./covers.json', import.meta.url).href,
   css: new URL('./covers.css', import.meta.url).href,

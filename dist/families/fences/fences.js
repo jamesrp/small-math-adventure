@@ -354,7 +354,7 @@ export const fenceMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'fences',
-  family: {id: 'fences', symbol: '▦', area: 'shapes'},
+  family: {id: 'fences', symbol: '▦', area: 'shapes', region: 'counting'},
   mechanics: fenceMechanics,
   pack: new URL('./fences.json', import.meta.url).href,
   css: new URL('./fences.css', import.meta.url).href,

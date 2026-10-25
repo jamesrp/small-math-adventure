@@ -846,7 +846,7 @@ export const chipMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'chips',
-  family: {id: 'chips', symbol: '◉', area: 'networks'},
+  family: {id: 'chips', symbol: '◉', area: 'networks', region: 'networks'},
   mechanics: chipMechanics,
   pack: new URL('./chips.json', import.meta.url).href,
   css: new URL('./chips.css', import.meta.url).href,

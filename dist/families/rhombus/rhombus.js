@@ -403,7 +403,7 @@ export const rhombusMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'rhombus',
-  family: {id: 'rhombus', symbol: '◊', area: 'shapes'},
+  family: {id: 'rhombus', symbol: '◊', area: 'shapes', region: 'shape'},
   mechanics: rhombusMechanics,
   pack: new URL('./rhombus.json', import.meta.url).href,
   css: new URL('./rhombus.css', import.meta.url).href,

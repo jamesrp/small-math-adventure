@@ -472,7 +472,7 @@ export const knotsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'knots',
-  family: {id: 'knots', symbol: '⌘', area: 'surfaces'},
+  family: {id: 'knots', symbol: '⌘', area: 'surfaces', region: 'shape'},
   mechanics: knotsMechanics,
   pack: new URL('./knots.json', import.meta.url).href,
   css: new URL('./knots.css', import.meta.url).href,

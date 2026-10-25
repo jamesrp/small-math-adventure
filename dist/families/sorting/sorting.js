@@ -486,7 +486,7 @@ export const sortingMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sorting',
-  family: {id: 'sorting', symbol: '⇅', area: 'patterns'},
+  family: {id: 'sorting', symbol: '⇅', area: 'patterns', region: 'logic'},
   mechanics: sortingMechanics,
   pack: new URL('./sorting.json', import.meta.url).href,
   css: new URL('./sorting.css', import.meta.url).href,

@@ -727,7 +727,7 @@ export const shrinkMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'shrink',
-  family: {id: 'shrink', symbol: '⇊', area: 'patterns'},
+  family: {id: 'shrink', symbol: '⇊', area: 'patterns', region: 'counting'},
   mechanics: shrinkMechanics,
   pack: new URL('./shrink.json', import.meta.url).href,
   css: new URL('./shrink.css', import.meta.url).href,

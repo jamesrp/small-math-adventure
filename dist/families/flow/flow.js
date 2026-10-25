@@ -342,7 +342,7 @@ export const flowMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'flow',
-  family: {id: 'flow', symbol: '⇉', area: 'networks'},
+  family: {id: 'flow', symbol: '⇉', area: 'networks', region: 'networks'},
   mechanics: flowMechanics,
   pack: new URL('./flow.json', import.meta.url).href,
   css: new URL('./flow.css', import.meta.url).href,

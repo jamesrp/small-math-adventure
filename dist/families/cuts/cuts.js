@@ -344,7 +344,7 @@ export {MIN_N, MAX_N};
 // The family seam entry (dist/families.js).
 export default {
   id: 'cuts',
-  family: {id: 'cuts', symbol: '⬠', area: 'shapes'},
+  family: {id: 'cuts', symbol: '⬠', area: 'shapes', region: 'counting'},
   mechanics: cutsMechanics,
   pack: new URL('./cuts.json', import.meta.url).href,
   css: new URL('./cuts.css', import.meta.url).href,

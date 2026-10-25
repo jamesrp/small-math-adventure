@@ -436,7 +436,7 @@ export const loopsMechanic = {
 export const loopMechanics = {loops: loopsMechanic, loopsnum: {...loopsMechanic}};
 export default {
   id: 'loops',
-  family: {id: 'loops', symbol: '⦾', area: 'numbers'},
+  family: {id: 'loops', symbol: '⦾', area: 'numbers', region: 'shape'},
   mechanics: loopMechanics,
   pack: new URL('./loops.json', import.meta.url).href,
   css: new URL('./loops.css', import.meta.url).href,

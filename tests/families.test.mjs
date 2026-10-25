@@ -4,14 +4,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
-import {FAMILIES, newFamilies} from '../dist/families.js';
+import {FAMILIES, REGIONS, newFamilies} from '../dist/families.js';
 import {expansionMechanics, playInstructions} from '../dist/expansion.js';
 import {motionMechanics} from '../dist/motion.js';
 import {networkMechanics} from '../dist/networks.js';
 import {deductionMechanics} from '../dist/deduction.js';
 import {measurementMechanics} from '../dist/measurement.js';
 import {freshAttempt, validBoard} from '../dist/engine.js';
-import {libraryView} from '../dist/caravan-ui.js';
+import {libraryView, regionOf} from '../dist/caravan-ui.js';
 import {playView} from '../dist/ui.js';
 import {puzzleObjective, visiblePuzzleObjective} from '../dist/puzzle-copy.js';
 import {loadPack} from '../scripts/packs.mjs';
@@ -91,10 +91,10 @@ test('a module that adds a family names it and gives it a symbol', () => {
   }
 });
 
-test('the satchel lists the road’s families in pack order, then the new families newest first, every one closed', () => {
+test('the satchel lists each region’s base families in pack order, then its new families newest first, every one closed', () => {
   const html = libraryView(profile, pack.puzzles), newest = newFamilies().map(f => f.id);
   const order = [...html.matchAll(/data-view-key="family-([^"]+)"/g)].map(match => match[1]), base = [...new Set(pack.puzzles.map(familyOf))].filter(id => !newest.includes(id));
-  assert.deepEqual(order, [...base, ...newest], 'base families keep pack order, new families follow newest first');
+  assert.deepEqual(order, Object.keys(REGIONS).flatMap(region => [...base, ...newest].filter(id => regionOf(id) === region)), 'regions in order; inside each, base families keep pack order and new families follow newest first');
   assert.doesNotMatch(html, /<details[^>]*\bopen\b/, 'no family starts open');
   assert.doesNotMatch(html, /From the road/, 'no shelf before the road is started');
   for (const f of newFamilies()) assert.ok(html.includes(`<span class="family-ink-symbol" aria-hidden="true">${f.symbol}</span>`), `${f.id}: symbol shown`);
