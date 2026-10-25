@@ -105,6 +105,8 @@
 .board-panel .proof-duel>.proof-actions.is-calling button{box-shadow:0 0 0 3px var(--b-card),0 0 0 6px var(--b-ochre)}
 @media (prefers-reduced-motion:no-preference){.board-panel .proof-duel>.proof-actions.is-calling button{animation:pebble-call .4s ease-in-out 4 alternate}}
 @keyframes pebble-call{to{transform:scale(1.08)}}
+/* On a phone the rematch's four piles keep inside the card: narrower bowls and gaps. */
+@media (max-width:460px){.board-panel .proof-duel .duel-base{width:52px}.board-panel .proof-duel .duel-piles{gap:clamp(8px,4vw,48px)}}
 
 /* Spring-water jugs */
 .board-panel .jug-station h3{font-family:var(--b-display);font-weight:400;font-size:1.3rem}

@@ -117,6 +117,14 @@ async function pebbleGame(page, e, id, size, phone, where, profile) {
   }, which);
   const press = async name => { const b = await page.locator('.proof-actions button', { hasText: name }).boundingBox(); await tap({ x: b.x + b.width / 2, y: b.y + b.height / 2 }); };
   const take = /^Take \d+$/;
+  // Every pebble and bowl sits inside the board's card, within its padding.
+  const spill = await page.evaluate(() => {
+    const card = document.querySelector('.board-panel'), cs = getComputedStyle(card), box = card.getBoundingClientRect();
+    const left = box.left + card.clientLeft + parseFloat(cs.paddingLeft) - .5, right = box.right - card.clientLeft - parseFloat(cs.paddingRight) + .5;
+    return [...document.querySelectorAll('.duel-pebble, .duel-base')].map(n => n.getBoundingClientRect()).filter(r => r.left < left || r.right > right).length;
+  });
+  assert.equal(spill, 0, `${where}: the piles sit inside the board`);
+  checks.add('both pebble games: the piles sit inside the board');
   if (e.mechanic === 'duel') {
     assert.equal((await page.locator('.board-panel').innerText()).match(/in a row/gi)?.length, 1, `${where}: "in a row" once, in the goal`);
     await allOn('.proof-actions button', ['Go first', 'Go second'], 'before the start');
