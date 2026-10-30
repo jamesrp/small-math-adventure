@@ -77,6 +77,8 @@ function expansionHintCard(a,hint,p,ctx={}){
 }
 // The hint card's own Listen, like the keeper's: its words in the browser voice.
 const hintListen=lines=>{const text=lines.filter(Boolean).join(' ');return text?listenButton(text,'','the hint'):'';};
+// A puzzle's board alone, as How to play's demo draws it (dist/demo.js).
+export function boardHTML(p,a,ctx={}){return isExpansion(p)?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):swapBoard(p,a,ctx);}
 function tileBoard(p,a,ctx){
   const isL=p.tileShape==='l-tromino',selection=ctx.tileSelection||[];
   const occupied=new Map();

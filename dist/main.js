@@ -14,6 +14,7 @@ import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeep
 import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
 import { stageKind, stageHelp, dress } from './road-stage.js';
+import { playDemo } from './demo.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
 const viewState=createViewState(app);
@@ -526,7 +527,7 @@ document.addEventListener('click',event=>{
   else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
   else if(action==='speak'&&p)speak(p);
-  else if(action==='demo'&&p){const help=helpCopy(p);dialog('How to play',`<p>${esc(help.objective)}</p><p>${esc(help.instructions)}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a,{completed:id=>Boolean(profile()?.attempts?.[id]?.completed)})||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(help.dress(r))}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${help.note?`<p class="note-stage">${esc(help.note)}</p>`:''}${notesHTML(p,pack)}</details>`}`);}
+  else if(action==='demo'&&p){const help=helpCopy(p),e=activeEncounter(),staged=Boolean(e&&stageKind(e,p));const d=dialog('How to play',`${staged?'':'<div class="howto-demo"></div>'}<p>${esc(help.objective)}</p><p>${esc(help.instructions)}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a,{completed:id=>Boolean(profile()?.attempts?.[id]?.completed)})||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(help.dress(r))}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${help.note?`<p class="note-stage">${esc(help.note)}</p>`:''}${notesHTML(p,pack)}</details>`}`);const slot=d.querySelector('.howto-demo');if(slot){const stop=playDemo(slot,p,pack.puzzles,{reduced:window.matchMedia('(prefers-reduced-motion: reduce)').matches});d.addEventListener('close',stop);}}
   else if(action==='export'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`math-adventure-saves-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   else if(action==='import')document.querySelector('#import-file').click();
   else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);storage.removeItem(REPAIR_KEY);}catch{}render();}}]);}
