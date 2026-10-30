@@ -54,6 +54,9 @@
 | Any agent | Game logic, validators, content packs and other internals; worksheet work; reviews of anything. |
 | James | Testing with children, and the final word on story, quality and releases. A deploy happens only when he asks. |
 
+**A soft split for autonomous work (James, October 30, 2026).** Claude leads: it chooses what to do next, writes briefs with acceptance checks, runs the adversarial reviews (including the worksheets' guide critic stage), makes the product calls on story and progression, and turns James's playtest notes into changes. It implements small things, and whatever James asks it to. Codex implements from briefs and runs bounded reviews. This is a habit, not a rule: James may ask either agent for anything, and Codex uses its own judgement within a brief.
+
+- **Handing off.** A task for Codex is a work board line whose owner reads "for Codex" and which links a brief in [docs/briefs/](docs/briefs/): the goal, the files, the checks that must pass, any step that waits for Claude, and what to report. Codex claims the line as usual and marks it done with a summary; Claude reviews the result, then closes the line or adds follow-up lines.
 - **Claim work on [WORKBOARD.md](WORKBOARD.md) first.** Change the item's line to your name, branch and state and push that change to `main` before starting. A rejected push means someone moved first: fetch, re-read the board and choose again. A claimed item's files belong to its owner until it merges. The plan is in `docs/plan/`.
 
 ## GitHub source and agent integration
