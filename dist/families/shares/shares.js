@@ -808,6 +808,11 @@ function uiHook(p, payload) {
 
 export const shareMechanics = {
   shares: {
+    howTo: [
+      {parameters: {mode: 'one', people: [{id: 'A', likes: {red: 2, blue: 1}}, {id: 'B', likes: {red: 1, blue: 2}}], goods: [{id: 'R1', colour: 'red'}, {id: 'B1', colour: 'blue'}, {id: 'B2', colour: 'blue'}]}, steps: [{move: {type: 'put', good: 'R1', to: 'A'}, taps: ['[data-sh-good="R1"]', '[data-sh-zone="A"]']}, {move: {type: 'put', good: 'B1', to: 'B'}, taps: ['[data-sh-good="B1"]', '[data-sh-zone="B"]']}]},
+      {mode: 'favourites', parameters: {mode: 'favourites', people: [{id: 'A', likes: ['circle']}, {id: 'B', likes: ['circle', 'triangle']}, {id: 'C', likes: ['triangle']}], items: [{id: 'circle'}, {id: 'triangle'}]}, steps: [{move: {type: 'give', item: 'circle', to: 'B'}, taps: ['[data-sh-good="circle"]', '[data-sh-zone="B"]']}, {move: {type: 'give', item: 'circle', to: null}, taps: ['[data-sh-good="circle"]', '[data-sh-zone=""]']}]},
+      {mode: 'duel', parameters: {mode: 'duel', strip: 'RRBB', you: {red: 2, blue: 1}, them: {red: 1, blue: 2}}, steps: [{ui: {knife: 1}}, {move: {type: 'cut', at: 1}}, {ui: {knife: 3}}, {move: {type: 'cut', at: 3}}]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: uiHook,
     reset: p => { uiState.delete(p.id); },

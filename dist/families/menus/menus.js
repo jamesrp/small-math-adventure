@@ -435,6 +435,10 @@ function trackRender(p, a) {
 
 export const menuMechanics = {
   menu: {
+    howTo: [
+      {parameters: {mode: 'game', menu: [1, 2], start: [5, 3]}, steps: [{move: {type: 'take', pile: 1, take: 1}}]},
+      {mode: 'streak', parameters: {mode: 'streak', menu: [1, 2], piles: 1, range: [5, 6], streak: 3}, steps: [{move: {type: 'choose', first: 'you'}}, {move: {type: 'take', pile: 1, take: 1}}]}
+    ],
     fresh,
     valid: validBoard,
     solved: solvedBoard,
@@ -445,6 +449,10 @@ export const menuMechanics = {
     demo: 'Tap a number under a pile to take that many pebbles. The opponent replies. Only the numbers shown can be taken.'
   },
   menutrack: {
+    howTo: [
+      {parameters: {mode: 'track', menu: [1, 3], last: 5}, steps: [{move: {type: 'mark', square: 2}}, {move: {type: 'mark', square: 2}}]},
+      {mode: 'design', parameters: {mode: 'design', period: 3, choices: [1, 2, 3, 4], last: 6}, steps: [{move: {type: 'choose', take: 1}}, {move: {type: 'choose', take: 3}}]}
+    ],
     fresh: trackFresh,
     valid: trackValid,
     solved: trackSolved,

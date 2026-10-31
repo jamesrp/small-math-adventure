@@ -557,8 +557,8 @@ export function sortHint(p, b) {
 }
 // One card: two small buckets of fish, a button that marks it (or, when
 // picking a start to play, chooses it).
-function cardsHTML(b, {live, pick = false, chosen = null, flag = null, hinted = null}) {
-  const cells = Array.from({length: 16}, (_, c) => {
+function cardsHTML(b, {live, pick = false, chosen = null, flag = null, hinted = null, cards = CARDS}) {
+  const cells = [0, ...cards].map(c => {
     if (c === 0) return '<span class="fb-card blank" aria-hidden="true"></span>';
     const [l, r] = cardStart(c), on = b.marked.includes(c);
     const mini = n => `<span class="fb-mini">${Array.from({length: n}, () => fish()).join('')}</span>`;
@@ -578,7 +578,7 @@ function sortRender(p, a) {
     building.delete(p.id);
     const note = `<p class="fb-note" role="status">${b.refused?.more ? 'There is another.' : ''}</p>`;
     const tools = done ? '' : `${button('Play', {type: 'try'}, 'secondary')}${button('That’s all', {type: 'all'}, 'primary', b.marked.length > 0 && !b.refused, act?.type === 'all')}`;
-    return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort">${cardsHTML(b, {live: !done, hinted: act?.type === 'mark' ? act.cell : null})}<div class="fb-actions">${tools}</div>${note}</div>`;
+    return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort">${cardsHTML(b, {cards: p.parameters.cards, live: !done, hinted: act?.type === 'mark' ? act.cell : null})}<div class="fb-actions">${tools}</div>${note}</div>`;
   }
   const play = b.play, run = playState(b), out = play.kind === 'out';
   if (play.first === null) {
@@ -606,6 +606,10 @@ function sortRender(p, a) {
 
 export const bucketMechanics = {
   buckets: {
+    howTo: [
+      {parameters: {mode: 'duel', start: [1, 2], cap: 1, takes: 1}, steps: [{ui: {pending: {key: hash({start: [1, 2], pos: [1, 2], first: 'you', turns: []}), from: 2, take: 1, add: [0, 0]}}}, {ui: {pending: {key: hash({start: [1, 2], pos: [1, 2], first: 'you', turns: []}), from: 2, take: 1, add: [1, 0]}}}, {move: {type: 'move', from: 2, take: 1, add: [1, 0]}}]},
+      {mode: 'streak', parameters: {mode: 'streak', buckets: 2, max: 2, cap: 1, takes: 1, streak: 2}, steps: [{move: {type: 'choose', first: 'you'}}]}
+    ],
     fresh: gameFresh,
     valid: gameValid,
     solved: gameSolved,
@@ -619,6 +623,7 @@ export const bucketMechanics = {
     noUndo: p => p.parameters.mode !== 'duel'
   },
   bucketsort: {
+    howTo: {parameters: {kind: 'sort', cards: [1, 2, 4, 8]}, steps: [{move: {type: 'mark', cell: 2}}, {move: {type: 'mark', cell: 2}}]},
     fresh: sortFresh,
     valid: sortValid,
     solved: sortSolved,

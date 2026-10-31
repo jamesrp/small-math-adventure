@@ -571,6 +571,11 @@ function buildRender(p, a) {
 
 export const hackenbushMechanics = {
   stalks: {
+    howTo: [
+      {parameters: {mode: 'duel', start: ['BBB', 'RR'], colour: 'B'}, steps: [{move: {type: 'cut', stalk: 0, at: 2}}, {move: {type: 'cut', stalk: 0, at: 1}}]},
+      {mode: 'boards', parameters: {mode: 'boards', boards: [['BBB', 'RR']]}, steps: [{move: {type: 'claim', claim: 'R'}}]},
+      {mode: 'streak', parameters: {mode: 'streak', pieces: ['B', 'R', 'BR', 'RB'], least: 3, most: 4, streak: 2}, steps: [{move: {type: 'claim', claim: 'B'}}]}
+    ],
     fresh: gameFresh,
     valid: gameValid,
     solved: gameSolved,
@@ -582,6 +587,7 @@ export const hackenbushMechanics = {
     noUndo: p => p.parameters.mode !== 'duel'
   },
   stalkbuild: {
+    howTo: {parameters: {kind: 'build', given: ['BR'], slots: 1, height: 3}, steps: [{move: {type: 'add', slot: 0, colour: 'B'}}, {move: {type: 'add', slot: 0, colour: 'R'}}]},
     fresh: buildFresh,
     valid: buildValid,
     solved: buildSolved,

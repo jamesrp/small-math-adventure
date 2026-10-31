@@ -484,6 +484,12 @@ function wire(root, p, api) {
 
 export const pilesMechanics = {
   piles: {
+    howTo: [
+      {parameters: {mode: 'move', map: {shape: 'line', word: 'bin', aspect: 2, nodes: {A: [15, 60], B: [50, 60], C: [85, 60]}, roads: [['A', 'B'], ['B', 'C']]}, start: [2, 0, 0], target: [0, 0, 2], budget: 4}, steps: [{move: {type: 'move', from: 'A', to: 'B'}, taps: ['[data-gb-node="A"]', '[data-gb-node="B"]']}, {move: {type: 'move', from: 'B', to: 'C'}, taps: ['[data-gb-node="B"]', '[data-gb-node="C"]']}]},
+      {mode: 'design', parameters: {mode: 'design', map: {shape: 'line', word: 'bin', aspect: 2, nodes: {A: [15, 60], B: [50, 60], C: [85, 60]}, roads: [['A', 'B'], ['B', 'C']]}, target: [0, 0, 2], count: 2, exact: 3}, steps: [{move: {type: 'place', node: 'A'}, taps: ['[data-gb-node="A"]']}, {move: {type: 'place', node: 'B'}, taps: ['[data-gb-node="B"]']}, {move: {type: 'move', from: 'B', to: 'A'}, taps: ['[data-gb-node="B"]', '[data-gb-node="A"]']}]},
+      {mode: 'cards', parameters: {mode: 'cards', map: {shape: 'line', word: 'bin', aspect: 2, nodes: {A: [15, 60], B: [50, 60], C: [85, 60]}, roads: [['A', 'B'], ['B', 'C']]}, cards: [[2, 0, 0], [0, 2, 0], [0, 0, 2]], best: 4}, steps: [{move: {type: 'card', card: 0}}, {move: {type: 'card', card: 2}}, {move: {type: 'move', from: 'A', to: 'B'}, taps: ['[data-gb-node="A"]', '[data-gb-node="B"]']}]},
+      {mode: 'playground', parameters: {mode: 'playground', maps: {line: {shape: 'line', word: 'bin', aspect: 2, nodes: {A: [15, 60], B: [50, 60], C: [85, 60]}, roads: [['A', 'B'], ['B', 'C']]}}}, steps: [{move: {type: 'add', node: 'A'}, taps: ['[data-gb-node="A"]']}, {move: {type: 'add', node: 'B'}, taps: ['[data-gb-node="B"]']}]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
       if (!object(payload)) return;

@@ -691,6 +691,12 @@ function uiHook(p, payload) {
 
 export const voteMechanics = {
   votes: {
+    howTo: [
+      {parameters: {mode: 'agenda', letters: 'ABC', cards: ['ACB', 'BAC', 'CBA'], target: 'B'}, steps: [{move: {type: 'play', letter: 'A'}}, {move: {type: 'play', letter: 'C'}}]},
+      {mode: 'cards', parameters: {mode: 'cards', letters: 'ABC', cards: ['ABC', 'CBA', ''], goal: {kind: 'always', letter: 'B'}, cant: true}, steps: [{move: {type: 'write', card: 2, letter: 'C'}, taps: ['[data-focus="vt-write-2-C"]']}, {move: {type: 'write', card: 2, letter: 'A'}, taps: ['[data-focus="vt-write-2-A"]']}]},
+      {mode: 'line', parameters: {mode: 'line', start: [1, 4, 8], goal: 5, budget: 1}, steps: [{ui: {pick: 0, at: 0}}, {move: {type: 'put', voter: 0, to: 3}}]},
+      {mode: 'playground', parameters: {mode: 'playground', letters: 'AB', sizes: [3]}, steps: [{move: {type: 'write', card: 0, letter: 'B'}}, {move: {type: 'write', card: 0, letter: 'A'}}]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: uiHook,
     reset: p => { uiState.delete(p.id); },
