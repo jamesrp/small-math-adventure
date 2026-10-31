@@ -510,6 +510,29 @@ export const meetingMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+meetingMechanics["meeting"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"aspect": 1.6, "nodes": {"a": [12, 65], "b": [40, 20], "c": [65, 65], "d": [90, 25]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"], ["d", "a"], ["a", "c"]], "mode": "meet", "homes": {"A": "a", "B": "c", "C": "d"}, "kind": "map", "small": true},
+  steps: [
+    {"move": {"type": "step", "walker": "A", "to": "b"}, "taps": ["[data-gb-node=\"b\"]"]},
+    {"ui": {"walker": "B"}},
+    {"move": {"type": "step", "walker": "B", "to": "b"}, "taps": ["[data-gb-node=\"b\"]"]}
+  ]
+},
+{
+  mode: "close",
+  puzzle: {"objective": ""},
+  parameters: {"aspect": 1.6, "nodes": {"a": [12, 65], "b": [40, 20], "c": [65, 65], "d": [90, 25]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"], ["d", "a"], ["a", "c"]], "mode": "close", "homes": {"A": "a", "B": "c", "C": "d"}, "kind": "map", "small": true, "budget": 1},
+  steps: [
+    {"move": {"type": "close", "road": 0}, "taps": ["[data-gb-edge=\"0\"]"]},
+    {"move": {"type": "open", "road": 0}, "taps": ["[data-gb-edge=\"0\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'meeting',
   family: {id: 'meeting', symbol: '⋏', area: 'networks', region: 'networks'},

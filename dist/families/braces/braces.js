@@ -297,6 +297,17 @@ export const bracesMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+bracesMechanics["braces"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "fewest", "rows": 2, "cols": 2, "start": [1]},
+  steps: [
+    {"move": {"type": "brace", "cell": 0}, "taps": ["[data-bf-cell=\"0\"]"]},
+    {"move": {"type": "brace", "cell": 3}, "taps": ["[data-bf-cell=\"3\"]"]}
+  ]
+};
+
 export default {
   id: 'braces',
   family: {id: 'braces', symbol: '▧', area: 'networks', region: 'networks'},

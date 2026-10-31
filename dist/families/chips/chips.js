@@ -844,6 +844,50 @@ export const chipMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+chipMechanics["chips"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "firings", "board": "triangle", "chips": 2, "firings": 1, "answers": 1},
+  steps: [
+    {"move": {"type": "add", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]},
+    {"move": {"type": "add", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]},
+    {"move": {"type": "fire", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]}
+  ]
+},
+{
+  mode: "orders",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "orders", "board": "triangle", "start": [4, 0], "answers": 1},
+  steps: [
+    {"move": {"type": "fire", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]},
+    {"move": {"type": "fire", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]}
+  ]
+}
+];
+chipMechanics["chipstill"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "capacity", "board": "triangle", "most": 2},
+  steps: [
+    {"move": {"type": "add", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]},
+    {"move": {"type": "add", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]},
+    {"move": {"type": "fire", "node": "A"}, "taps": [".chip-node[data-node=\"A\"]"]}
+  ]
+},
+{
+  mode: "cycle",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "cycle", "board": "square", "at": "B", "answers": 4},
+  steps: [
+    {"move": {"type": "drop"}, "taps": [".chip-drop"]},
+    {"move": {"type": "drop"}, "taps": [".chip-drop"]},
+    {"move": {"type": "fire", "node": "B"}, "taps": [".chip-node[data-node=\"B\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'chips',
   family: {id: 'chips', symbol: '◉', area: 'networks', region: 'networks'},

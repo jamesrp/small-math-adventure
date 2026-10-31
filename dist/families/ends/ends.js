@@ -836,6 +836,17 @@ export const endsMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+endsMechanics["ends"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "goal", "map": {"kind": "flat", "name": "Line", "bands": [{"x": [null, null], "y": [0, 0]}], "view": {"w": 7, "h": 3, "cx": 0, "cy": -0.4}, "pan": "x", "start": [0, 0]}, "budget": 2, "goal": {"trapped": 1}, "patterns": [["-1,0", "1,0"]]},
+  steps: [
+    {"move": {"type": "block", "dot": "-1,0"}, "taps": ["[data-dot=\"-1,0\"]"]},
+    {"move": {"type": "unblock", "dot": "-1,0"}, "taps": ["[data-dot=\"-1,0\"]"]}
+  ]
+};
+
 export default {
   id: 'ends',
   family: {id: 'ends', symbol: '∞', area: 'networks', region: 'networks'},

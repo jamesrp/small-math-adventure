@@ -680,6 +680,52 @@ export const twoMechanic = {
 
 // The family seam entry (dist/families.js).
 export const copsMechanics = {cops: copsMechanic, copsfold: foldMechanic, copstwo: twoMechanic};
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+copsMechanics["cops"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "catch", "aspect": 2, "nodes": {"a": [12, 50], "b": [38, 20], "c": [64, 50], "d": [88, 75]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"]], "budget": 3},
+  steps: [
+    {"move": {"type": "start", "at": "a"}, "taps": ["[data-gb-node=\"a\"]"]},
+    {"move": {"type": "move", "to": "b"}, "taps": ["[data-gb-node=\"b\"]"]}
+  ]
+},
+{
+  mode: "escape",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "escape", "aspect": 1.6, "nodes": {"a": [12, 70], "b": [40, 15], "c": [72, 15], "d": [90, 70], "e": [50, 90]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"], ["d", "e"], ["e", "a"]]},
+  steps: [
+    {"move": {"type": "r", "at": "c"}, "taps": ["[data-gb-node=\"c\"]"]},
+    {"move": {"type": "r", "at": "d"}, "taps": ["[data-gb-node=\"d\"]"]}
+  ]
+},
+{
+  mode: "roads",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "roads", "aspect": 2, "nodes": {"a": [12, 50], "b": [38, 20], "c": [64, 50], "d": [88, 75]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"], ["d", "a"]], "budget": 3, "add": 1},
+  steps: [
+    {"move": {"type": "add", "road": ["a", "c"]}, "taps": ["[data-gb-node=\"a\"]", "[data-gb-node=\"c\"]"]}
+  ]
+}
+];
+copsMechanics["copsfold"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "catch", "aspect": 2, "nodes": {"a": [12, 50], "b": [38, 20], "c": [64, 50], "d": [88, 75]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"]], "budget": 3},
+  steps: [
+    {"move": {"type": "fold", "v": "a", "u": "b"}, "taps": ["[data-gb-node=\"a\"]", "[data-gb-node=\"b\"]"]},
+    {"move": {"type": "fold", "v": "d", "u": "c"}, "taps": ["[data-gb-node=\"d\"]", "[data-gb-node=\"c\"]"]}
+  ]
+};
+copsMechanics["copstwo"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "catch", "aspect": 2, "nodes": {"a": [12, 50], "b": [38, 20], "c": [64, 50], "d": [88, 75]}, "roads": [["a", "b"], ["b", "c"], ["c", "d"]], "budget": 3, "start": "a"},
+  steps: [
+    {"ui": {"plan": {"C1": "b", "C2": "a"}, "chosen": "C1", "at": "{\"moves\":[]}"}, "taps": ["[data-gb-node=\"b\"]", "[data-gb-node=\"a\"]"]},
+    {"move": {"type": "go", "c1": "b", "c2": "a"}}
+  ]
+};
+
 export default {
   id: 'cops',
   family: {id: 'cops', symbol: '◐', area: 'games', region: 'networks'},

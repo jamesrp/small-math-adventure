@@ -851,6 +851,24 @@ export const cornerMechanics = {
   }
 };
 
+// Short move demonstrations use their own boards; no puzzle opening is played.
+cornerMechanics["corners"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "make", "menu": ["T", "S"], "locked": [], "goal": "point", "count": 4},
+  steps: [
+    {"move": {"type": "add", "piece": "T"}},
+    {"move": {"type": "add", "piece": "S"}}
+  ]
+};
+cornerMechanics["corner-trees"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"aspect": 1.3, "nodes": {"A": [15, 75], "B": [50, 15], "C": [85, 75], "D": [50, 50]}, "edges": [["A", "B"], ["B", "C"], ["C", "A"], ["A", "D"], ["B", "D"]]},
+  steps: [
+    {"move": {"type": "line", "line": 3}, "taps": ["[data-gb-edge=\"3\"]"]},
+    {"move": {"type": "line", "line": 3}, "taps": ["[data-gb-edge=\"3\"]"]}
+  ]
+};
+
 export default {
   id: 'corners',
   family: {id: 'corners', symbol: '∡', area: 'geometry', region: 'networks'},

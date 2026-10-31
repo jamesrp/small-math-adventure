@@ -296,6 +296,26 @@ export const firstFitMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Neighbor
 // Lanterns as its First fit and Why not fewer groups.
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+firstFitMechanics["firstfit"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"vertices": ["A", "B", "C"], "edges": [["A", "B", 1], ["B", "C", 1]], "positions": {"A": [15, 65], "B": [50, 20], "C": [85, 65]}, "goal": "target", "target": 2},
+  steps: [
+    {"move": {"type": "tap", "vertex": 0}, "taps": ["[data-focus=\"ff-A\"]"]},
+    {"move": {"type": "tap", "vertex": 1}, "taps": ["[data-focus=\"ff-B\"]"]}
+  ]
+};
+firstFitMechanics["fewest"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"vertices": ["A", "B", "C"], "edges": [["A", "B", 1], ["B", "C", 1]], "positions": {"A": [15, 65], "B": [50, 20], "C": [85, 65]}, "goal": "target", "target": 2, "palette": 3, "proof": ["A", "B"]},
+  steps: [
+    {"move": {"type": "tap", "vertex": 0}, "taps": ["[data-focus=\"ff-A\"]"]},
+    {"move": {"type": "palette", "color": 2}, "taps": ["[data-focus=\"ff-palette-2\"]"]},
+    {"move": {"type": "tap", "vertex": 1}, "taps": ["[data-focus=\"ff-B\"]"]}
+  ]
+};
+
 export default {
   id: 'firstfit',
   mechanics: firstFitMechanics,

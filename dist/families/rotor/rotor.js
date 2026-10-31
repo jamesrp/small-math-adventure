@@ -488,6 +488,18 @@ export const rotorMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+rotorMechanics["rotor"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "make", "depth": 1, "target": ["B", "A", "B"]},
+  steps: [
+    {"move": {"type": "set", "node": "s0", "side": "R"}, "taps": ["[data-gb-node=\"s0\"]"]},
+    {"move": {"type": "send"}},
+    {"move": {"type": "send"}}
+  ]
+};
+
 export default {
   id: 'rotor',
   family: {id: 'rotor', symbol: '⋎', area: 'numbers', region: 'networks'},

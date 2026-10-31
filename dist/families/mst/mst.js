@@ -418,6 +418,37 @@ export const mstMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+mstMechanics["mst"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "cheapest", "aspect": 1.5, "nodes": {"A": [15, 75], "B": [50, 15], "C": [85, 75]}, "links": [["A", "B", 2], ["B", "C", 3], ["C", "A", 4]], "cheapest": 5},
+  steps: [
+    {"move": {"type": "link", "link": 2}, "taps": ["[data-gb-edge=\"2\"]"]},
+    {"move": {"type": "link", "link": 0}, "taps": ["[data-gb-edge=\"0\"]"]}
+  ]
+},
+{
+  mode: "forced",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "forced", "aspect": 1.5, "nodes": {"A": [15, 75], "B": [50, 15], "C": [85, 75]}, "links": [["A", "B", 2], ["B", "C", 3], ["C", "A", 4]], "cheapest": 5, "target": 0},
+  steps: [
+    {"move": {"type": "place", "node": "C"}, "taps": ["[data-gb-node=\"C\"]"]},
+    {"move": {"type": "place", "node": "C"}, "taps": ["[data-gb-node=\"C\"]"]}
+  ]
+},
+{
+  mode: "design",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "design", "aspect": 1.5, "nodes": {"A": [15, 75], "B": [50, 15], "C": [85, 75]}, "links": [["A", "B", 2], ["B", "C", 3], ["C", "A", 4]], "cheapest": 5, "want": 2},
+  steps: [
+    {"move": {"type": "price", "link": 0}, "taps": ["[data-gb-edge=\"0\"]"]},
+    {"move": {"type": "price", "link": 1}, "taps": ["[data-gb-edge=\"1\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'mst',
   family: {id: 'mst', symbol: '⋔', area: 'networks', region: 'networks'},
