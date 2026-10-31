@@ -282,6 +282,17 @@ export const robotMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+robotMechanics["robot"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"start": [1, 0], "flag": [0, 1], "goal": 0, "budget": 4},
+  steps: [
+    {"move": {"type": "go", "to": [1, 1]}, "taps": ["[aria-label=\"Move north\"]"]},
+    {"move": {"type": "go", "to": [2, 1]}, "taps": ["[aria-label=\"Move east\"]"]}
+  ]
+};
+
 export default {
   id: 'robot',
   family: {id: 'robot', symbol: '⟲', area: 'geometry', region: 'symmetry'},

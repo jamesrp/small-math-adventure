@@ -330,6 +330,18 @@ export const lamplighterMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Lantern Wires as
 // its Lamplighter group, so the module adds no satchel family.
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+lamplighterMechanics["lamplighter"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"geometry": "street", "min": 0, "max": 2, "start": {"at": 1, "lit": []}, "goal": {"at": 0, "lit": [0, 2]}, "budget": 6},
+  steps: [
+    {"move": {"lantern": 1}},
+    {"move": {"lantern": 2}},
+    {"move": {"lantern": 2}}
+  ]
+};
+
 export default {
   id: 'lamplighter',
   mechanics: lamplighterMechanics,

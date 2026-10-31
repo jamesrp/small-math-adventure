@@ -263,6 +263,17 @@ export const elevatorMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+elevatorMechanics["elevator"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"target": -2, "levels": 2, "xmin": -3, "xmax": 4, "budget": 4},
+  steps: [
+    {"move": {"type": "move", "dir": "U"}},
+    {"move": {"type": "move", "dir": "R"}}
+  ]
+};
+
 export default {
   id: 'elevators',
   family: {id: 'elevators', symbol: '⇞', area: 'numbers', region: 'symmetry'},

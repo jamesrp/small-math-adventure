@@ -695,6 +695,17 @@ export const internals = {validCancel, solvedCancel, hintCancel, validSchedule, 
 
 // The family seam entry (dist/families.js). The puzzles join Lantern Wires as
 // its Holes group, so the module adds no satchel family.
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+holesMechanics["holes"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"kind": "cancel", "mesh": {"points": [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]], "cells": [[0, 1, 4], [0, 4, 3], [1, 2, 5], [1, 5, 4]]}, "filled": [0, 1, 2, 3], "lit": [[0, 1], [1, 2], [2, 5], [5, 4], [4, 3], [3, 0]]},
+  steps: [
+    {"move": {"tile": 0}, "taps": ["[data-tg-cell=\"0\"]"]},
+    {"move": {"tile": 2}, "taps": ["[data-tg-cell=\"2\"]"]}
+  ]
+};
+
 export default {
   id: 'holes',
   mechanics: holesMechanics,

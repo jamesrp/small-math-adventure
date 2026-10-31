@@ -564,6 +564,28 @@ export const stairMechanics = {
 };
 
 // The family seam entry (dist/families.js): a group in Memory robot.
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+stairMechanics["stairs"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "turns", "a": 3, "b": 2, "D": 6},
+  steps: [
+    {"move": {"type": "go", "to": [1, 0]}, "taps": ["[data-go=\"1,0\"]"]},
+    {"move": {"type": "go", "to": [1, 1]}, "taps": ["[data-go=\"1,1\"]"]}
+  ]
+},
+{
+  mode: "exact",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "exact", "a": 3, "b": 2, "steps": 7},
+  steps: [
+    {"move": {"type": "go", "to": [1, 0]}, "taps": ["[data-go=\"1,0\"]"]},
+    {"move": {"type": "go", "to": [1, 1]}, "taps": ["[data-go=\"1,1\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'stairs',
   mechanics: stairMechanics,

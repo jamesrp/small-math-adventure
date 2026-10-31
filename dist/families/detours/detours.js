@@ -353,6 +353,27 @@ export const detoursMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+detoursMechanics["detours"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"aspect": 1.4, "nodes": {"A": [15, 65], "B": [50, 20], "C": [85, 65]}, "roads": [["A", "B"], ["B", "C"]], "start": "A", "mode": "make", "finish": "A", "min": 4, "max": 6, "result": "empty"},
+  steps: [
+    {"move": {"type": "step", "to": "B"}, "taps": ["[data-gb-node=\"B\"]"]},
+    {"move": {"type": "step", "to": "A"}, "taps": ["[data-gb-node=\"A\"]"]}
+  ]
+},
+{
+  mode: "shorten",
+  puzzle: {"objective": ""},
+  parameters: {"aspect": 1.4, "nodes": {"A": [15, 65], "B": [50, 20], "C": [85, 65]}, "roads": [["A", "B"], ["B", "C"]], "start": "A", "mode": "shorten", "trip": ["A", "B", "A", "B", "C"]},
+  steps: [
+    {"move": {"type": "cancel", "at": 1}, "taps": ["[data-dt-stop=\"1\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'detours',
   family: {id: 'detours', symbol: '⥂', area: 'networks', region: 'symmetry'},

@@ -887,6 +887,17 @@ export const friezeMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+friezeMechanics["friezes"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "puzzle", "cell": [[0, null], [null, 2]], "edit": "none", "tools": ["flip"], "goals": [{"type": "match", "move": "slide"}, {"type": "match", "move": "flip"}]},
+  steps: [
+    {"move": {"type": "slide", "by": 1}, "taps": [".fz-copy-frame"]},
+    {"move": {"type": "flip"}}
+  ]
+};
+
 export default {
   id: 'friezes',
   family: {id: 'friezes', symbol: 'Ⅎ', area: 'geometry', region: 'symmetry'},

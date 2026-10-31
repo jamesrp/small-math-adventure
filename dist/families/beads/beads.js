@@ -314,9 +314,30 @@ const hooks = {
   },
   noHint: p => p.parameters.mode === 'playground'
 };
-export const beadMechanics = {beads: hooks, lopsided: hooks};
+export const beadMechanics = {beads: {...hooks}, lopsided: {...hooks}};
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+beadMechanics["beads"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "every", "n": 5, "colours": 3},
+  steps: [
+    {"move": {"type": "paint", "bead": 0}},
+    {"move": {"type": "paint", "bead": 1}},
+    {"move": {"type": "paint", "bead": 0}}
+  ]
+};
+beadMechanics["lopsided"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "every", "n": 5, "colours": 3},
+  steps: [
+    {"move": {"type": "paint", "bead": 0}},
+    {"move": {"type": "paint", "bead": 1}},
+    {"ui": {"copy": "turn"}}
+  ]
+};
+
 export default {
   id: 'beads',
   family: {id: 'beads', symbol: '◌', area: 'geometry', region: 'symmetry'},

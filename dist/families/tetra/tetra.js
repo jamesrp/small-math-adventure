@@ -949,6 +949,47 @@ export const tetraMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+tetraMechanics["tetra"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "pair", "left": ["B", "C", "A", "D"], "right": ["D", "C", "B", "A"], "goal": "match", "cant": false, "merge": false},
+  steps: [
+    {"move": {"type": "turn", "at": 0}},
+    {"move": {"type": "turn", "at": 1}}
+  ]
+},
+{
+  mode: "sort",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "sort", "cards": [["A", "B", "D", "C"], ["D", "C", "A", "B"]]},
+  steps: [
+    {"move": {"type": "turn", "card": 0, "at": 0}},
+    {"move": {"type": "turn", "card": 0, "at": 1}}
+  ]
+},
+{
+  mode: "merges",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "merges", "left": ["B", "C", "A", "D"], "right": ["D", "C", "B", "A"], "order": ["AB", "AC", "AD", "BC", "BD", "CD"]},
+  steps: [
+    {"ui": {"lift": "B"}},
+    {"move": {"type": "merge", "drop": "B", "keep": "A"}},
+    {"move": {"type": "turn", "at": 0}}
+  ]
+},
+{
+  mode: "playground",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "playground", "left": ["B", "C", "A", "D"], "right": ["D", "C", "B", "A"]},
+  steps: [
+    {"move": {"type": "turn", "side": "right", "at": 0}},
+    {"move": {"type": "turn", "side": "left", "at": 1}}
+  ]
+}
+];
+
 export default {
   id: 'tetra',
   family: {id: 'tetra', symbol: '⧖', area: 'geometry', region: 'symmetry'},
