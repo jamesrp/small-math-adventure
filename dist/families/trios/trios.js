@@ -854,6 +854,40 @@ export const triosMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+triosMechanics.trios.howTo = [
+{
+  parameters: {"mode":"cap","deck":2,"order":[0,1,2,3,4,5,6,7,8],"target":4,"can":true,"dim":false},
+  steps: [
+    {"move":{"type":"pick","card":1}},
+    {"move":{"type":"pick","card":3}}
+  ]
+},
+{
+  mode: "split",
+  parameters: {"mode":"split","deck":2,"order":[0,1,2,3,4,5,6,7,8]},
+  steps: [
+    {"move":{"type":"place","card":0}},
+    {"move":{"type":"place","card":3}}
+  ]
+},
+{
+  mode: "paint",
+  parameters: {"mode":"paint","order":[0,1,2,3,4,5,6,7,8],"values":3,"rule":"mono","can":true},
+  steps: [
+    {"move":{"type":"paint","tile":0,"value":0}},
+    {"move":{"type":"paint","tile":0,"value":1}}
+  ]
+},
+{
+  mode: "game",
+  parameters: {"mode":"game","deck":2,"order":[0,1,2,3,4,5,6,7,8]},
+  steps: [
+    {"move":{"type":"claim","tile":1}}
+  ]
+}
+];
+
 export default {
   id: 'trios',
   family: {id: 'trios', symbol: '∴', area: 'patterns', region: 'counting'},

@@ -467,6 +467,24 @@ export const pictureMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+pictureMechanics.pictures.howTo = [
+{
+  parameters: {"mode":"match","size":[2,2],"rowCounts":[1,0],"colCounts":[0,1]},
+  steps: [
+    {"move":{"type":"toggle","cell":0}},
+    {"move":{"type":"toggle","cell":2}}
+  ]
+},
+{
+  mode: "reach",
+  parameters: {"mode":"reach","size":[2,2],"start":"10/01","goal":"01/10","budget":2},
+  steps: [
+    {"move":{"type":"switch","a":0,"b":3},"taps":["[data-cell=\"0\"]","[data-cell=\"3\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'pictures',
   family: {id: 'pictures', symbol: '▚', area: 'logic', region: 'logic'},

@@ -725,6 +725,39 @@ export const shrinkMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+shrinkMechanics.shrink.howTo = [
+{
+  parameters: {"mode":"seams","pieces":["ABBA"]},
+  steps: [
+    {"move":{"type":"seam","at":"","s":0,"piece":0}},
+    {"move":{"type":"shrink","at":"","s":0,"piece":0}}
+  ]
+},
+{
+  mode: "repair",
+  parameters: {"mode":"repair","piece":"ABBA"},
+  steps: [
+    {"move":{"type":"flip","i":0}}
+  ]
+},
+{
+  mode: "impostor",
+  parameters: {"mode":"impostor","strip":"ABBABA","endless":true,"k":4},
+  steps: [
+    {"move":{"type":"select","a":0,"b":3},"taps":["[data-focus=\"sk-strip-0\"]","[data-focus=\"sk-strip-3\"]"]}
+  ]
+},
+{
+  mode: "playground",
+  parameters: {"mode":"playground","rows":3},
+  steps: [
+    {"move":{"type":"grow"}},
+    {"move":{"type":"start"}}
+  ]
+}
+];
+
 export default {
   id: 'shrink',
   family: {id: 'shrink', symbol: '⇊', area: 'patterns', region: 'counting'},

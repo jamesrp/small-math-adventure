@@ -342,6 +342,37 @@ export const cutsMechanics = {cuts: hooks};
 export {MIN_N, MAX_N};
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+cutsMechanics.cuts.howTo = [
+{
+  parameters: {"mode":"every","n":4,"kept":""},
+  steps: [
+    {"move":{"type":"draw","a":0,"b":2},"taps":["[data-tg-point=\"0\"]","[data-tg-point=\"2\"]"]}
+  ]
+},
+{
+  mode: "reach",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+},
+{
+  mode: "tour",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+},
+{
+  mode: "home",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'cuts',
   family: {id: 'cuts', symbol: '⬠', area: 'shapes', region: 'counting'},

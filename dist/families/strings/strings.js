@@ -982,6 +982,32 @@ export const stringsMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+stringsMechanics.strings.howTo = [
+{
+  parameters: {"mode":"every","n":4,"fixed":[]},
+  steps: [
+    {"move":{"type":"lay","s":[1,2]},"taps":["[data-dot=\"1\"]","[data-dot=\"2\"]"]},
+    {"move":{"type":"cut","dot":1},"taps":["[data-dot=\"1\"]"]}
+  ]
+},
+{
+  mode: "tree",
+  parameters: {"mode":"tree","word":"UUDD"},
+  steps: [
+    {"move":{"type":"grow","at":0},"taps":["[data-grow=\"0\"]"]},
+    {"move":{"type":"grow","at":0},"taps":["[data-grow=\"0\"]"]}
+  ]
+},
+{
+  mode: "swaps",
+  parameters: {"mode":"swaps","start":"UDUDUD","target":"UUUDDD"},
+  steps: [
+    {"move":{"type":"swap","at":2},"taps":["[data-corner=\"2\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'strings',
   family: {id: 'strings', symbol: '⌒', area: 'patterns', region: 'counting'},

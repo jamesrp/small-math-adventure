@@ -212,6 +212,15 @@ export const mixupMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+mixupMechanics.mixup.howTo = {
+  parameters: {"mode":"every","cups":3,"start":"BAC","rule":{"type":"away","cups":"AB"},"shelf":{"type":"list"}},
+  steps: [
+    {"move":{"type":"swap","a":0,"b":2},"taps":["[data-cup=\"0\"]","[data-cup=\"2\"]"]},
+    {"move":{"type":"swap","a":1,"b":2},"taps":["[data-cup=\"1\"]","[data-cup=\"2\"]"]}
+  ]
+};
+
 export default {
   id: 'mixup',
   family: {id: 'mixup', symbol: '≠', area: 'patterns', region: 'counting'},

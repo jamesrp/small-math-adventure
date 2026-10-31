@@ -484,6 +484,24 @@ export const sortingMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+sortingMechanics.sorting.howTo = [
+{
+  parameters: {"mode":"every","lanes":2,"cards":"numbers","machine":[[1,2]],"start":[2,1]},
+  steps: [
+    {"move":{"type":"run"},"taps":["[data-focus=\"sort-run\"]"]}
+  ]
+},
+{
+  mode: "build",
+  parameters: {"mode":"build","lanes":2,"cards":"numbers","machine":[],"slots":2,"start":[2,1]},
+  steps: [
+    {"move":{"type":"bar","slot":0,"lanes":[0,1]},"taps":["[data-sort-peg=\"0,0\"]","[data-sort-peg=\"0,1\"]"]},
+    {"move":{"type":"run"},"taps":["[data-focus=\"sort-run\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'sorting',
   family: {id: 'sorting', symbol: '⇅', area: 'patterns', region: 'logic'},

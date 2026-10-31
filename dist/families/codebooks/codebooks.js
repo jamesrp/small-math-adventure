@@ -368,6 +368,33 @@ export const codebookMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Signal Lanterns
 // as its Codebooks group, so the module adds no satchel family of its own.
+// How to play: demonstrate the controls on a separate, small board.
+codebookMechanics.codebook.howTo = [
+{
+  parameters: {"mode":"design","pictures":2,"lengths":[2],"flips":0,"goal":"key"},
+  steps: [
+    {"move":{"type":"lantern","picture":0,"lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"picture\":0,\"lantern\":0}']"]},
+    {"move":{"type":"lantern","picture":1,"lantern":1},"taps":["[data-cb-move='{\"type\":\"lantern\",\"picture\":1,\"lantern\":1}']"]}
+  ]
+},
+{
+  mode: "changer",
+  parameters: {"mode":"changer","flips":1,"keys":[["100","011"]]},
+  steps: [
+    {"move":{"type":"lantern","lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"lantern\":0}']"]},
+    {"move":{"type":"send"},"taps":["[data-cb-move='{\"type\":\"send\"}']"]}
+  ]
+},
+{
+  mode: "partners",
+  parameters: {"mode":"partners","flips":1,"rounds":["10","11"]},
+  steps: [
+    {"move":{"type":"lantern","lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"lantern\":0}']"]},
+    {"move":{"type":"add"},"taps":["[data-cb-move='{\"type\":\"add\"}']"]}
+  ]
+}
+];
+
 export default {
   id: 'codebooks',
   mechanics: codebookMechanics,
