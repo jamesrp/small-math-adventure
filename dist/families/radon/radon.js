@@ -681,6 +681,28 @@ function wire(root, p, api) {
 
 export const radonMechanics = {
   radon: {
+    howTo: [
+      {parameters: {"mode": "every","cols": 4,"rows": 4,"labels": {"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]}},
+        steps: [
+          {"move": {"type": "tap","label": "A"},"taps": ["[data-sg-piece=\"A\"]"]},
+          {"move": {"type": "tap","label": "B"},"taps": ["[data-sg-piece=\"B\"]"]}
+        ]},
+      {mode: 'place', parameters: {"mode": "place","cols": 4,"rows": 4,"labels": {"A": [0,0],"B": [3,0],"C": [0,3]},"start": [3,3],"goal": ["ABC|D"],"where": ""},
+        steps: [
+          {"move": {"type": "put","at": [2,1]},"taps": ["[data-sg-point=\"11\"]"]},
+          {"move": {"type": "put","at": [1,2]},"taps": ["[data-sg-point=\"7\"]"]}
+        ]},
+      {mode: 'locus', parameters: {"mode": "locus","cols": 5,"rows": 3,"labels": {"A": [1,1],"B": [3,1]}},
+        steps: [
+          {"move": {"type": "put","at": [0,0]},"taps": ["[data-sg-point=\"0\"]"]},
+          {"move": {"type": "put","at": [2,2]},"taps": ["[data-sg-point=\"8\"]"]}
+        ]},
+      {mode: 'pair', parameters: {"mode": "pair","cols": 4,"rows": 4,"boards": [{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]},{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]}]},
+        steps: [
+          {"move": {"type": "put","board": 0,"label": "D","at": [3,2]},"taps": ["[data-sb-board=\"0\"] [data-sg-point=\"17\"]"]},
+          {"move": {"type": "put","board": 1,"label": "D","at": [2,3]},"taps": ["[data-sb-board=\"1\"] [data-sg-point=\"13\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire, help,
     ui(p, payload) {
       if (!object(payload)) return;

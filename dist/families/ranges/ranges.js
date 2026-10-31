@@ -575,6 +575,18 @@ function wire(root, p, api) {
 
 export const rangeMechanics = {
   ranges: {
+    howTo: [
+      {parameters: {"mode": "gap","ruler": 8,"cards": {"A": [1,3],"B": [1,2]},"start": {"A": 2,"B": 1},"rows": [["A","B"],["A"]],"pairs": [[0,1]]},
+        steps: [
+          {"move": {"type": "set","strip": "A","length": 3},"taps": ["[data-focus=\"rg-knob-A\"]"]},
+          {"move": {"type": "set","strip": "B","length": 2},"taps": ["[data-focus=\"rg-knob-B\"]"]}
+        ]},
+      {mode: 'widen', parameters: {"mode": "widen","ruler": 8,"cards": {"A": [1,2],"B": [2,3]},"edit": "B","rows": [["A","B"]],"window": [3,5]},
+        steps: [
+          {"move": {"type": "card","strip": "B","end": "hi","value": 4},"taps": ["[data-focus=\"rg-card-B-hi\"]"]},
+          {"move": {"type": "card","strip": "B","end": "hi","value": 3},"taps": ["[data-focus=\"rg-card-B-hi\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     // Undo keeps a refused pair of pins (the pins stay cleared) while the
     // strips are where the refusal found them.

@@ -492,6 +492,18 @@ function wire(root, p, api) {
 
 export const squareMechanics = {
   squares: {
+    howTo: [
+      {parameters: {"mode": "fill","cols": 4,"rows": 3,"sizes": [1,2]},
+        steps: [
+          {"move": {"type": "place","x": 0,"y": 0,"s": 2},"taps": ["[data-sg-cell=\"0\"]","[data-sg-cell=\"5\"]"]},
+          {"move": {"type": "place","x": 3,"y": 1,"s": 1},"taps": ["[data-sg-cell=\"7\"]","[data-sg-cell=\"7\"]"]}
+        ]},
+      {mode: 'design', parameters: {"mode": "design","cols": 5,"rows": 4,"goal": "last","last": 1,"need": 3},
+        steps: [
+          {"move": {"type": "size","w": 3,"h": 2}},
+          {"move": {"type": "cut"}}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
       if (!object(payload)) return;

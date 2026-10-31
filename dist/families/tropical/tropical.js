@@ -708,6 +708,11 @@ function wire(root, p, given) {
 
 export const tropicalMechanics = {
   tropical: {
+    howTo: {parameters: {"mode": "meet","win": [0,0,8,8],"step": 2,"A": [4,4],"goal": {"kind": "point","at": [6,4]},"start": [2,6]},
+      steps: [
+        {"move": {"type": "put","at": [6,6]}},
+        {"move": {"type": "put","at": [2,2]}}
+      ]},
     fresh, valid, solved, move, hint, render, wire, help,
     ui(p, payload) {
       if (!object(payload)) return;

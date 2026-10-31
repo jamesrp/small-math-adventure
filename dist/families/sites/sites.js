@@ -596,6 +596,11 @@ function wire(root, p, api) {
 
 export const sitesMechanics = {
   sites: {
+    howTo: {parameters: {"mode": "make","frame": 4,"view": 5,"sites": [[-2,0]],"names": ["A"],"focus": 0,"budget": 2,"target": [{"a": 1,"b": 0,"c": -1}]},
+      steps: [
+        {"move": {"type": "place","at": [2,2]}},
+        {"move": {"type": "check"}}
+      ]},
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
       if (!object(payload)) return;

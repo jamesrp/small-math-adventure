@@ -816,6 +816,18 @@ function wire(root, p, api) {
 
 export const geoboardMechanics = {
   geoboard: {
+    howTo: [
+      {parameters: {"mode": "target","w": 3,"h": 3,"goal": {"area": 3}},
+        steps: [
+          {"move": {"type": "dot","at": 0},"taps": ["[data-sg-point=\"6\"]"]},
+          {"move": {"type": "dot","at": 2},"taps": ["[data-sg-point=\"8\"]"]},
+          {"move": {"type": "dot","at": 4},"taps": ["[data-sg-point=\"4\"]"]}
+        ]},
+      {mode: 'cut', parameters: {"mode": "cut","w": 4,"h": 3,"shape": [[0,0],[3,0],[3,2],[0,2]],"piece": {"area": 2}},
+        steps: [
+          {"move": {"type": "cut","a": 0,"b": 11},"taps": ["[data-sg-point=\"8\"]","[data-sg-point=\"3\"]"]}
+        ]}
+    ],
     fresh, valid, solved, hint, render, wire,
     move(p, b, action) {
       // Applying the Pick's-count hint of an impossible goal fills the goal's

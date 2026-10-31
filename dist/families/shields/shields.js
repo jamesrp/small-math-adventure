@@ -564,6 +564,11 @@ function wire(root, p, api) {
 
 export const shieldMechanics = {
   shields: {
+    howTo: {parameters: {"mode": "fewest","room": {"squares": {"o": [0,0]},"right": {"o": "o"},"up": {"o": "o"},"n": 4,"lattice": "crosses"},"T": [2,2],"shots": [[1,1]]},
+      steps: [
+        {"move": {"type": "shield","at": [1,1]},"taps": [".ps-room [data-pb-point=\"o,1,1\"]"]},
+        {"move": {"type": "shield","at": [1,1]},"taps": [".ps-room [data-pb-point=\"o,1,1\"]"]}
+      ]},
     fresh, valid, solved, move, hint, render, wire, carry,
     ui() {},
     // The playground has no goal and no Hint.

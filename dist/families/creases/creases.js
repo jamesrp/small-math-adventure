@@ -886,6 +886,23 @@ function carry(p, from, to) {
 
 export const creaseMechanics = {
   creases: {
+    howTo: [
+      {parameters: {"mode": "fold","angles": [90,90,90,90],"fixed": ["M",null,null,null]},
+        steps: [
+          {"move": {"type": "label","ray": 1,"to": "M"}},
+          {"move": {"type": "label","ray": 1,"to": "V"}}
+        ]},
+      {mode: 'ray', parameters: {"mode": "ray","rays": [0,90,180],"fixed": [null,null,null]},
+        steps: [
+          {"move": {"type": "place","at": 45},"taps": [".cr-knob"]},
+          {"move": {"type": "label","ray": 3,"to": "M"}}
+        ]},
+      {mode: 'tabs', parameters: {"mode": "tabs","disks": [{"angles": [90,90,90,90],"fixed": ["M",null,"V",null]},{"angles": [90,90,90,90],"fixed": ["M",null,"V",null]}],"stock": {"M": 2,"V": 2}},
+        steps: [
+          {"move": {"type": "tab","disk": 0,"ray": 1,"to": "M"}},
+          {"move": {"type": "tab","disk": 0,"ray": 1,"to": "V"}}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire, carry,
     reset: p => { if (knobDrag?.id === p.id) knobDrag = null; if (playCursor?.id === p.id) playCursor = null; },
     noHint: p => modeOf(p) === 'playground'

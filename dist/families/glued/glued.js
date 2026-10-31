@@ -652,6 +652,18 @@ function wire(root, p, api) {
 // the move made when the last dot is tapped, with the dots in the order tapped.
 export const gluedMechanics = {
   glued: {
+    howTo: [
+      {parameters: {"mode": "glue","squares": {"A": [0,0],"B": [2,0]},"sides": ["right"],"start": {"right": {"A": null,"B": null},"up": {"A": null,"B": null}},"spot": [[1,2],[1,4]],"trips": [{"from": "A","dir": [1,0],"blocks": 3}]},
+        steps: [
+          {"move": {"type": "glue","side": "right","from": "A","to": "B"},"taps": ["[data-pb-point=\"side,A,right\"]","[data-pb-point=\"side,B,left\"]"]},
+          {"move": {"type": "glue","side": "right","from": "B","to": "A"},"taps": ["[data-pb-point=\"side,B,right\"]","[data-pb-point=\"side,A,left\"]"]}
+        ]},
+      {mode: 'corners', parameters: {"mode": "corners","squares": {"A": [0,0],"B": [1,0]},"right": {"A": "B","B": null},"up": {"A": null,"B": null}},
+        steps: [
+          {"move": {"type": "link","a": "A:10","b": "B:00"},"taps": ["[data-pb-point=\"corner,A:10\"]","[data-pb-point=\"corner,B:00\"]"]},
+          {"move": {"type": "link","a": "A:11","b": "B:01"},"taps": ["[data-pb-point=\"corner,A:11\"]","[data-pb-point=\"corner,B:01\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: setView,
     reset: p => { views.delete(p.id); },

@@ -371,6 +371,18 @@ function wire(root, p, api) {
 const playground = p => p.parameters.mode === 'playground';
 export const hillMechanics = {
   hills: {
+    howTo: [
+      {parameters: {"mode": "fill","sites": 4,"top": 2,"clues": [[0,1]],"ring": false,"cant": false},
+        steps: [
+          {"move": {"type": "set","site": 1,"h": 2}},
+          {"move": {"type": "set","site": 2,"h": 1}}
+        ]},
+      {mode: 'pin', parameters: {"mode": "pin","sites": 4,"top": 2,"land": [1,2,1,0],"clues": [],"ring": false,"cant": false},
+        steps: [
+          {"move": {"type": "pin","site": 1}},
+          {"move": {"type": "pin","site": 1}}
+        ]}
+    ],
     fresh: p => playground(p) ? freshPlay() : freshPuzzle(p),
     valid: (p, b) => playground(p) ? validPlay(b) : validPuzzle(p, b),
     solved: (p, b) => playground(p) ? false : solvedPuzzle(p, b),
