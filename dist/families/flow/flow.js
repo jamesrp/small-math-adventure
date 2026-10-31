@@ -356,7 +356,7 @@ flowMechanics["flow"].howTo = [
 {
   mode: "game",
   puzzle: {"objective": ""},
-  parameters: {"mode": "game", "aspect": 1.8, "nodes": {"s": [8, 50], "a": [40, 20], "b": [65, 80], "t": [92, 50]}, "arcs": [["s", "a"], ["a", "b"], ["b", "t"], ["s", "b"], ["a", "t"]], "start": "s", "finish": "t", "best": 2, "winner": "second"},
+  parameters: {"mode": "game", "aspect": 1.8, "nodes": {"s": [8, 50], "a": [40, 20], "b": [65, 80], "t": [92, 50]}, "arcs": [["s", "a"], ["a", "b"], ["b", "t"], ["s", "b"], ["a", "t"]], "start": "s", "finish": "t", "best": 2, "winner": "first"},
   steps: [
     {"move": {"type": "order", "order": "first"}, "taps": [".flow-order button:first-child"]},
     {"move": {"type": "close", "arc": 2}, "taps": ["[data-gb-edge=\"2\"]"]}

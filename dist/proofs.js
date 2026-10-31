@@ -878,7 +878,7 @@ const sortgarden = {
   move(p, board, action, random = Math.random) {
     if (!sortValid(p, board) || !object(action) || board.clean >= p.parameters.rounds) return null;
     const next = clone(board), i = index(action.i);
-    if (action.type === 'answer' && !board.checked && integer(i) && i >= 0 && i < 6 && typeof action.value === 'boolean') { next.answers[i] = action.value; return next; }
+    if (action.type === 'answer' && !board.checked && integer(i) && i >= 0 && i < board.answers.length && typeof action.value === 'boolean') { next.answers[i] = action.value; return next; }
     if (action.type === 'check' && !board.checked && board.answers.every(a => a !== null)) { next.checked = true; next.clean = sortRight(board) ? board.clean + 1 : 0; return next; }
     if (action.type === 'next' && board.checked) return { boards: p.parameters.gardens?.map(h => [...h]) ?? makeSortRound(p.parameters.level, random), answers: Array(p.parameters.gardens?.length ?? 6).fill(null), checked: false, clean: board.clean };
     return null;
