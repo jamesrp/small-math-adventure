@@ -275,6 +275,15 @@ export const copyMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+copyMechanics.copies.howTo = {
+  parameters: {"mode":"histories","start":"RRB","rule":"copy","draws":3},
+  steps: [
+    {"move":{"type":"draw","id":"R1"},"taps":["[data-counter=\"R1\"]"]},
+    {"move":{"type":"draw","id":"B1"},"taps":["[data-counter=\"B1\"]"]}
+  ]
+};
+
 export default {
   id: 'copies',
   family: {id: 'copies', symbol: '⊕', area: 'chance', region: 'chance'},

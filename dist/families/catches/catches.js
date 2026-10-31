@@ -392,6 +392,16 @@ export const catchMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+catchMechanics.catches.howTo = {
+  parameters: {"mode":"every","bag":4,"m":2,"n":2},
+  steps: [
+    {"move":{"type":"tap","tile":0}},
+    {"move":{"type":"tap","tile":2}},
+    {"move":{"type":"tap","tile":1}}
+  ]
+};
+
 export default {
   id: 'catches',
   family: {id: 'catches', symbol: '⊙', area: 'chance', region: 'chance'},

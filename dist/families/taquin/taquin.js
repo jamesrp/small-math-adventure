@@ -484,15 +484,25 @@ export const taquinMechanics = {
 
 // The family seam entry (dist/families.js).
 // How to play: demonstrate the controls on a separate, small board.
-taquinMechanics.taquin.howTo = {
-  parameters: {"mode":"fillings","outer":[2,2],"inner":[1]},
+taquinMechanics.taquin.howTo = [
+{
+  parameters: {"mode":"fillings","outer":[2,1],"inner":[1]},
   steps: [
     {"move":{"type":"place","cell":0}},
     {"move":{"type":"place","cell":1}},
-    {"move":{"type":"place","cell":2}},
-    {"move":{"type":"open","at":[0,0]}}
+    {"move":{"type":"open","at":[0,0]}},
+    {"move":{"type":"slide","at":[0,1]}}
   ]
-};
+},
+{
+  mode: "orders",
+  parameters: {"mode":"orders","outer":[2,1],"inner":[1],"start":[1,2]},
+  steps: [
+    {"move":{"type":"open","at":[0,0]}},
+    {"move":{"type":"slide","at":[0,1]}}
+  ]
+}
+];
 
 export default {
   id: 'taquin',

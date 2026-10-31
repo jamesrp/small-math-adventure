@@ -823,6 +823,33 @@ export const cardMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+cardMechanics.cardmachine.howTo = [
+{
+  parameters: {"mode":"build","rule":{"kind":"last","card":"R"},"circles":2},
+  steps: [
+    {"move":{"type":"arrow","from":0,"card":"R","to":1},"taps":["[data-chip=\"0,R\"]","[data-circle=\"1\"]"]},
+    {"move":{"type":"mark","circle":1},"taps":["[data-circle=\"1\"]"]}
+  ]
+},
+{
+  mode: "split",
+  parameters: {"mode":"split","rule":{"kind":"last","card":"R"},"pairs":[["","B"],["R","RR"]],"machine":{"arrows":[[1,0],[1,0]],"marks":[false,true]}},
+  steps: [
+    {"move":{"type":"key","target":"end","index":0,"card":"R"}},
+    {"move":{"type":"key","target":"end","index":0,"card":"B"}}
+  ]
+},
+{
+  mode: "fewest",
+  parameters: {"mode":"fewest","rule":{"kind":"last","card":"R"},"circles":0,"rows":2},
+  steps: [
+    {"move":{"type":"key","target":"row","index":0,"card":"B"}},
+    {"move":{"type":"key","target":"row","index":0,"card":"R"}}
+  ]
+}
+];
+
 export default {
   id: 'cardmachines',
   family: {id: 'cardmachines', symbol: '◎', area: 'logic', region: 'logic'},

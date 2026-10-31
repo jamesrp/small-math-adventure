@@ -352,6 +352,25 @@ export const shuffleMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+shuffleMechanics.shuffles.howTo = [
+{
+  parameters: {"mode":"stories","cups":3,"start":"BAC","steps":[{"slot":1,"tickets":[1,3]},{"slot":2,"tickets":[1,2]}]},
+  steps: [
+    {"move":{"type":"draw","ticket":3},"taps":["[data-shuffle-move='{\"type\":\"draw\",\"ticket\":3}']"]},
+    {"move":{"type":"draw","ticket":2},"taps":["[data-shuffle-move='{\"type\":\"draw\",\"ticket\":2}']"]}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","cups":3,"start":"ABC","slots":[1,2]},
+  steps: [
+    {"move":{"type":"toggle","step":0,"ticket":3},"taps":["[data-shuffle-move='{\"type\":\"toggle\",\"step\":0,\"ticket\":3}']"]},
+    {"move":{"type":"toggle","step":1,"ticket":1},"taps":["[data-shuffle-move='{\"type\":\"toggle\",\"step\":1,\"ticket\":1}']"]}
+  ]
+}
+];
+
 export default {
   id: 'shuffles',
   family: {id: 'shuffles', symbol: '⇆', area: 'chance', region: 'chance'},

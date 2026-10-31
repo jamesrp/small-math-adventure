@@ -342,6 +342,15 @@ export const paintMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+paintMechanics.paint.howTo = {
+  parameters: {"slots":2,"rows":["YB","BY","YY"],"hand":["Y.",".F",".B"],"budget":4,"cant":false},
+  steps: [
+    {"move":{"type":"play","card":1}},
+    {"move":{"type":"play","card":0}}
+  ]
+};
+
 export default {
   id: 'paint',
   family: {id: 'paint', symbol: '≡', area: 'logic', region: 'chance'},

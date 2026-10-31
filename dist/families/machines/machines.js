@@ -491,6 +491,25 @@ export const machineMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Cup swaps as its
 // Shuffle machines group, so the module adds no satchel family.
+// How to play: demonstrate the controls on a separate, small board.
+machineMechanics.machine.howTo = [
+{
+  parameters: {"mode":"every","cups":2,"rule":"any"},
+  steps: [
+    {"move":{"type":"swap","a":0,"b":1},"taps":["[data-cup=\"0\"]","[data-cup=\"1\"]"]},
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]}
+  ]
+},
+{
+  mode: "run",
+  parameters: {"mode":"run","cups":3,"machine":"BCA"},
+  steps: [
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]},
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]}
+  ]
+}
+];
+
 export default {
   id: 'machines',
   mechanics: machineMechanics,

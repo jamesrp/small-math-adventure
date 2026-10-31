@@ -422,6 +422,15 @@ export const diffMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+diffMechanics.diffs.howTo = {
+  parameters: {"mode":"make","stations":4,"cap":3,"target":[1,2,1,2],"cant":true},
+  steps: [
+    {"move":{"type":"set","station":0,"h":1}},
+    {"move":{"type":"set","station":1,"h":3}}
+  ]
+};
+
 export default {
   id: 'diffs',
   family: {id: 'diffs', symbol: 'Δ', area: 'numbers', region: 'chance'},

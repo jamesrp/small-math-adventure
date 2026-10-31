@@ -496,6 +496,15 @@ export const gapMechanics = {
 };
 
 // The family seam entry (dist/families.js): a group in Meeting roads.
+// How to play: demonstrate the controls on a separate, small board.
+gapMechanics.gapflood.howTo = {
+  parameters: {"goal":"reach","k":1,"aspect":1,"nodes":{"A":[12,80],"B":[88,80],"C":[50,12],"D":[50,80]},"roads":[["A","D"],["D","B"],["D","C"]],"homes":{"A":"A","B":"B","C":"C"},"kind":"tree","small":true},
+  steps: [
+    {"move":{"type":"draw","side":"AB","to":"D"},"taps":["[data-gb-node=\"D\"]"]},
+    {"move":{"type":"draw","side":"AB","to":"B"},"taps":["[data-gb-node=\"B\"]"]}
+  ]
+};
+
 export default {
   id: 'gapflood',
   mechanics: gapMechanics,

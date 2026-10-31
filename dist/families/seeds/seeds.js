@@ -430,6 +430,16 @@ export const seedMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+seedMechanics.seeds.howTo = {
+  parameters: {"mode":"fill","seeds":3,"cols":3,"rows":2,"fence":10,"least":3,"possible":true,"witness":[[0,0],[2,0],[0,1]]},
+  steps: [
+    {"move":{"type":"plant","cell":0},"taps":["[data-cell=\"0\"]"]},
+    {"move":{"type":"plant","cell":2},"taps":["[data-cell=\"2\"]"]},
+    {"move":{"type":"grow","cells":[1]},"taps":["[data-cell=\"1\"]"]}
+  ]
+};
+
 export default {
   id: 'seeds',
   family: {id: 'seeds', symbol: '✿', area: 'shapes', region: 'chance'},

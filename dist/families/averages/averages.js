@@ -551,6 +551,17 @@ export const averagesMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+averagesMechanics.averages.howTo = {
+  parameters: {"mode":"change","aspect":3,"scale":1.4,"places":{"l":{"at":[12,50],"shape":"square","name":"left square"},"c":{"at":[50,50],"shape":"circle","name":"circle"},"r":{"at":[88,50],"shape":"square","name":"right square"}},"edges":[["l","c"],["c","r"]],"given":{"c":3},"free":["l","r"],"range":[0,8],"start":{"l":0,"r":4}},
+  steps: [
+    {"ui":{"chosen":"r"},"taps":["[data-gb-node=\"r\"]"]},
+    {"move":{"type":"set","id":"r","value":3}},
+    {"ui":{"chosen":"l"},"taps":["[data-gb-node=\"l\"]"]},
+    {"move":{"type":"set","id":"l","value":1}}
+  ]
+};
+
 export default {
   id: 'averages',
   family: {id: 'averages', symbol: '⊜', area: 'numbers', region: 'chance'},

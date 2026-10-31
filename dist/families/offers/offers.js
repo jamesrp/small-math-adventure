@@ -406,6 +406,32 @@ export const offerMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+offerMechanics.offers.howTo = [
+{
+  parameters: {"mode":"plan","bag":[1,3,5],"n":2},
+  steps: [
+    {"move":{"type":"flip","at":0},"taps":["[data-off-move='{\"type\":\"flip\",\"at\":0}']"]},
+    {"move":{"type":"flip","at":1},"taps":["[data-off-move='{\"type\":\"flip\",\"at\":1}']"]}
+  ]
+},
+{
+  mode: "bag",
+  parameters: {"mode":"bag","pins":[1,7],"menu":[2,3,4],"n":2,"goal":"tie"},
+  steps: [
+    {"move":{"type":"pick","value":2},"taps":["[data-off-move='{\"type\":\"pick\",\"value\":2}']"]},
+    {"move":{"type":"flip","at":0},"taps":["[data-off-move='{\"type\":\"flip\",\"at\":0}']"]}
+  ]
+},
+{
+  mode: "differ",
+  parameters: {"mode":"differ","bag":[1,3,5],"n":2,"plans":{"A":[[1,3,5],[1,3,5]],"B":[[],[]]},"say":{"A":"Take the first.","B":"Pass the first."}},
+  steps: [
+    {"move":{"type":"keep","key":"1-5"},"taps":["[data-off-move='{\"type\":\"keep\",\"key\":\"1-5\"}']"]}
+  ]
+}
+];
+
 export default {
   id: 'offers',
   family: {id: 'offers', symbol: '▷', area: 'chance', region: 'chance'},

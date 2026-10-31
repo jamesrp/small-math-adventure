@@ -437,7 +437,7 @@ export const joinsMechanics = {
 // How to play: demonstrate the controls on a separate, small board.
 joinsMechanics.joins.howTo = [
 {
-  parameters: {"mode":"reach","start":[3,3,2],"goal":[8],"span":8},
+  parameters: {"mode":"reach","start":[3,3,2],"goal":[6,1,1],"span":8},
   steps: [
     {"move":{"type":"join","sizes":[3,3]},"taps":["[data-focus=\"jn-bench-0\"]","[data-focus=\"jn-bench-1\"]"]},
     {"move":{"type":"cut","size":6,"at":3},"taps":["[data-focus=\"jn-bench-0\"]"]}

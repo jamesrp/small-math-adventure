@@ -379,6 +379,33 @@ export const sideMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+sideMechanics.sides.howTo = [
+{
+  parameters: {"mode":"draw","cup":[1,2,3,4],"clue":"R"},
+  steps: [
+    {"move":{"type":"draw","ticket":1},"taps":["[data-side-move='{\"type\":\"draw\",\"ticket\":1}']"]},
+    {"move":{"type":"look"},"taps":["[data-side-move='{\"type\":\"look\"}']"]}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","start":[1,2,4],"goal":"tie"},
+  steps: [
+    {"move":{"type":"toggle","ticket":3},"taps":["[data-side-move='{\"type\":\"toggle\",\"ticket\":3}']"]},
+    {"move":{"type":"toggle","ticket":1},"taps":["[data-side-move='{\"type\":\"toggle\",\"ticket\":1}']"]}
+  ]
+},
+{
+  mode: "cards",
+  parameters: {"mode":"cards","goal":"tie","max":3,"start":[1,1,1]},
+  steps: [
+    {"move":{"type":"count","card":0,"by":1},"taps":["[data-side-move='{\"type\":\"count\",\"card\":0,\"by\":1}']"]},
+    {"move":{"type":"count","card":1,"by":1},"taps":["[data-side-move='{\"type\":\"count\",\"card\":1,\"by\":1}']"]}
+  ]
+}
+];
+
 export default {
   id: 'sides',
   family: {id: 'sides', symbol: '◧', area: 'chance', region: 'chance'},

@@ -301,6 +301,33 @@ export const bagMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+bagMechanics.bags.howTo = [
+{
+  parameters: {"mode":"pairs","first":"RBB"},
+  steps: [
+    {"move":{"type":"draw","id":"R1"},"taps":["[data-counter=\"R1\"]"]},
+    {"move":{"type":"draw","id":"B1"},"taps":["[data-counter=\"B1\"]"]}
+  ]
+},
+{
+  mode: "rule",
+  parameters: {"mode":"rule","first":"RB","goal":"noskip"},
+  steps: [
+    {"move":{"type":"set","cls":"RR","shape":"S"},"taps":["[data-bag-move='{\"type\":\"set\",\"cls\":\"RR\",\"shape\":\"S\"}']"]},
+    {"move":{"type":"set","cls":"RB","shape":"C"},"taps":["[data-bag-move='{\"type\":\"set\",\"cls\":\"RB\",\"shape\":\"C\"}']"]}
+  ]
+},
+{
+  mode: "busiest",
+  parameters: {"mode":"busiest","size":3,"start":"RRB","rule":"XSCX"},
+  steps: [
+    {"move":{"type":"flip","at":0},"taps":["[data-at=\"0\"]"]},
+    {"move":{"type":"flip","at":2},"taps":["[data-at=\"2\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'bags',
   family: {id: 'bags', symbol: '◒', area: 'chance', region: 'chance'},

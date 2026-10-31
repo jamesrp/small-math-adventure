@@ -508,6 +508,49 @@ export const deckMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+deckMechanics.decks.howTo = [
+{
+  parameters: {"mode":"pairs","decks":[[1,5],[2,4]]},
+  steps: [
+    {"move":{"type":"mark","cell":0,"side":1},"taps":["[data-deck-move='{\"type\":\"mark\",\"cell\":0,\"side\":1}']"]},
+    {"move":{"type":"mark","cell":2,"side":0},"taps":["[data-deck-move='{\"type\":\"mark\",\"cell\":2,\"side\":0}']"]}
+  ]
+},
+{
+  mode: "deal",
+  parameters: {"mode":"deal","decks":[[1,2],[3,5]],"goal":"tie"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"swap","a":2,"b":3},"taps":["[data-card=\"2\"]","[data-card=\"3\"]"]}
+  ]
+},
+{
+  mode: "menu",
+  parameters: {"mode":"menu","decks":[[1,null],[2,3]],"menu":[0,4,5],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"pick","value":0},"taps":["[data-deck-move='{\"type\":\"pick\",\"value\":0}']"]},
+    {"move":{"type":"pick","value":4},"taps":["[data-deck-move='{\"type\":\"pick\",\"value\":4}']"]}
+  ]
+},
+{
+  mode: "swaps",
+  parameters: {"mode":"swaps","decks":[[1,2],[3,5]],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"again"},"taps":["[data-deck-move='{\"type\":\"again\"}']"]}
+  ]
+},
+{
+  mode: "deals",
+  parameters: {"mode":"deals","decks":[[1,2],[3,5]],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"swap","a":2,"b":3},"taps":["[data-card=\"2\"]","[data-card=\"3\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'decks',
   family: {id: 'decks', symbol: '♢', area: 'chance', region: 'chance'},

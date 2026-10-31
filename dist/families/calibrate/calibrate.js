@@ -584,6 +584,48 @@ export const calibrateMechanics = {
 };
 
 // The family seam entry (dist/families.js): a group in Ruler strips.
+// How to play: demonstrate the controls on a separate, small board.
+calibrateMechanics.calibrate.howTo = [
+{
+  parameters: {"mode":"find","kit":{"A":1,"B":4,"C":5},"tray":1,"copies":[1],"extras":[1,4],"budget":2,"ruler":10},
+  steps: [
+    {"move":{"type":"strip","strip":"A"}},
+    {"move":{"type":"send"}}
+  ]
+},
+{
+  mode: "build",
+  parameters: {"mode":"build","every":true,"rows":[{"name":"P","report":3},{"name":"Q","report":5}],"extras":[0,2],"longest":6,"ruler":7},
+  steps: [
+    {"move":{"type":"set","which":"P","value":2}},
+    {"move":{"type":"set","which":"e","value":1}}
+  ]
+},
+{
+  mode: "repair",
+  parameters: {"mode":"repair","machine":"extra","rows":[[1,3],[3,5],[5,8]],"extras":[0,5],"lo":0,"hi":9,"step":1,"ruler":10},
+  steps: [
+    {"move":{"type":"pick","row":0}},
+    {"move":{"type":"step","by":1}}
+  ]
+},
+{
+  mode: "stretch",
+  parameters: {"mode":"stretch","refs":[[1,4],[3,9]],"err":1,"step":0.5,"xmax":8,"ymax":16},
+  steps: [
+    {"move":{"type":"step","ref":0,"by":1}},
+    {"move":{"type":"step","ref":1,"by":-1}}
+  ]
+},
+{
+  mode: "every",
+  parameters: {"mode":"every","copies":[1,2],"extras":[0,3],"given":[[2,5]],"ruler":8},
+  steps: [
+    {"move":{"type":"dial","which":"e","value":1}}
+  ]
+}
+];
+
 export default {
   id: 'calibrate',
   mechanics: calibrateMechanics,

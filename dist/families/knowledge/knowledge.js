@@ -566,6 +566,32 @@ export const knowledgeMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+knowledgeMechanics.knowledge.howTo = [
+{
+  parameters: {"kind":"cafe","mode":"fit","n":2,"said":["notyet"]},
+  steps: [
+    {"move":{"type":"card","card":"NN"}},
+    {"move":{"type":"card","card":"NN"}}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","kind":"cafe","n":2,"target":1},
+  steps: [
+    {"move":{"type":"say","reply":"notyet"}}
+  ]
+},
+{
+  mode: "coach",
+  parameters: {"mode":"coach","kind":"dolls","n":2,"deal":"BB","least":0,"cant":true},
+  steps: [
+    {"move":{"type":"reply","doll":0,"reply":"notyet"}},
+    {"move":{"type":"reply","doll":1,"reply":"notyet"}}
+  ]
+}
+];
+
 export default {
   id: 'knowledge',
   family: {id: 'knowledge', symbol: '⊨', area: 'logic', region: 'logic'},
