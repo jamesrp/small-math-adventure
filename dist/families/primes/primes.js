@@ -327,6 +327,11 @@ const render = (p, a) => (p.parameters.mode === 'split' ? renderSplit(p, a) : re
 
 export const primesMechanics = {
   primes: {
+    howTo: [
+      {parameters: {mode: 'design', goal: 5, least: false}, steps: [{move: {type: 'add', prime: 2}}, {move: {type: 'add', prime: 3}}, {move: {type: 'pick', token: 0}}]},
+      {mode: 'every', parameters: {mode: 'every', bag: [1, 0, 1, 0]}, steps: [{move: {type: 'pick', token: 1}}, {move: {type: 'keep'}}]},
+      {mode: 'split', parameters: {mode: 'split', card: 30}, steps: [{move: {type: 'split', card: 0, by: 5}}, {move: {type: 'new'}}]}
+    ],
     fresh, valid, solved, move, hint, render,
     ui(p, payload) {
       if (!object(payload)) return;

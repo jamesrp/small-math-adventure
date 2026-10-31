@@ -235,6 +235,11 @@ function render(p, attempt) {
 
 export const kitMechanics = {
   kit: {
+    howTo: [
+      {parameters: {mode: 'balance', kit: [2, 5], targets: [4]}, steps: [{move: {type: 'place', weight: 2, pan: 'left'}}, {move: {type: 'place', weight: 5, pan: 'right'}}]},
+      {mode: 'choose', parameters: {mode: 'choose', fixed: [], choices: [2, 4, 5], pick: 2, targets: [3, 6]}, steps: [{move: {type: 'pick', weight: 2}}, {move: {type: 'pick', weight: 5}}, {move: {type: 'place', weight: 2, pan: 'right'}}]},
+      {mode: 'playground', parameters: {mode: 'playground', fixed: [], choices: [2, 4, 5], pick: 2, start: [2], targets: [3, 6]}, steps: [{move: {type: 'pick', weight: 5}}, {move: {type: 'place', weight: 2, pan: 'right'}}]}
+    ],
     fresh,
     valid: validBoard,
     solved: solvedBoard,

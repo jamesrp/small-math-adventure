@@ -501,6 +501,11 @@ function wire(root, p, api) {
 
 export const leftoverMechanics = {
   leftovers: {
+    howTo: [
+      {parameters: {mode: 'sort', size: 3, sides: [3, 4], bins: [0, 1, 2]}, steps: [{move: {type: 'bundle', side: 3, cells: [0, 1, 2]}, taps: ['[data-lo-bundle="3"]']}, {move: {type: 'bundle', side: 3, cells: [3, 4, 5]}, taps: ['[data-lo-bundle="3"]']}]},
+      {mode: 'tell', parameters: {mode: 'tell', top: 3, k: 1, sizes: [2, 3, 4], budget: 2}, steps: [{move: {type: 'size', size: 3}}, {move: {type: 'size', size: 4}}]},
+      {mode: 'playground', parameters: {mode: 'playground', maxSide: 5, sizes: [2, 3, 4], start: {side: 3, size: 2}}, steps: [{move: {type: 'bundle', side: 3, cells: [0, 1]}, taps: ['[data-lo-bundle="3"]']}, {move: {type: 'size', size: 3}}]}
+    ],
     fresh, valid, solved, hint, render, wire,
     move(p, b, action) { const next = move(p, b, action); if (next) calm(p); return next; },
     // Tapping a card shows its square; counters chosen belong to that card.

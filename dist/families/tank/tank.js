@@ -307,6 +307,12 @@ function render(p, attempt) {
 
 export const tankMechanics = {
   tank: {
+    howTo: [
+      {parameters: {mode: 'fill', jugs: [2, 5], targets: [6]}, steps: [{move: {type: 'pour', jug: 2}}, {move: {type: 'pour', jug: 5}}, {move: {type: 'back', jug: 2}}]},
+      {mode: 'choose', parameters: {mode: 'choose', choices: [2, 4, 5], targets: [3, 6]}, steps: [{move: {type: 'pick', jug: 2}}, {move: {type: 'pick', jug: 5}}, {move: {type: 'pour', jug: 2}}]},
+      {mode: 'design', parameters: {mode: 'design', choices: [2, 4, 5], last: 3, targets: [1, 2, 3, 4, 5, 6]}, steps: [{move: {type: 'pick', jug: 2}}, {move: {type: 'pick', jug: 5}}, {move: {type: 'pour', jug: 2}}]},
+      {mode: 'playground', parameters: {mode: 'playground', choices: [2, 4, 5], start: [2], targets: [3, 6]}, steps: [{move: {type: 'pick', jug: 5}}, {move: {type: 'pour', jug: 2}}, {move: {type: 'pour', jug: 5}}]}
+    ],
     fresh,
     valid: validBoard,
     solved: solvedBoard,

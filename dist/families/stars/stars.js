@@ -257,6 +257,13 @@ function wire(root, p, api) {
 
 export const starMechanics = {
   star: {
+    howTo: [
+      {parameters: {mode: 'draw', dots: 7, hop: 2}, steps: [{move: {type: 'tap', dot: 0}, taps: ['[data-focus="star-dot-0"]']}, {move: {type: 'tap', dot: 2}, taps: ['[data-focus="star-dot-2"]']}, {move: {type: 'tap', dot: 4}, taps: ['[data-focus="star-dot-4"]']}]},
+      {mode: 'starts', parameters: {mode: 'starts', dots: 6, starts: 2}, steps: [{move: {type: 'tap', dot: 0}, taps: ['[data-focus="star-dot-0"]']}, {move: {type: 'tap', dot: 2}, taps: ['[data-focus="star-dot-2"]']}]},
+      {mode: 'rings', parameters: {mode: 'rings', hop: 2, starts: 2, choices: [5, 6]}, steps: [{move: {type: 'ring', ring: 6}, taps: ['[data-focus="star-ring-6"]']}, {move: {type: 'tap', dot: 0}, taps: ['[data-focus="star-dot-0"]']}, {move: {type: 'tap', dot: 2}, taps: ['[data-focus="star-dot-2"]']}]},
+      {mode: 'match', parameters: {mode: 'match', target: {dots: 6, hop: 1}, choices: [5, 6]}, steps: [{move: {type: 'ring', ring: 5}, taps: ['[data-focus="star-ring-5"]']}, {move: {type: 'tap', dot: 0}, taps: ['[data-focus="star-dot-0"]']}, {move: {type: 'tap', dot: 2}, taps: ['[data-focus="star-dot-2"]']}]},
+      {mode: 'every', parameters: {mode: 'every', ask: 'hops', rounds: [6, 5]}, steps: [{move: {type: 'mark', value: 2}}, {move: {type: 'mark', value: 2}}]}
+    ],
     fresh,
     valid: validBoard,
     solved: solvedBoard,

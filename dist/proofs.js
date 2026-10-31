@@ -452,6 +452,7 @@ function gardenWire(root, p, api) {
   });
 }
 const garden = {
+  howTo: {parameters: {cols: 2, rows: 3, cells: [0, 1, 2, 3, 4, 5], coverable: true}, steps: [{move: {type: 'place', cells: [0, 1]}, taps: ['[data-cell="0"]', '[data-cell="1"]']}, {move: {type: 'lift', cell: 0}, taps: ['[data-cell="0"]']}]},
   fresh: p => ({ mode: 'cover', doms: [], paint: Array(p.parameters.cols * p.parameters.rows).fill(0), stars: [], more: null }),
   valid: gardenValid,
   solved: gardenSolved,
@@ -543,9 +544,9 @@ const narrowScreen = () => Boolean(narrowQuery?.matches);
 let mapRerender = null;
 narrowQuery?.addEventListener?.('change', () => mapRerender?.());
 function mapSVG(options) {
-  const { paint = [0, 0, 0, 0, 0, 0], here = null, goal = null, interactive = false, painting = false, hinted = [], disabled = false } = options;
-  // The interactive map stands upright on phones; reference maps stay compact.
-  const layout = interactive && narrowScreen() ? FLIP.tall : FLIP.wide;
+  const { paint = [0, 0, 0, 0, 0, 0], here = null, goal = null, interactive = false, painting = false, hinted = [], disabled = false, compact = false } = options;
+  // The interactive map stands upright on phones; references and scaled demos stay compact.
+  const layout = interactive && !compact && narrowScreen() ? FLIP.tall : FLIP.wide;
   const edges = FLIP.edges.map(([a, b]) => {
     const [x1, y1] = layout.pos[a], [x2, y2] = layout.pos[b];
     const cls = painting && paint[a] && paint[b] ? (paint[a] !== paint[b] ? ' ok' : ' bad') : '';
@@ -685,7 +686,7 @@ function flipRender(p, attempt, ctx = {}) {
     const proved = solved && !tripPossible(q.s, q.e, q.k);
     return `<div class="proof-puzzle proof-flip" data-mechanic-wire="flipmap">
       ${solved ? '' : `<div class="proof-modes" role="group" aria-label="Mode">${modeButton('walk', '⇢', 'Walk')}${modeButton('prove', '✎', 'Prove it can’t')}</div>`}
-      ${mapSVG({ paint: prove || proved ? board.paint : [0, 0, 0, 0, 0, 0], here: prove ? null : cur, goal: prove ? null : q.e, interactive: true, painting: prove, hinted: ctx.highlighted || [], disabled: solved })}
+      ${mapSVG({ paint: prove || proved ? board.paint : [0, 0, 0, 0, 0, 0], here: prove ? null : cur, goal: prove ? null : q.e, interactive: true, compact: ctx.demo, painting: prove, hinted: ctx.highlighted || [], disabled: solved })}
       ${proved ? dotStrip(board.paint, q) : prove ? `<div class="proof-toolbox" role="group" aria-label="Paint">${[[1, `${swatch(1)} Paint`, 'Paint gold'], [2, `${swatch(2)} Paint`, 'Paint green'], [0, '<span class="proof-tool-icon" aria-hidden="true">⌫</span> Erase', 'Erase']].map(([tool, label, name]) => uiButton(label, { tool }, state.tool === tool, `aria-label="${name}"`)).join('')}</div>
         <div class="proof-cards">${card('Paint proof', [{ text: 'Every card painted', state: status.painted ? true : null }, { text: 'Every line joins two colors', state: status.clash ? false : status.painted ? true : null }])}</div>
         ${status.proper && !solved ? '<p class="proof-note" role="status">This painting doesn’t rule it out.</p>' : ''}`
@@ -734,6 +735,7 @@ function flipWire(root, p, api) {
   });
 }
 const flipmap = {
+  howTo: {parameters: {task: 'route', s: 1, e: 5, k: 5}, steps: [{move: {type: 'flip', to: 2}, taps: ['[data-card="2"]']}, {move: {type: 'flip', to: 4}, taps: ['[data-card="4"]']}]},
   fresh(p, random = Math.random) {
     const q = p.parameters;
     if (q.task === 'route') return { mode: 'walk', trail: [q.s], paint: [0, 0, 0, 0, 0, 0] };
@@ -833,9 +835,9 @@ export function makeSortRound(level, random) {
 function sortValid(p, board) {
   const level = p.parameters.level;
   const sizeOK = n => level === 1 ? n >= 1 && n <= 3 : level === 2 ? n === 2 : n === 4;
-  return object(board) && Array.isArray(board.boards) && board.boards.length === 6 &&
+  return object(board) && Array.isArray(board.boards) && board.boards.length === (p.parameters.gardens?.length ?? 6) &&
     board.boards.every(h => Array.isArray(h) && sizeOK(h.length) && new Set(h).size === h.length && h.every(c => integer(c) && c >= 0 && c < SN * SN)) &&
-    Array.isArray(board.answers) && board.answers.length === 6 && board.answers.every(a => a === null || typeof a === 'boolean') &&
+    Array.isArray(board.answers) && board.answers.length === (p.parameters.gardens?.length ?? 6) && board.answers.every(a => a === null || typeof a === 'boolean') &&
     typeof board.checked === 'boolean' && (!board.checked || board.answers.every(a => a !== null)) &&
     integer(board.clean) && board.clean >= 0 && board.clean <= p.parameters.rounds && (board.clean < p.parameters.rounds || board.checked);
 }
@@ -867,8 +869,10 @@ function caption(holes) {
   return '';
 }
 const sortSolved = (p, board) => sortValid(p, board) && board.clean >= p.parameters.rounds;
+// A demo supplies two authored gardens instead of dealing a six-card round.
 const sortgarden = {
-  fresh: (p, random = Math.random) => ({ boards: makeSortRound(p.parameters.level, random), answers: Array(6).fill(null), checked: false, clean: 0 }),
+  howTo: {parameters: {level: 1, rounds: 1, gardens: [[0], [1, 2]]}, steps: [{move: {type: 'answer', i: 0, value: true}}, {move: {type: 'answer', i: 0, value: false}}]},
+  fresh: (p, random = Math.random) => ({ boards: p.parameters.gardens?.map(h => [...h]) ?? makeSortRound(p.parameters.level, random), answers: Array(p.parameters.gardens?.length ?? 6).fill(null), checked: false, clean: 0 }),
   valid: sortValid,
   solved: sortSolved,
   move(p, board, action, random = Math.random) {
@@ -876,7 +880,7 @@ const sortgarden = {
     const next = clone(board), i = index(action.i);
     if (action.type === 'answer' && !board.checked && integer(i) && i >= 0 && i < 6 && typeof action.value === 'boolean') { next.answers[i] = action.value; return next; }
     if (action.type === 'check' && !board.checked && board.answers.every(a => a !== null)) { next.checked = true; next.clean = sortRight(board) ? board.clean + 1 : 0; return next; }
-    if (action.type === 'next' && board.checked) return { boards: makeSortRound(p.parameters.level, random), answers: Array(6).fill(null), checked: false, clean: board.clean };
+    if (action.type === 'next' && board.checked) return { boards: p.parameters.gardens?.map(h => [...h]) ?? makeSortRound(p.parameters.level, random), answers: Array(p.parameters.gardens?.length ?? 6).fill(null), checked: false, clean: board.clean };
     return null;
   },
   hint(p, board) {
@@ -1057,6 +1061,7 @@ function duelRender(p, attempt) {
   </div>`;
 }
 const duel = {
+  howTo: {parameters: {piles: 2, max: 3, streak: 2}, steps: [{move: {type: 'choose', first: 'you'}}, {ui: {pick: {pile: 1, from: 0}}}, {move: {type: 'take', pile: 1, remove: 1}}]},
   fresh: (p, random = Math.random) => { const start = duelStart(p.parameters, random); return { start, piles: [...start], first: null, turns: [], streak: 0, fresh: true }; },
   valid: duelValid,
   solved: (p, board) => duelValid(p, board) && board.streak >= p.parameters.streak,

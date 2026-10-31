@@ -431,6 +431,12 @@ function wire(root, p, api) {
 
 export const totalMechanics = {
   totals: {
+    howTo: [
+      {parameters: {mode: 'match', trays: 1, start: [1], goal: [3, 7, 9], supply: [0, 1, 2, 3]}, steps: [{move: {type: 'put', slot: 0, card: 1}}, {move: {type: 'put', slot: 1, card: 3}}]},
+      {mode: 'make', parameters: {mode: 'make', trays: 1, start: [1], cards: [1, 3, 4], target: 15, cant: false}, steps: [{move: {type: 'put', slot: 0, card: 3}}, {move: {type: 'put', slot: 1, card: 1}}]},
+      {mode: 'every', parameters: {mode: 'every', trays: 1, goal: [3, 5, 8], supply: [0, 1, 2, 3], startCap: 3}, steps: [{move: {type: 'start', value: 1}}, {move: {type: 'put', slot: 0, card: 1}}, {move: {type: 'put', slot: 1, card: 3}}]},
+      {mode: 'playground', parameters: {mode: 'playground', supply: [0, 1, 2, 3]}, steps: [{move: {type: 'put', slot: 0, card: 2}}, {move: {type: 'trays', n: 1}}]}
+    ],
     fresh, valid, solved, hint, render, wire,
     move(p, b, action) {
       const next = move(p, b, action);
