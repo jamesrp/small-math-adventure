@@ -22,9 +22,9 @@ for (const p of puzzles) {
   cases.push({key, entry, demo: demoPuzzle(p, puzzles, entry)});
 }
 
-test('the first mechanics all have demos', () => {
-  for (const mechanic of ['tile', 'swap', 'toggle', 'clock', 'billiard', 'route', 'color', 'latin', 'code', 'nim', 'jug', 'weigh'])
-    assert.ok(cases.some(c => c.key.startsWith(`${mechanic}|`)), `${mechanic} has a demo`);
+test('every puzzle mechanic and mode has a How to play demo', () => {
+  for (const p of puzzles)
+    assert.ok(demoEntry(p), `${p.id} (${p.mechanic}, ${p.parameters?.mode ?? 'default'}): has a demo`);
 });
 
 test('every demo plays a few legal steps', () => {

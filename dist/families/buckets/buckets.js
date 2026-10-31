@@ -608,7 +608,7 @@ export const bucketMechanics = {
   buckets: {
     howTo: [
       {parameters: {mode: 'duel', start: [1, 2], cap: 1, takes: 1}, steps: [{ui: {pending: {key: hash({start: [1, 2], pos: [1, 2], first: 'you', turns: []}), from: 2, take: 1, add: [0, 0]}}}, {ui: {pending: {key: hash({start: [1, 2], pos: [1, 2], first: 'you', turns: []}), from: 2, take: 1, add: [1, 0]}}}, {move: {type: 'move', from: 2, take: 1, add: [1, 0]}}]},
-      {mode: 'streak', parameters: {mode: 'streak', buckets: 2, max: 2, cap: 1, takes: 1, streak: 2}, steps: [{move: {type: 'choose', first: 'you'}}]}
+      {mode: 'streak', parameters: {mode: 'streak', buckets: 2, max: 2, cap: 1, takes: 1, streak: 2}, steps: [{move: {type: 'choose', first: 'you'}}, {ui: {pending: {key: hash({start: [1, 1], pos: [1, 1], first: 'you', turns: [], streak: 0, won: [], fresh: true}), from: 2, take: 1, add: [0, 0]}}}, {move: {type: 'move', from: 2, take: 1, add: [0, 0]}}]}
     ],
     fresh: gameFresh,
     valid: gameValid,
