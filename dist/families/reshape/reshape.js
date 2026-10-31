@@ -742,6 +742,11 @@ function wire(root, p, api) {
 
 export const reshapeMechanics = {
   reshape: {
+    howTo: {parameters: {"mode":"square","home":{"w":5,"h":3},"cuts":2,"mat":{"cols":4,"rows":4},"side":1},
+      steps: [
+        {"move":{"type":"cut","piece":0,"dir":"v","k":2},"taps":["[data-rs-cut=\"0:v:2\"]"]},
+        {"move":{"type":"put","piece":0,"x":0,"y":0,"r":0},"taps":[".rs-home-board [data-sg-cell=\"0\"]",".rs-mat-board [data-sg-cell=\"0\"]"]}
+      ]},
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
       if (!object(payload)) return;

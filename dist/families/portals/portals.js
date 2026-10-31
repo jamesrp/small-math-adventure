@@ -567,6 +567,18 @@ function wire(root, p, api) {
 
 export const portalMechanics = {
   portals: {
+    howTo: [
+      {parameters: {"mode":"walk","room":{"squares":{"A":[0,1],"B":[1,1],"C":[0,0],"D":[1,0]},"right":{"A":"B","B":"A","C":"D","D":"C"},"up":{"A":"C","B":"D","C":"A","D":"B"}},"home":"C","stars":[{"s":"D","copy":[1,1]}]},
+        steps: [
+          {"move":{"type":"step","dir":"R"},"taps":["[data-pb-dir=\"R\"]"]},
+          {"move":{"type":"step","dir":"U"},"taps":["[data-pb-dir=\"U\"]"]}
+        ]},
+      {mode: 'shrink', parameters: {"mode":"shrink","room":{"squares":{"A":[0,1],"B":[1,1],"C":[0,0],"D":[1,0]},"right":{"A":"B","B":"A","C":"D","D":"C"},"up":{"A":"C","B":"D","C":"A","D":"B"}},"home":"C","trip":"RULDRL","target":""},
+        steps: [
+          {"move":{"type":"cancel","at":5},"taps":["[data-pb-vertex=\"5\"]"]},
+          {"move":{"type":"slide","at":1},"taps":["[data-pb-vertex=\"1\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui() {},
     // The playground has no goal and no Hint.

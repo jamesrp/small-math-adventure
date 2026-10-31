@@ -986,6 +986,28 @@ function wire(root, p, api) {
 
 export const foldMechanics = {
   folds: {
+    howTo: [
+      {parameters: {"mode":"route","view":[0,-3,8,3],"line":{"dir":"h","at":0,"from":0,"to":8},"dots":{"A":[1,2],"B":[7,1]},"routes":[["A","B"]],"claim":"shorter","guesses":[2,6]},
+        steps: [
+          {"move":{"type":"touch","route":0,"at":3},"taps":["[data-focus=\"fd-c-3\"]"]},
+          {"move":{"type":"fold"}}
+        ]},
+      {mode: 'every', parameters: {"mode":"every","view":[0,-2,7,3],"line":{"dir":"h","at":0,"from":0,"to":7},"dots":{"B":[6,1]},"finish":"B","p":3,"place":[0,1,7,3]},
+        steps: [
+          {"move":{"type":"start","at":[1,2]},"taps":["[data-focus=\"fd-s-1_2\"]"]},
+          {"move":{"type":"start","at":[2,2]},"taps":["[data-focus=\"fd-s-2_2\"]"]}
+        ]},
+      {mode: 'walls', parameters: {"mode":"walls","view":[0,-1,7,4],"walls":{"lower":0,"upper":3,"from":0,"to":7},"dots":{"A":[1,1],"B":[6,2]}},
+        steps: [
+          {"move":{"type":"touch","wall":"lower","at":2},"taps":["[data-focus=\"fd-lower-2\"]"]},
+          {"move":{"type":"touch","wall":"upper","at":5},"taps":["[data-focus=\"fd-upper-5\"]"]}
+        ]},
+      {mode: 'block', parameters: {"mode":"block","view":[0,0,7,5],"rect":[2,1,5,4],"axis":2,"dots":{"A":[0,2],"B":[7,2]}},
+        steps: [
+          {"move":{"type":"corner","i":0},"taps":["[data-focus=\"fd-k-0\"]"]},
+          {"move":{"type":"corner","i":0},"taps":["[data-focus=\"fd-k-0\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire, carry,
     ui: uiHook,
     reset: p => { uiState.delete(p.id); },

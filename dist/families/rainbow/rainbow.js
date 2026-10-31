@@ -411,7 +411,27 @@ const hooks = {
 };
 // Starred dots, a group in this family, plays by the same hooks: its boards
 // carry their starred dots.
-export const rainbowMechanics = {rainbow: hooks, starred: hooks};
+export const rainbowMechanics = {rainbow: {...hooks, howTo: [
+      {parameters: {"mode":"counts","board":{"steps":2,"centres":[1]},"start":"RRBRBYR"},
+        steps: [
+          {"move":{"type":"turn","point":1},"taps":["[data-tg-point=\"1\"]"]},
+          {"move":{"type":"turn","point":3},"taps":["[data-tg-point=\"3\"]"]}
+        ]},
+      {mode: 'walk', parameters: {"mode":"walk","board":{"steps":2,"centres":[1]},"start":"RRBRBYR"},
+        steps: [
+          {"move":{"type":"door","door":9},"taps":["[data-tg-edge=\"9\"]"]},
+          {"move":{"type":"door","door":5},"taps":["[data-tg-edge=\"5\"]"]}
+        ]},
+      {mode: 'peek', parameters: {"mode":"peek","board":{"steps":2,"centres":[1]},"hidden":["RRBRBYR"],"budget":3},
+        steps: [
+          {"move":{"type":"peek","point":1},"taps":["[data-tg-point=\"1\"]"]},
+          {"move":{"type":"peek","point":3},"taps":["[data-tg-point=\"3\"]"]}
+        ]}
+    ]}, starred: {...hooks, howTo: {parameters: {"mode":"counts","board":{"steps":2,"free":[1,3]},"start":"RRBRBY"},
+      steps: [
+        {"move":{"type":"turn","point":1},"taps":["[data-tg-point=\"1\"]"]},
+        {"move":{"type":"turn","point":3},"taps":["[data-tg-point=\"3\"]"]}
+      ]}}};
 
 // The family seam entry (dist/families.js).
 export default {

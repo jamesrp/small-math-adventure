@@ -619,6 +619,18 @@ function carry(p, from, to) {
 
 export const islandMechanics = {
   islands: {
+    howTo: [
+      {parameters: {"mode":"starts","aspect":1.5,"nodes":{"A":[20,20],"B":[80,20],"C":[50,75]},"bridges":[["A","B"],["B","C"],["C","A"],["A","B",15]]},
+        steps: [
+          {"move":{"type":"island","island":"A"},"taps":["[data-gb-node=\"A\"]"]},
+          {"move":{"type":"bridge","bridge":0},"taps":["[data-gb-edge=\"0\"]"]}
+        ]},
+      {mode: 'add', parameters: {"mode":"add","aspect":1.5,"nodes":{"A":[20,20],"B":[80,20],"C":[50,75]},"bridges":[["A","B"],["B","C"],["C","A"],["A","B",15]],"budget":2},
+        steps: [
+          {"move":{"type":"add","u":"A","v":"C"},"taps":["[data-gb-node=\"A\"]","[data-gb-node=\"C\"]"]},
+          {"move":{"type":"remove","bridge":4},"taps":["[data-gb-edge=\"4\"]"]}
+        ]}
+    ],
     fresh: () => fresh(), valid, solved, move, hint, render, wire, carry, ui,
     reset: p => { views.delete(p.id); }
   }

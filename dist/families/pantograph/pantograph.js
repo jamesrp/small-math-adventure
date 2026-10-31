@@ -542,6 +542,28 @@ function wire(root, p, api) {
 
 export const pantographMechanics = {
   pantograph: {
+    howTo: [
+      {parameters: {"mode":"dots","paper":[8,6],"machines":["double"],"pins":[[2,1]],"tracer":[3,2],"dots":[[7,5],[1,5]]},
+        steps: [
+          {"move":{"type":"draw","to":[4,2]},"taps":["[data-pg=\"knob\"]"]},
+          {"move":{"type":"draw","to":[4,3]},"taps":["[data-pg=\"knob\"]"]}
+        ]},
+      {mode: 'anchor', parameters: {"mode":"anchor","paper":[8,6],"machines":["double"],"pins":[[2,4]],"tracer":[3,2],"stencil":[[2,1],[3,1],[3,2]],"movable":{"pins":[true]},"solution":[1,0],"target":[[3,2],[5,2],[5,4]]},
+        steps: [
+          {"move":{"type":"pin","k":0,"to":[1,4]},"taps":["[data-pg=\"pin-0\"]"]},
+          {"move":{"type":"pin","k":0,"to":[0,4]},"taps":["[data-pg=\"pin-0\"]"]}
+        ]},
+      {mode: 'shift', parameters: {"mode":"shift","paper":[8,6],"machines":["double"],"pins":[[1,1]],"tracer":[3,2],"ghostPin":[0,0],"stencil":[[2,1],[3,1],[3,2]],"movable":{"stencil":true},"solution":[1,0],"target":[[3,2],[5,2],[5,4]]},
+        steps: [
+          {"move":{"type":"stencil","to":[1,0]},"taps":["[data-pg=\"stencil\"]"]},
+          {"move":{"type":"stencil","to":[0,1]},"taps":["[data-pg=\"stencil\"]"]}
+        ]},
+      {mode: 'chain', parameters: {"mode":"chain","paper":[8,6],"machines":["double","half"],"pins":[[2,2],[5,1]],"tracer":[3,3],"stencil":[[2,1],[3,1],[3,2]],"movable":{"pins":[false,true]},"solution":[[6,4],[2,4]],"target":[[1,2],[2,2],[2,3]],"slide":[-2,1]},
+        steps: [
+          {"move":{"type":"pin","k":1,"to":[5,2]},"taps":["[data-pg=\"pin-1\"]"]},
+          {"move":{"type":"pin","k":1,"to":[4,2]},"taps":["[data-pg=\"pin-1\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     // Undo takes back lines and moves, never a refused That's all: it holds
     // while the knob dots found are among those it judged.

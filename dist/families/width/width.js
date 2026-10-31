@@ -730,6 +730,18 @@ function uiHook(p, payload) {
 
 export const widthMechanics = {
   width: {
+    howTo: [
+      {parameters: {"mode":"build","field":{"r":3,"tx":"1","ty":"1"},"corners":{"A":["0","0|2"],"B":["-2","0"],"C":["2","0"]},"order":["A","B","C"],"pins":{"O":["0","0"]},"turn":0},
+        steps: [
+          {"move":{"type":"arc","gap":1,"at":"O"},"taps":["[data-gap=\"1\"]","[data-pt=\"O\"]"]},
+          {"move":{"type":"arc","gap":1,"at":"A"},"taps":["[data-gap=\"1\"]","[data-pt=\"A\"]"]}
+        ]},
+      {mode: 'place', parameters: {"mode":"place","field":{"r":3,"tx":"1","ty":"1"},"corners":{"A":["0","0|2"],"B":["-2","0"]},"order":["A","B","C"],"pins":{"O":["0","0"]},"turn":0,"open":"C","spots":{"s1":["2","0"],"s2":["3","0"]},"start":[null,null,null]},
+        steps: [
+          {"move":{"type":"corner","at":"s1"},"taps":["[data-pt=\"s1\"]"]},
+          {"move":{"type":"corner","at":"s2"},"taps":["[data-pt=\"s2\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint,
     render: (p, a) => isPlayground(p) ? renderPlay(p, a) : renderPuzzle(p, a),
     wire: (root, p, api) => isPlayground(p) ? wirePlay(root, p, api) : wirePuzzle(root, p, api),

@@ -381,6 +381,17 @@ function wire(root, p, api) {
 
 export const rhombusMechanics = {
   rhombus: {
+    howTo: [
+      {parameters: {"mode":"fill","board":{"outline":[[0,0],[4,0],[4,1],[0,1]]}},
+        steps: [
+          {"move":{"type":"place","cells":[0,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"4\"]"]},
+          {"move":{"type":"place","cells":[1,5]},"taps":["[data-tg-cell=\"1\"]","[data-tg-cell=\"5\"]"]}
+        ]},
+      {mode: 'flip', parameters: {"mode":"flip","board":{"outline":[[0,0],[1,0],[1,1],[0,2],[-1,2],[-1,1]]},"start":[[0,1],[2,4],[3,5]],"goal":[[0,2],[1,3],[4,5]],"budget":1},
+        steps: [
+          {"move":{"type":"flip","at":0},"taps":[".rh-board [data-tg-point]"]}
+        ]}
+    ],
     fresh: p => p.parameters.mode === 'playground' ? freshPlay() : freshPuzzle(p),
     valid: (p, b) => p.parameters.mode === 'playground' ? validPlay(b) : validPuzzle(p, b),
     solved: (p, b) => p.parameters.mode === 'playground' ? false : solvedPuzzle(p, b),

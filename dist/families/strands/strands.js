@@ -809,8 +809,8 @@ export const strandMechanics = {
         ]},
       {mode: 'design', parameters: {"mode": "design","room": {"squares": {"a": [0,0]},"right": {"a": "a"},"up": {"a": null},"n": 4,"lattice": "crosses"},"a": 1,"copies": [-1,2],"start": [0,0,0],"targets": [1,1,1]},
         steps: [
-          {"move": {"type": "end","strand": 0,"w": 1}},
-          {"move": {"type": "end","strand": 1,"w": -1}}
+          {"move": {"type": "end","strand": 0,"w": 1},"taps": [".st-end.red"]},
+          {"move": {"type": "end","strand": 1,"w": -1},"taps": [".st-end.blue"]}
         ]}
     ],
     fresh, valid, solved, hint, render, wire, carry,

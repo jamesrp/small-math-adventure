@@ -459,6 +459,11 @@ function wire(root, p, api) {
 
 export const knotsMechanics = {
   knots: {
+    howTo: {parameters: {"mode":"fill","aspect":1,"arcs":[{"d":[[10,50],[90,50]],"name":"the horizontal arc","pic":0},{"d":[[50,10],[50,43]],"name":"the top arc","pic":0},{"d":[[50,57],[50,90]],"name":"the bottom arc","pic":0}],"crossings":[{"at":[50,50],"over":0,"under":[1,2],"pic":0}],"ends":[{"at":[10,50],"arc":0},{"at":[90,50],"arc":0},{"at":[50,10],"arc":1},{"at":[50,90],"arc":2}],"pictures":[{"arcs":[0,3]}]},
+      steps: [
+        {"move":{"type":"paint","arc":0,"colour":0},"taps":["[data-arc=\"0\"]"]},
+        {"move":{"type":"paint","arc":0,"colour":1},"taps":["[data-arc=\"0\"]"]}
+      ]},
     fresh, valid, solved, move, hint, render, wire,
     // Undo keeps the colourings already found.
     carry(p, from, to) {

@@ -482,18 +482,41 @@ const common = {
 };
 export const blockMechanics = {
   blueduel: {
+    howTo: {parameters: {"board":{"outline":[[0,0],[4,0],[4,1],[0,1]]}},
+      steps: [
+        {"move":{"type":"choose","first":"you"},"taps":["[data-focus=\"bk-choose-you\"]"]},
+        {"move":{"type":"place","cells":[0,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"4\"]"]}
+      ]},
     ...common,
     fresh: () => ({first: null, pieces: []}),
     valid: duelValid, solved: duelSolved, move: duelMove, hint: duelHint, render: duelRender,
     demo: 'Choose who goes first. Then take turns laying a rhombus on two empty triangles. If there is no room for your rhombus on your turn, you lose.'
   },
   blockfill: {
+    howTo: {parameters: {"board":{"outline":[[0,0],[3,0],[3,2],[0,2]]},"budget":5},
+      steps: [
+        {"move":{"type":"place","cells":[0]},"taps":["[data-tg-cell=\"0\"]"]},
+        {"ui":{"tool":"rhombus"}},
+        {"move":{"type":"place","cells":[1,4]},"taps":["[data-tg-cell=\"1\"]","[data-tg-cell=\"4\"]"]}
+      ]},
     ...common,
     fresh: () => ({pieces: []}),
     valid: blockValid, solved: blockSolved, move: blockMove, hint: blockHint, render: blockRender,
     demo: 'Choose a block, then drag across its triangles or tap them one at a time. A hexagon can also go down by tapping the dot in its middle. Tap a block to lift it.'
   },
   redfill: {
+    howTo: [
+      {parameters: {"mode":"fill","board":{"outline":[[0,0],[3,0],[3,2],[0,2]]}},
+        steps: [
+          {"move":{"type":"place","cells":[0,1,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"1\"]","[data-tg-cell=\"4\"]"]},
+          {"move":{"type":"lift","cell":0},"taps":["[data-tg-piece]"]}
+        ]},
+      {mode: 'home', parameters: {"mode":"home","board":{"outline":[[0,0],[1,0],[1,1],[0,2],[-1,2],[-1,1]]},"start":[[0,1,2],[3,4,5]]},
+        steps: [
+          {"move":{"type":"recut","a":"0.1.2","b":"3.4.5"},"taps":["[data-tg-piece=\"0.1.2\"]","[data-tg-piece=\"3.4.5\"]"]},
+          {"move":{"type":"recut","a":"0.2.4","b":"1.3.5"},"taps":["[data-tg-piece=\"0.2.4\"]","[data-tg-piece=\"1.3.5\"]"]}
+        ]}
+    ],
     ...common,
     fresh: p => p.parameters.mode === 'home' ? {pieces: p.parameters.start.map(sortPiece), path: [tilingKey(p.parameters.start)]}
       : p.parameters.mode === 'every' ? {pieces: [], found: [], claimed: false, missed: false} : {pieces: [], cant: false, refused: false},

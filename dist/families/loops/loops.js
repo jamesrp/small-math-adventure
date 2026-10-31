@@ -433,7 +433,34 @@ export const loopsMechanic = {
 };
 
 // The family seam entry (dist/families.js).
-export const loopMechanics = {loops: loopsMechanic, loopsnum: {...loopsMechanic}};
+export const loopMechanics = {loops: {...loopsMechanic, howTo: [
+      {parameters: {"mode":"make","cards":["A","B","C","D"],"clues":[["A","B",2],["C","D",2],["A","C",8]],"cant":true,"world":[[2,["A","B"]],[2,["C","D"]]]},
+        steps: [
+          {"ui":{"at":"{\"loops\":[],\"claim\":null}","pick":["A","B"]},"taps":["[data-lp-card=\"A\"]","[data-lp-card=\"B\"]"]},
+          {"move":{"type":"add","label":2,"cards":["A","B"]},"taps":["[data-lp-label=\"2\"]"]}
+        ]},
+      {mode: 'pin', parameters: {"mode":"pin","cards":["A","B","C","D"],"world":[[2,["A","B"]],[2,["C","D"]]],"budget":3},
+        steps: [
+          {"move":{"type":"ask","pair":["A","B"]},"taps":["[data-lp-card=\"A\"]","[data-lp-card=\"B\"]"]},
+          {"move":{"type":"drop","pair":["A","B"]},"taps":["[data-lp-drop]"]}
+        ]},
+      {mode: 'repair', parameters: {"mode":"repair","cards":["A","B","C","D"],"clues":[["A","B",2],["A","C",2],["B","C",4],["A","D",8],["B","D",8],["C","D",8]]},
+        steps: [
+          {"move":{"type":"change","clue":0},"taps":["[data-lp-clue=\"0\"]"]},
+          {"move":{"type":"change","clue":0},"taps":["[data-lp-clue=\"0\"]"]}
+        ]}
+    ]}, loopsnum: {...loopsMechanic, howTo: [
+      {parameters: {"mode":"make","cards":["0","1","2","3"],"clues":[["0","1",2],["2","3",2],["0","2",8]],"cant":true,"world":[[2,["0","1"]],[2,["2","3"]]]},
+        steps: [
+          {"ui":{"at":"{\"loops\":[],\"claim\":null}","pick":["0","1"]},"taps":["[data-lp-card=\"0\"]","[data-lp-card=\"1\"]"]},
+          {"move":{"type":"add","label":2,"cards":["0","1"]},"taps":["[data-lp-label=\"2\"]"]}
+        ]},
+      {mode: 'pin', parameters: {"mode":"pin","cards":["0","1","2","3"],"world":[[2,["0","1"]],[2,["2","3"]]],"budget":3},
+        steps: [
+          {"move":{"type":"ask","pair":["0","1"]},"taps":["[data-lp-card=\"0\"]","[data-lp-card=\"1\"]"]},
+          {"move":{"type":"drop","pair":["0","1"]},"taps":["[data-lp-drop]"]}
+        ]}
+    ]}};
 export default {
   id: 'loops',
   family: {id: 'loops', symbol: '⦾', area: 'numbers', region: 'shape'},

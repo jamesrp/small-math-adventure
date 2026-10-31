@@ -799,6 +799,23 @@ function wire(root, p, api) {
 
 export const mobiusMechanics = {
   mobius: {
+    howTo: [
+      {parameters: {"mode":"seams","strips":2,"len":2,"n":2,"layout":[[0,0],[3,0]],"start":["M","R"],"fixed":[false,false],"marks":[{"kind":"star","k":0,"top":true,"x":1},{"kind":"diamond","k":1,"top":true,"x":1}]},
+        steps: [
+          {"move":{"type":"seam","k":1},"taps":["[data-pb-point=\"seam:1\"]"]},
+          {"move":{"type":"seam","k":1},"taps":["[data-pb-point=\"seam:1\"]"]}
+        ]},
+      {mode: 'dots', parameters: {"mode":"dots","strips":1,"len":3,"n":2,"layout":[[0,0]],"seams":["M"],"cuts":[],"rings":[2,2]},
+        steps: [
+          {"move":{"type":"dot","seg":"0:0u:1"},"taps":["[data-pb-point=\"seg:0:0u:1\"]"]},
+          {"move":{"type":"dot","seg":"0:0u:1"},"taps":["[data-pb-point=\"seg:0:0u:1\"]"]}
+        ]},
+      {mode: 'pieces', parameters: {"mode":"pieces","strips":1,"len":3,"n":4,"layout":[[0,0]],"start":["M"],"fixed":[false],"lines":[2],"spots":[],"goal":[1,2]},
+        steps: [
+          {"move":{"type":"cut","h":2},"taps":["[data-focus=\"mb-scissors-2\"]"]},
+          {"move":{"type":"cut","h":2},"taps":["[data-focus=\"mb-scissors-2\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: setView,
     reset: p => { views.delete(p.id); },

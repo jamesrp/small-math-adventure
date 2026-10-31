@@ -500,7 +500,7 @@ export const squareMechanics = {
         ]},
       {mode: 'design', parameters: {"mode": "design","cols": 5,"rows": 4,"goal": "last","last": 1,"need": 3},
         steps: [
-          {"move": {"type": "size","w": 3,"h": 2}},
+          {"move": {"type": "size","w": 3,"h": 2},"taps": ["[data-sg-cell=\"7\"]"]},
           {"move": {"type": "cut"}}
         ]}
     ],

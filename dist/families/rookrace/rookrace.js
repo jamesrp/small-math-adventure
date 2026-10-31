@@ -660,6 +660,11 @@ function everyRender(p, a) {
 
 export const rookraceMechanics = {
   rookrace: {
+    howTo: {parameters: {"kind":"race","size":3,"streak":2},
+      steps: [
+        {"move":{"type":"choose","first":"you"}},
+        {"move":{"type":"move","to":[0,1]}}
+      ]},
     fresh: raceFresh,
     valid: raceValid,
     solved: raceSolved,
@@ -671,6 +676,11 @@ export const rookraceMechanics = {
     noUndo: () => true
   },
   everystart: {
+    howTo: {parameters: {"kind":"board","size":3},
+      steps: [
+        {"move":{"type":"mark","cell":1}},
+        {"move":{"type":"mark","cell":2}}
+      ]},
     fresh: everyFresh,
     valid: everyValid,
     solved: everySolved,

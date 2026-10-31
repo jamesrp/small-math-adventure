@@ -796,6 +796,13 @@ export function step(room, list, from, [dx, dy]) {
 
 export const aimsMechanics = {
   aims: {
+    howTo: {parameters: {"mode":"target","room":"square","start":[3,3],"frame":[-1,1,-1,1],"word":"DCB"},
+      steps: [
+        {"ui":{"aim":{"start":[3,3],"end":[13,7]}}},
+        {"move":{"type":"launch","start":[3,3],"end":[13,7]}},
+        {"ui":{"aim":{"start":[3,3],"end":[7,13]}}},
+        {"move":{"type":"launch","start":[3,3],"end":[7,13]}}
+      ]},
     fresh, valid, solved, move, hint, render, wire, help,
     ui: setUi,
     reset(p) { views.delete(p.id); },

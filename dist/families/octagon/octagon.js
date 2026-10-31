@@ -999,6 +999,11 @@ function wire(root, p, api) {
 
 export const octagonMechanics = {
   octagon: {
+    howTo: {parameters: {"mode":"home","moves":6,"floors":[{"kind":"sq","solutions":["SLLSLL"],"attempt":""}]},
+      steps: [
+        {"move":{"type":"go","floor":0,"turn":"S"}},
+        {"move":{"type":"go","floor":0,"turn":"L"}}
+      ]},
     fresh, valid, solved, move, hint, render, wire, carry, carryOnRestart,
     ui(p, payload) {
       if (!object(payload)) return;

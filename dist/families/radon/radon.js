@@ -695,7 +695,7 @@ export const radonMechanics = {
       {mode: 'locus', parameters: {"mode": "locus","cols": 5,"rows": 3,"labels": {"A": [1,1],"B": [3,1]}},
         steps: [
           {"move": {"type": "put","at": [0,0]},"taps": ["[data-sg-point=\"0\"]"]},
-          {"move": {"type": "put","at": [2,2]},"taps": ["[data-sg-point=\"8\"]"]}
+          {"move": {"type": "put","at": [2,2]},"taps": ["[data-sg-point=\"10\"]"]}
         ]},
       {mode: 'pair', parameters: {"mode": "pair","cols": 4,"rows": 4,"boards": [{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]},{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]}]},
         steps: [

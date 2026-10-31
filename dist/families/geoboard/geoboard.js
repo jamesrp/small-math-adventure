@@ -819,13 +819,13 @@ export const geoboardMechanics = {
     howTo: [
       {parameters: {"mode": "target","w": 3,"h": 3,"goal": {"area": 3}},
         steps: [
-          {"move": {"type": "dot","at": 0},"taps": ["[data-sg-point=\"6\"]"]},
+          {"move": {"type": "dot","at": 0},"taps": ["[data-sg-point=\"7\"]"]},
           {"move": {"type": "dot","at": 2},"taps": ["[data-sg-point=\"8\"]"]},
-          {"move": {"type": "dot","at": 4},"taps": ["[data-sg-point=\"4\"]"]}
+          {"move": {"type": "dot","at": 4},"taps": ["[data-sg-point=\"2\"]"]}
         ]},
       {mode: 'cut', parameters: {"mode": "cut","w": 4,"h": 3,"shape": [[0,0],[3,0],[3,2],[0,2]],"piece": {"area": 2}},
         steps: [
-          {"move": {"type": "cut","a": 0,"b": 11},"taps": ["[data-sg-point=\"8\"]","[data-sg-point=\"3\"]"]}
+          {"move": {"type": "cut","a": 0,"b": 11},"taps": ["[data-sg-point=\"9\"]","[data-sg-point=\"6\"]"]}
         ]}
     ],
     fresh, valid, solved, hint, render, wire,
