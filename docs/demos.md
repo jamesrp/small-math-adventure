@@ -36,9 +36,12 @@ What makes a good demo:
 - `node --test tests/demos.test.mjs` (in `npm test`): every step is legal and changes the board, every frame draws, a `ui` step changes the drawing, and every demo board differs from every puzzle's.
 - `node scripts/demos-browser-smoke.mjs` plays every demo in a browser on a phone (and on any `WIDTH` and `HEIGHT`): no page error, the demo fits the dialog, Show again replays it. It lists steps with no control to mark and the mechanics without a demo. `SCREENSHOTS=<dir>` saves each finished demo; `TEST_MECHANIC=<id>` runs one mechanic.
 
+## Family coverage
+
+All 111 family-seam mechanics now have demos: 241 family entries with control variants, plus the 16 entries for the twelve first mechanics. The test requires a demo for every puzzle and mode in the pack. [The implementation report](demos-families-report.md) lists the batches, checks, screenshots and remaining player limitations.
+
 ## Not yet done
 
-- **Demos for the family modules.** On October 30, 2026 only the twelve first mechanics have demos (16 with their modes); the 111 mechanics on the family seam have none, so their How to play is text alone. Once every mechanic has one, make `tests/demos.test.mjs` require a demo for each.
 - **Mirror Couriers' cross mode** taps a crossing drawn on the sheet, which has no control to mark.
 - **Shorter How to play text.** The plan's point was that How to play can shrink once the demo shows the move; the text stays as it was until children have seen the demos.
 - Testers should watch for: whether children watch the demo or skip to the text; whether a ring on a small scaled board is enough to see what was tapped; and whether Show again gets used.
