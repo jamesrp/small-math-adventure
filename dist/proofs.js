@@ -735,7 +735,13 @@ function flipWire(root, p, api) {
   });
 }
 const flipmap = {
-  howTo: {parameters: {task: 'route', s: 1, e: 5, k: 5}, steps: [{move: {type: 'flip', to: 2}, taps: ['[data-card="2"]']}, {move: {type: 'flip', to: 4}, taps: ['[data-card="4"]']}]},
+  // Numbers marks two counts without checking, and trips answers one card
+  // both ways: a check would paint the map and show the parity.
+  howTo: [
+    {when: {task: 'numbers'}, parameters: {task: 'numbers', s: 1, max: 6, rounds: 1}, steps: [{move: {type: 'toggle', n: 2}}, {move: {type: 'toggle', n: 3}}]},
+    {when: {task: 'trips'}, parameters: {task: 'trips', rounds: 1}, steps: [{move: {type: 'answer', i: 0, value: true}}, {move: {type: 'answer', i: 1, value: false}}]},
+    {parameters: {task: 'route', s: 1, e: 5, k: 5}, steps: [{move: {type: 'flip', to: 2}, taps: ['[data-card="2"]']}, {move: {type: 'flip', to: 4}, taps: ['[data-card="4"]']}]}
+  ],
   fresh(p, random = Math.random) {
     const q = p.parameters;
     if (q.task === 'route') return { mode: 'walk', trail: [q.s], paint: [0, 0, 0, 0, 0, 0] };

@@ -894,7 +894,7 @@ export const creaseMechanics = {
         ]},
       {mode: 'ray', parameters: {"mode": "ray","rays": [0,90,180],"fixed": [null,null,null]},
         steps: [
-          {"move": {"type": "place","at": 45},"taps": [".cr-knob"]},
+          {"move": {"type": "place","at": 45},"taps": [".cr-knob", {"after": ".cr-knob"}], "drag": true},
           {"move": {"type": "label","ray": 3,"to": "M"}}
         ]},
       {mode: 'tabs', parameters: {"mode": "tabs","disks": [{"angles": [90,90,90,90],"fixed": ["M",null,"V",null]},{"angles": [90,90,90,90],"fixed": ["M",null,"V",null]}],"stock": {"M": 2,"V": 2}},

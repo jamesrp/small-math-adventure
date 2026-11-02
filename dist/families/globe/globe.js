@@ -810,8 +810,8 @@ export const globeMechanics = {
   globe: {
     howTo: {parameters: {"mode":"right","letters":["A","B","C"],"start":{"A":[90,0],"B":[0,0],"C":[30,60]},"locked":["A","B"],"view":[15,45]},
       steps: [
-        {"move":{"type":"place","corner":"C","to":[45,60]},"taps":[".gl-corner:not(.locked)"]},
-        {"move":{"type":"place","corner":"C","to":[30,90]},"taps":[".gl-corner:not(.locked)"]}
+        {"move":{"type":"place","corner":"C","to":[45,60]},"taps": [".gl-corner:not(.locked)", {"after": ".gl-corner:not(.locked)"}], "drag": true},
+        {"move":{"type":"place","corner":"C","to":[30,90]},"taps": [".gl-corner:not(.locked)", {"after": ".gl-corner:not(.locked)"}], "drag": true}
       ]},
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
