@@ -54,7 +54,7 @@ function puzzleView(p,a,ctx){
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">
     <section class="board-panel ${expansion?'expansion-board':''} ${ctx.stage?'stage-controls':''} ${esc(p.mechanic)}" aria-label="${ctx.stage?'Puzzle controls':'Puzzle play area'}">
-      ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(ctx.encounter?.title||p.familyTitle||(p.mechanic==='swap'?'Cup swaps':'Puzzle'))}</h1>`}
+      ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(ctx.encounter?.title||p.familyTitle||(p.mechanic==='swap'?'Cup swaps':p.mechanic==='tile'?'Tile gardens':p.title||'Puzzle'))}</h1>`}
       ${ctx.stage?stageControls(ctx.stage,p,a,ctx):expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" role="switch" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
