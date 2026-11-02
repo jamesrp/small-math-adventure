@@ -224,6 +224,7 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 
 /* The controls under a stage: one row beside Undo, Restart and Hint. */
 .lr-play.is-staged .play-layout{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px 16px}
+.lr-play.is-staged .play-layout.is-complete{grid-template-columns:minmax(0,1fr)}
 .lr-play.is-staged .board-panel{padding:12px 16px;border-radius:16px}
 .lr-play.is-staged .puzzle-goal{margin:0 0 10px;font-size:.98rem}
 .lr-play.is-staged .play-sidebar .tool-grid{flex-wrap:nowrap}
@@ -285,7 +286,7 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 
 /* Solved strip ------------------------------------------------------------------ */
 .lr-done{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 20px;background:var(--rd-card);border:1px solid var(--rd-line);border-radius:18px;padding:14px 18px;box-shadow:0 3px 0 var(--rd-line);color:var(--rd-ink)}
-.lr-done h2{margin:0;line-height:1}
+.lr-done h2{margin:0;line-height:1}.lr-done h2:focus{outline:none}
 .lr-stars{display:inline-flex;gap:2px;color:var(--rd-star-off);font-size:1.1rem;line-height:1;vertical-align:middle}
 .lr-stars i{font-style:normal}
 .lr-stars i.on{color:var(--rd-star);text-shadow:0 1px 0 #b07d10}
