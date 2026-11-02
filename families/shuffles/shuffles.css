@@ -23,3 +23,8 @@
 .board-panel .shuffle-ticket.out{background:transparent;opacity:.45}
 .shuffle-verdict{display:flex;flex-direction:column;align-items:center;gap:.3rem}
 .shuffle-pair{display:flex;align-items:center;gap:.5rem;margin:0}
+
+.shuffle-explore{width:100%;min-width:0;max-width:620px;box-sizing:border-box}
+.shuffle-explore>summary{min-height:44px;align-content:center;cursor:pointer;font-size:.95rem;color:var(--b-muted,#5a6850)}
+
+.caravan-puzzle .shuffle-puzzle .case-cups{max-width:400px;margin:.3rem auto}

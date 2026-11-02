@@ -191,14 +191,19 @@ function movePuzzle(p, b, action) {
   }
   if (q.mode === 'deal') {
     if (action.type === 'swap') { const decks = swap(b.decks); return decks ? {decks, cant: false} : null; }
-    // Can't is checked: right when no deal works, otherwise refused until the decks change.
-    return action.type === 'cant' && !b.cant ? {...b, cant: true} : null;
+    // Can't waits for a swap (decks changed from the deal), and is checked:
+    // right when no deal works, otherwise refused until the decks change.
+    return action.type === 'cant' && cantOpen(q, b) ? {...b, cant: true} : null;
   }
   if (action.type === 'swap') { const decks = swap(b.decks); return decks ? {...b, decks, wrong: false} : null; }
   if (action.type === 'keep') return keep(dealKey(b.decks), goal(b.decks));
   return action.type === 'claim' ? claim() : null;
 }
 
+// Can't in a deal opens once the decks differ from the deal as it came, so a
+// claim follows the child's own swaps, and stays off after "Keep looking."
+// until the decks change.
+const cantOpen = (q, b) => !b.cant && JSON.stringify(b.decks) !== JSON.stringify(q.decks);
 // Hints. Pairs: the next pair's winner, then the deck that wins more. Find
 // every: the next card, swap or deal not yet kept, Keep, That's all. A deal:
 // one swap toward the nearest deal that works (a direct exchange when there
@@ -238,7 +243,10 @@ function hintPuzzle(p, b) {
   }
   if (q.mode === 'deal') {
     const pool = targets(q);
-    return pool.length ? swapStep(stepToward(b.decks, nearest(b.decks, pool))) : step({type: 'cant'}, 'No deal works. Press Can’t.');
+    if (pool.length) return swapStep(stepToward(b.decks, nearest(b.decks, pool)));
+    // No deal works: a first swap, since Can't waits for one.
+    if (!cantOpen(q, b)) return swapStep([b.decks[0].find(v => !pinned(q, v)), b.decks[1].find(v => !pinned(q, v))]);
+    return step({type: 'cant'}, 'No deal works. Press Can’t.');
   }
   if (!missing.length) return all();
   if (missing.includes(dealKey(b.decks))) return step({type: 'keep'}, 'Keep these decks.');
@@ -392,7 +400,7 @@ function renderPuzzle(p, a) {
   }
   const decks = decksHTML(q, b.decks, swapCard);
   if (q.mode === 'deal') {
-    const actions = solved ? '' : `<div class="case-actions">${button('Can’t', {type: 'cant'}, hinted('cant'), b.cant ? 'disabled' : '')}</div>`;
+    const actions = solved ? '' : `<div class="case-actions">${button('Can’t', {type: 'cant'}, hinted('cant'), cantOpen(q, b) ? '' : 'disabled')}</div>`;
     const proof = solved && b.cant;
     const grids = gridsHTML(q, b.decks, {lost: proof && q.certificate === 'one' ? Math.min(...q.decks.flat()) : undefined});
     return wrap(decks, actions, b.cant && !solved ? note('Keep looking.') : '', grids, proof ? certificate(q) : '', status(`${sayDecks(q, b.decks)} ${sayVerdicts(q, b.decks)}${picked}`));
@@ -500,9 +508,52 @@ export const deckMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+deckMechanics.decks.howTo = [
+{
+  parameters: {"mode":"pairs","decks":[[1,5],[2,4]]},
+  steps: [
+    {"move":{"type":"mark","cell":0,"side":1},"taps":["[data-deck-move='{\"type\":\"mark\",\"cell\":0,\"side\":1}']"]},
+    {"move":{"type":"mark","cell":2,"side":0},"taps":["[data-deck-move='{\"type\":\"mark\",\"cell\":2,\"side\":0}']"]}
+  ]
+},
+{
+  mode: "deal",
+  parameters: {"mode":"deal","decks":[[1,2],[3,5]],"goal":"tie"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"swap","a":2,"b":3},"taps":["[data-card=\"2\"]","[data-card=\"3\"]"]}
+  ]
+},
+{
+  mode: "menu",
+  parameters: {"mode":"menu","decks":[[1,null],[2,3]],"menu":[0,4,5],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"pick","value":0},"taps":["[data-deck-move='{\"type\":\"pick\",\"value\":0}']"]},
+    {"move":{"type":"pick","value":4},"taps":["[data-deck-move='{\"type\":\"pick\",\"value\":4}']"]}
+  ]
+},
+{
+  mode: "swaps",
+  parameters: {"mode":"swaps","decks":[[1,2],[3,5]],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"again"},"taps":["[data-deck-move='{\"type\":\"again\"}']"]}
+  ]
+},
+{
+  mode: "deals",
+  parameters: {"mode":"deals","decks":[[1,2],[3,5]],"goal":"beatBA"},
+  steps: [
+    {"move":{"type":"swap","a":1,"b":5},"taps":["[data-card=\"1\"]","[data-card=\"5\"]"]},
+    {"move":{"type":"swap","a":2,"b":3},"taps":["[data-card=\"2\"]","[data-card=\"3\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'decks',
-  family: {id: 'decks', symbol: '♢'},
+  family: {id: 'decks', symbol: '♢', area: 'chance', region: 'chance'},
   mechanics: deckMechanics,
   pack: new URL('./decks.json', import.meta.url).href,
   css: new URL('./decks.css', import.meta.url).href,

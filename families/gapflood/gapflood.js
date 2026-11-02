@@ -148,13 +148,21 @@ export const centreClaim = q => q.goal === 'reach' && q.kind === 'tree';
 export const forcedCentre = q => centreOf(Object.fromEntries(SIDES.map(s => [s, allRoutes(q, s)[0]])))[0];
 // The dots where some triangle of these homes reaches the biggest gap.
 export const fatDots = q => [...new Set(goodTriangles(q).flatMap(t => t.dots))];
+// Can't is a claim about the child's own road triangle, so it opens once all
+// three routes are drawn (on the tree they are forced, so the tripod is then
+// on the board, not hunted for); and a refused Can't ("It can be done." or a
+// tap that missed the centre) waits until a route changes, through floods
+// and Undo too.
+export const claimOpen = (q, b) => q.goal === 'reach' && complete(q, b.routes) && b.told !== 'can' && b.told !== 'miss';
 
 // --- Boards -------------------------------------------------------------------
 // {routes: {AB, BC, CA}, flood, told, done}. `flood` is the dot flooded (only
 // on a finished triangle); `told` answers a Can't that can be done ('can', kept
 // until a route changes), a Best that can be beaten ('bigger', kept until a
 // new flood) or a tap on a tree that is not where all three routes meet
-// ('miss'); `done` is a right Can't or Best.
+// ('miss', kept until a route changes); `done` is a right Can't or Best.
+// Saves from before Can't waited for the triangle may hold a Can't answer on
+// an unfinished one; they still load.
 function fresh(p) {
   const q = p.parameters;
   return {routes: Object.fromEntries(SIDES.map(s => [s, [startOf(q, s)]])), flood: null, told: null, done: false};
@@ -212,14 +220,17 @@ function move(p, b, action) {
       if (k >= 0 && k < r.length - 1) { next = changed({...b.routes, [s]: r.slice(0, k + 1)}); pen = s; }
     }
   } else if (action.type === 'flood' && complete(q, b.routes) && isId(q, action.at) && action.at !== b.flood && gapAt(q, b.routes, action.at) !== null) {
-    next = {...b, flood: action.at, told: b.told === 'can' ? 'can' : null};
+    next = {...b, flood: action.at, told: b.told === 'can' || b.told === 'miss' ? b.told : null};
     pen = null;
-  } else if (action.type === 'cant' && q.goal === 'reach' && b.told !== 'can' && (centreClaim(q) ? isId(q, action.at) : action.at === undefined)) {
+  } else if (action.type === 'cant' && claimOpen(q, b) && (centreClaim(q) ? isId(q, action.at) : action.at === undefined)) {
     next = possible(q) ? {...b, told: 'can'} : !centreClaim(q) || action.at === forcedCentre(q) ? {...b, told: null, done: true} : {...b, told: 'miss'};
+    // A tap that missed the centre lets go of Can't, which waits for a change.
+    ui(p).claiming = false;
   } else if (action.type === 'best' && q.goal === 'best' && b.flood !== null && b.told !== 'bigger') {
     next = gapAt(q, b.routes, b.flood) === bestOf(q) ? {...b, done: true} : {...b, told: 'bigger'};
   }
   if (next && pen !== undefined) ui(p).pen = pen;
+  if (next && (action.type === 'draw' || action.type === 'cut')) ui(p).claiming = false;
   return next;
 }
 
@@ -283,10 +294,11 @@ export function goodTriangles(q) {
   return out;
 }
 const sharedStart = (r, t) => { let k = 0; while (k < r.length && k < t.length && r[k] === t[k]) k++; return k; };
-// The good triangle that keeps most of the child's routes.
-function nearest(q, b) {
+// The good triangle (or, where none is, any triangle) that keeps most of the
+// child's routes.
+function nearest(q, b, list) {
   let top = null;
-  for (const t of goodTriangles(q)) {
+  for (const t of list) {
     const kept = SIDES.reduce((n, s) => n + sharedStart(b.routes[s], t.routes[s]), 0);
     const cuts = SIDES.filter(s => sharedStart(b.routes[s], t.routes[s]) < b.routes[s].length).length;
     if (!top || kept > top.kept || (kept === top.kept && cuts < top.cuts)) top = {t, kept, cuts};
@@ -300,12 +312,19 @@ export function stepWords(q, from, to) {
 function hint(p, b) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b)) return {type: 'done'};
-  if (!possible(q)) {
+  // Where Can't is right, first a triangle (Can't waits for one), then the
+  // reason with the press. After a refused Can't the triangle must change
+  // first: the last route takes a step back, and the next hint draws it again.
+  if (!possible(q) && claimOpen(q, b)) {
     if (centreClaim(q)) return {type: 'move', action: {type: 'cant', at: forcedCentre(q)}, text: 'On a tree each pair of homes has only one route, and the three routes share every road. Press Can’t and tap where all three meet.'};
     if (certOf(q) === 'columns') return {type: 'move', action: {type: 'cant'}, text: `Two routes cross every column, and a column is one rung, so no gap can be ${q.k}. Press Can’t.`};
     return {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'};
   }
-  const t = nearest(q, b);
+  if (!possible(q) && complete(q, b.routes)) {
+    const s = SIDES.at(-1), r = b.routes[s];
+    return {type: 'move', action: {type: 'cut', side: s, to: r.at(-2)}, text: `Take ${s} back one step.`};
+  }
+  const t = nearest(q, b, possible(q) ? goodTriangles(q) : triangles(q));
   for (const s of SIDES) {
     const r = b.routes[s], k = sharedStart(r, t.routes[s]);
     if (k < r.length) {
@@ -317,8 +336,9 @@ function hint(p, b) {
     const r = b.routes[s], route = t.routes[s];
     if (r.length < route.length) return {type: 'move', action: {type: 'draw', side: s, to: route[r.length]}, text: `Draw ${s} ${stepWords(q, r.at(-1), route[r.length])}.`};
   }
-  if (q.goal === 'best' && t.dots.includes(b.flood)) return {type: 'move', action: {type: 'best'}, text: 'Press Best.'};
-  const at = t.dots.find(u => u !== b.flood) ?? t.dots[0];
+  const dots = t.dots || [];
+  if (q.goal === 'best' && dots.includes(b.flood)) return {type: 'move', action: {type: 'best'}, text: 'Press Best.'};
+  const at = dots.find(u => u !== b.flood) ?? dots[0];
   if (at === undefined) return {type: 'done'};
   return {type: 'move', action: {type: 'flood', at}, text: `Flood the dot at ${nameOf(q, at)}.`};
 }
@@ -334,7 +354,7 @@ function trails(g, q, routes) {
     const list = SIDES.filter(s => users[e.i].includes(s)), {n} = edgeGeometry(g, e), [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v];
     return list.map((s, k) => {
       const off = (k - (list.length - 1) / 2) * 2.1 * g.k;
-      return `<line class="gf-trail t${s}" x1="${f(x1 + n[0] * off)}" y1="${f(y1 + n[1] * off)}" x2="${f(x2 + n[0] * off)}" y2="${f(y2 + n[1] * off)}"/>`;
+      return `<line class="gp-trail t${s}" x1="${f(x1 + n[0] * off)}" y1="${f(y1 + n[1] * off)}" x2="${f(x2 + n[0] * off)}" y2="${f(y2 + n[1] * off)}"/>`;
     }).join('');
   }).join('');
 }
@@ -350,7 +370,7 @@ function floodRoads(g, q, fl, cls) {
 function glowRoutes(g, q, routes) {
   const used = new Set();
   for (const s of SIDES) { const r = routes[s]; for (let k = 1; k < r.length; k++) used.add(roadOf(q, r[k - 1], r[k])); }
-  return g.edges.filter(e => used.has(e.i)).map(e => { const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v]; return `<line class="gf-glow" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`; }).join('');
+  return g.edges.filter(e => used.has(e.i)).map(e => { const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v]; return `<line class="gp-glow" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`; }).join('');
 }
 // A ladder's columns, each ringed once for every route that must cross it.
 function columnRings(g, q) {
@@ -359,7 +379,7 @@ function columnRings(g, q) {
     const ids = Object.keys(q.columns).filter(id => q.columns[id] === x), ys = ids.map(id => g.pos[id][1]), cx = g.pos[ids[0]][0];
     return sides.map((s, k) => {
       const r = r0 + k * step, top = Math.min(...ys) - r, h = Math.max(...ys) - Math.min(...ys) + 2 * r;
-      return `<rect class="gf-column t${s}" x="${f(cx - r)}" y="${f(top)}" width="${f(2 * r)}" height="${f(h)}" rx="${f(r)}"/>`;
+      return `<rect class="gp-column t${s}" x="${f(cx - r)}" y="${f(top)}" width="${f(2 * r)}" height="${f(h)}" rx="${f(r)}"/>`;
     }).join('');
   }).join('');
 }
@@ -372,7 +392,7 @@ function render(p, a) {
   const cert = solvedNow ? (q.goal === 'zero' ? 'tripod' : b.done ? certOf(q) : null) : null;
   // A right Can't on a tree shows the one triangle its homes have.
   const routes = cert === 'tripod' && !complete(q, b.routes) ? Object.fromEntries(SIDES.map(s => [s, allRoutes(q, s)[0]])) : b.routes;
-  const claiming = !solvedNow && centreClaim(q) && ui(p).claiming;
+  const open = !solvedNow && claimOpen(q, b), claiming = open && centreClaim(q) && ui(p).claiming;
   const pen = solvedNow || claiming ? null : penOf(q, b, ui(p).pen);
   const hinted = a.hintLevel >= 2 && !solvedNow ? hint(p, b) : null, act = hinted?.type === 'move' ? hinted.action : null;
   // Best's certificate replaces the flood: each dot's steps to its nearest home.
@@ -399,29 +419,29 @@ function render(p, a) {
     const mark = (act?.type === 'draw' || act?.type === 'cut') && act.side === pen && roadOf(q, b.routes[pen].at(-1), act.to) === i;
     return {cls: mark ? 'hinted' : '', act: Boolean(action), label: `Road from ${nameOf(q, u)} to ${nameOf(q, v)}${action ? `. ${action.type === 'draw' ? 'Draw' : 'Take'} ${action.side} ${action.type === 'draw' ? 'along it' : 'back'}` : ''}`};
   };
-  const under = (fl && fl.gap > 0 ? floodRoads(g, q, fl, 'gf-flood') : '') + (cert === 'tripod' ? glowRoutes(g, q, routes) : '') + (cert === 'columns' ? columnRings(g, q) : '');
-  const board = graphBoard(g, {cls: `gf-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
+  const under = (fl && fl.gap > 0 ? floodRoads(g, q, fl, 'gp-flood') : '') + (cert === 'tripod' ? glowRoutes(g, q, routes) : '') + (cert === 'columns' ? columnRings(g, q) : '');
+  const board = graphBoard(g, {cls: `gp-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
   const hintSide = (act?.type === 'draw' || act?.type === 'cut') && act.side !== pen ? act.side : null;
-  const chips = SIDES.map(s => `<button type="button" class="gf-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gf-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
-  const claim = centreClaim(q) ? `<button type="button" class="secondary gf-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gf-cant" aria-pressed="${claiming}">Can’t</button>`
-    : q.goal === 'reach' ? button('Can’t', {type: 'cant'}, b.told !== 'can', act?.type === 'cant')
+  const chips = SIDES.map(s => `<button type="button" class="gp-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gp-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
+  const claim = centreClaim(q) ? `<button type="button" class="secondary gp-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gp-cant" data-toggle="gp-cant" aria-pressed="${claiming}"${open ? '' : ' disabled'}>Can’t</button>`
+    : q.goal === 'reach' ? button('Can’t', {type: 'cant'}, open, act?.type === 'cant')
     : q.goal === 'best' ? button('Best', {type: 'best'}, b.flood !== null && b.told !== 'bigger', act?.type === 'best') : '';
-  const top = solvedNow ? '' : `<div class="gf-bar"><div class="gf-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;
+  const top = solvedNow ? '' : `<div class="gp-bar"><div class="gp-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;
   const told = b.told === 'can' ? 'It can be done.' : b.told === 'bigger' ? 'A bigger gap is possible.'
     : b.told === 'miss' && !solvedNow ? 'The three routes don’t all meet there.' : claiming ? 'Tap where all three routes meet.'
     : cert === 'rings' ? `Every dot is within ${far} ${far === 1 ? 'step' : 'steps'} of A, B or C.` : cert === 'columns' ? 'Two routes cross every column.' : '';
   const gapNow = b.flood !== null ? gapAt(q, routes, b.flood) : null;
   const status = `${routeWords(q, {routes})}.${gapNow !== null ? ` Gap ${gapNow} at ${nameOf(q, b.flood)}.` : ''}${told ? ` ${told}` : ''}${pen ? ` ${pen} is chosen.` : ''}`;
-  return `<div class="gf-puzzle${solvedNow ? ' solved' : ''}" data-mechanic-wire="gapflood">${top}${board}${told ? `<p class="gf-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="gp-puzzle${solvedNow ? ' solved' : ''}" data-mechanic-wire="gapflood">${top}${board}${told ? `<p class="gp-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
-const button = (label, action, enabled, hinted) => `<button type="button" class="secondary gf-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="gf-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const button = (label, action, enabled, hinted) => `<button type="button" class="secondary gp-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="gp-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 
 // A press that becomes a slide draws; only a tap floods, so a slide that
 // finishes the triangle and runs on does not flood every dot it crosses.
 let pressing = false, listening = false;
 const release = () => { pressing = false; };
 function wire(root, p, api) {
-  const now = () => { const b = api.attempt().board, q = p.parameters; return {b, q, pen: ui(p).pen, claiming: centreClaim(q) && ui(p).claiming}; };
+  const now = () => { const b = api.attempt().board, q = p.parameters; return {b, q, pen: ui(p).pen, claiming: centreClaim(q) && ui(p).claiming && claimOpen(q, b)}; };
   root.addEventListener('pointerdown', () => { pressing = true; });
   if (!listening) { document.addEventListener('pointerup', release); document.addEventListener('pointercancel', release); listening = true; }
   wireGraph(root, {
@@ -459,20 +479,36 @@ export const gapMechanics = {
     // Undo hands the pen back to the route it changed, or, when that route is
     // finished again or a flood or claim was taken back, to the first
     // unfinished route: a step taken back can be taken again with one tap.
+    // It keeps a refused claim while what it answered is unchanged: a refused
+    // Can't while the routes are the same, a refused Best while the flood is.
+    // (A press of Undo then goes back past the claim to the move before it,
+    // since the screen would not change.)
     carry(p, from, to) {
       const q = p.parameters, s = SIDES.find(t => from.routes[t].length !== to.routes[t].length);
       ui(p).pen = s && !done(q, s, to.routes[s]) ? s : null;
-      return to;
+      ui(p).claiming = false;
+      const same = JSON.stringify(from.routes) === JSON.stringify(to.routes);
+      const keep = from.told === 'can' || from.told === 'miss' ? same : from.told === 'bigger' && same && from.flood === to.flood;
+      return keep && !to.done ? {...to, told: from.told} : to;
     },
     reset: p => { uiState.delete(p.id); }
   }
 };
 
 // The family seam entry (dist/families.js): a group in Meeting roads.
+// How to play: demonstrate the controls on a separate, small board.
+gapMechanics.gapflood.howTo = {
+  parameters: {"goal":"reach","k":1,"aspect":1,"nodes":{"A":[12,80],"B":[88,80],"C":[50,12],"D":[50,80]},"roads":[["A","D"],["D","B"],["D","C"]],"homes":{"A":"A","B":"B","C":"C"},"kind":"tree","small":true},
+  steps: [
+    {"move":{"type":"draw","side":"AB","to":"D"},"taps":["[data-gb-node=\"D\"]"]},
+    {"move":{"type":"draw","side":"AB","to":"B"},"taps":["[data-gb-node=\"B\"]"]}
+  ]
+};
+
 export default {
   id: 'gapflood',
   mechanics: gapMechanics,
   pack: new URL('./gapflood.json', import.meta.url).href,
   css: new URL('./gapflood.css', import.meta.url).href,
-  focus: '.gb-node[role=button],.gb-hit,.gf-chip,.gf-button:not([disabled])'
+  focus: '.gb-node[role=button],.gb-hit,.gp-chip,.gp-button:not([disabled])'
 };

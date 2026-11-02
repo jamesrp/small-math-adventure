@@ -131,8 +131,8 @@
         0
        ],
        "D": [
-        3,
-        0
+        1,
+        1
        ]
       },
       "right": {
@@ -1359,8 +1359,8 @@
       0
      ],
      "D": [
-      3,
-      0
+      1,
+      1
      ]
     },
     "right": {
@@ -1388,15 +1388,15 @@
    "idea": "Four squares can make two points with two full turns of corners each: not one point, as on the L, and neither of them flat.",
    "prerequisites": "Match a corner across a glued side by its marks, and decide when nothing more meets.",
    "hints": [
-    "Start with a corner of B and follow the mark over its top.",
-    "B’s top is glued to D’s bottom, so B’s upper-left corner meets D’s lower-left corner.",
+    "Start with a corner of B and follow the mark under it.",
+    "B’s bottom is glued to D’s top, so B’s lower-left corner meets D’s upper-left corner.",
     "The corners make two groups of eight."
    ],
    "parent": {
     "notice": "Whether your child stops at four corners, as on puzzle 3, or at one group, as on the L, before checking that nothing else meets.",
     "prompt": "How many full turns of corners are round each point?",
     "explanation": "Following the matches round a point, eight corners go by before the chain closes, and the other eight make a second chain. Each point has eight corners round it: two full turns (720°), so neither point is flat. With two points and four squares, V − n = 2 − 4 = −2 = 2 − 2g: genus two again, like the L, but with two cone points instead of one.",
-    "extension": "Glue every top of this row to its own bottom instead. How many points now? (Four, each flat: a torus.)",
+    "extension": "Glue each square’s top to its own bottom instead, keeping the right sides. How many points now? (Four, each flat: a torus.)",
     "connection": "Square-tiled surfaces of genus two have either one cone point of angle 6π or two of angle 4π (the strata H(2) and H(1,1)).",
     "sourceIds": [
      "glued-week64",

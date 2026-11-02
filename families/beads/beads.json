@@ -118,7 +118,7 @@
    },
    "objective": "Find every ring of three beads.",
    "instruction": "Find every ring of three beads.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -176,7 +176,7 @@
    "objective": "Find every ring with two green and two gold beads.",
    "visibleObjective": "Find every ring with these beads.",
    "instruction": "Find every ring with these beads.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -227,7 +227,7 @@
    },
    "objective": "Make a ring that looks the same after 2 turns, but not after 1.",
    "instruction": "Make a ring that looks the same after 2 turns, but not after 1.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour."
@@ -280,7 +280,7 @@
    "objective": "Find every ring with three green and two gold beads.",
    "visibleObjective": "Find every ring with these beads.",
    "instruction": "Find every ring with these beads.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -332,7 +332,7 @@
    "objective": "Make a ring that looks the same after 3 turns, but not sooner. Or press No ring can.",
    "visibleObjective": "Make a ring that looks the same after 3 turns, but not sooner.",
    "instruction": "Make a ring that looks the same after 3 turns, but not sooner.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour."
@@ -379,7 +379,7 @@
    },
    "objective": "Make a ring of six that looks the same after 3 turns, but not sooner.",
    "instruction": "Make a ring of six that looks the same after 3 turns, but not sooner.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour."
@@ -427,7 +427,7 @@
    },
    "objective": "Find every ring of five beads.",
    "instruction": "Find every ring of five beads.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -486,7 +486,7 @@
    "objective": "Make a ring of five with both colours that looks the same in fewer than 5 turns. Or press No ring can.",
    "visibleObjective": "Use both colours and make a ring of five that looks the same in fewer than 5 turns.",
    "instruction": "Use both colours and make a ring of five that looks the same in fewer than 5 turns.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise; its number counts the turns. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour."
@@ -533,7 +533,7 @@
    },
    "objective": "Find every ring of three beads in three colours.",
    "instruction": "Find every ring of three beads in three colours.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green, gold and blue. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -594,7 +594,7 @@
    },
    "objective": "Find every ring of five beads in three colours where no two neighbours match.",
    "instruction": "Find every ring of five beads in three colours where no two neighbours match.",
-   "controls": "Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green, gold and blue. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -649,7 +649,7 @@
    },
    "objective": "Make a ring that shows each card exactly once, reading clockwise.",
    "instruction": "Make a ring that shows each card exactly once, reading clockwise.",
-   "controls": "Tap a bead to change its colour. The cards show every window of beads read clockwise from one bead, including windows that cross from the last bead to the first. A card turns green when your ring shows it once and ochre when it shows it more than once. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. The cards show every window of beads read clockwise from one bead, including windows that cross from the last bead to the first. A card turns green when your ring shows it once and ochre when it shows it more than once. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour."
@@ -698,7 +698,7 @@
    "objective": "Find every ring of eight beads that shows each card exactly once, reading clockwise.",
    "visibleObjective": "Find every ring that shows each card exactly once.",
    "instruction": "Find every ring that shows each card exactly once.",
-   "controls": "Tap a bead to change its colour. The cards show every window of beads read clockwise from one bead, including windows that cross from the last bead to the first. A card turns green when your ring shows it once and ochre when it shows it more than once. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. The cards show every window of beads read clockwise from one bead, including windows that cross from the last bead to the first. A card turns green when your ring shows it once and ochre when it shows it more than once. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up. A turned ring is the same ring.",
     "Tap a bead to change its colour.",
@@ -750,7 +750,7 @@
    },
    "objective": "Paint four beads so no turn or flip matches, with as few colours as you can.",
    "instruction": "Paint four beads so no turn or flip matches, with as few colours as you can.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of colours. When a turn or flip matches your ring, you can press None with that many colours if you are sure no ring with that many, or fewer, works.",
+   "controls": "The colours are green, gold and blue. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of colours. When a turn or flip matches your ring, you can press None with that many colours if you are sure no ring with that many, or fewer, works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."
@@ -799,7 +799,7 @@
    "objective": "Paint six beads in two colours so no turn or flip matches. Or press No ring can.",
    "visibleObjective": "Paint the ring so no turn or flip matches.",
    "instruction": "Paint the ring so no turn or flip matches.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."
@@ -848,7 +848,7 @@
    },
    "objective": "Paint five beads so no turn or flip matches, with as few colours as you can.",
    "instruction": "Paint five beads so no turn or flip matches, with as few colours as you can.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of colours. When a turn or flip matches your ring, you can press None with that many colours if you are sure no ring with that many, or fewer, works.",
+   "controls": "The colours are green, gold and blue. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of colours. When a turn or flip matches your ring, you can press None with that many colours if you are sure no ring with that many, or fewer, works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."
@@ -897,7 +897,7 @@
    },
    "objective": "Paint eight beads so no turn or flip matches, with as few gold beads as you can.",
    "instruction": "Paint eight beads so no turn or flip matches, with as few gold beads as you can.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of gold beads. When a turn or flip matches your ring, you can press None with that many gold beads if you are sure no ring with that many, or fewer, works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over; when every bead matches, the ring glows. A ring that no turn or flip matches is marked ✓ with its number of gold beads. When a turn or flip matches your ring, you can press None with that many gold beads if you are sure no ring with that many, or fewer, works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."
@@ -951,7 +951,7 @@
    "objective": "Find every ring of eight with three gold beads that no turn or flip matches. A turned or flipped ring is the same ring.",
    "visibleObjective": "Find every ring that no turn or flip matches.",
    "instruction": "Find every ring that no turn or flip matches.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Tap a bead to change its colour. When every bead is painted and the ring fits, it is kept below. A ring you already have lights up its card, and the card turns to show the match. Clear empties the ring. When you are sure you have them all, press That’s all. Undo never loses a kept ring.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count.",
@@ -1004,7 +1004,7 @@
    "objective": "Make a ring of six that exactly two flips match. Or press No ring can.",
    "visibleObjective": "Make a ring of six that exactly two flips match.",
    "instruction": "Make a ring of six that exactly two flips match.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."
@@ -1054,7 +1054,7 @@
    "objective": "Make a ring of six that exactly four flips match. Or press No ring can.",
    "visibleObjective": "Make a ring of six that exactly four flips match.",
    "instruction": "Make a ring of six that exactly four flips match.",
-   "controls": "Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
+   "controls": "The colours are green and gold. Tap a bead to change its colour. Turn moves the see-through copy one bead clockwise and Flip turns it over. Where a copy dot lands on a bead of its own colour, the bead’s edge turns green, and when every bead matches, the ring glows: that turn or flip matches. Press No ring can if you are sure no ring works.",
    "rules": [
     "A ring stays face up, but its copy can be turned and flipped.",
     "A turn or flip matches when every bead’s copy lands on a bead of its own colour. Staying still, or a whole turn, does not count."

@@ -17,12 +17,16 @@
 .df-board .df-cell{display:block;width:var(--df-w);height:var(--df-c);min-width:0;min-height:0;margin:0;padding:0;border:1.5px solid transparent;border-radius:5px;background:#ebe8da;box-shadow:none}
 .df-board .df-cell.on{background:var(--df-sun);border-color:var(--df-ink)}
 .df-target .df-cell.on{background:var(--df-pine)}
-.df-board .df-floor{display:block;width:calc(var(--df-w) + 8px);height:9px;min-width:0;min-height:0;margin:1px 0 0;padding:0;border:0;border-radius:3px;background:var(--df-ink);box-shadow:none}
-.df-board .df-floor.unset{background:transparent;border:1.5px dashed var(--b-muted,#5a6850)}
-.df-edit button.df-floor{height:14px}
+.df-board .df-floor{display:block;position:relative;width:calc(var(--df-w) + 8px);height:var(--df-c);min-width:0;min-height:0;margin:1px 0 0;padding:0;border:0;border-radius:3px;background:transparent;box-shadow:none}
+.df-board .df-floor::after{content:'';position:absolute;left:0;right:0;top:1px;height:10px;border-radius:3px;background:var(--df-ink)}
+.df-board .df-floor.unset::after{height:12px;box-sizing:border-box;background:transparent;border:1.5px dashed var(--b-muted,#5a6850)}
+/* The child's towers are a little wider than the ones to make. Every floor
+   is a whole level tall, drawn as its bar at the top, so the floor is as
+   easy to tap as a block. */
+.df-ring.df-edit{--df-w:var(--df-we,38px)}
 .df-edit button.df-cell:hover,.df-edit button.df-floor:hover{filter:brightness(.94)}
 .df-foot{display:flex;align-items:baseline;gap:3px;min-height:1.2rem}
-.df-foot i{font-style:normal;font-size:.72rem;color:var(--b-muted,#5a6850)}
+.df-foot i{font-style:normal;font-size:.8125rem;color:var(--b-muted,#5a6850)}
 .df-foot b{font-family:var(--b-display,Georgia,serif);font-size:1rem;min-width:.6em}
 .df-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:var(--b-muted,#5a6850)}
 .df-arrow i{font-style:normal;font-size:1.1rem;line-height:1}
@@ -52,4 +56,8 @@
 .df-board .df-lift{display:block;margin:0;padding:0;min-width:0;min-height:0;border:0;border-radius:8px;background:none;box-shadow:none;cursor:pointer}
 .df-board .df-lift .df-mini{border:1.5px solid var(--df-ink);background:#f7e3b3}
 .df-board .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
-@media (max-width:420px){.df-board{--df-w:30px;--df-c:22px}.df-ring{padding:.45rem .4rem}.df-ring.n4{grid-template-columns:auto 1.9rem auto;grid-template-rows:auto 1.9rem auto}.df-gap{width:1.45rem;height:1.45rem;font-size:.9rem}.df-pair{gap:.25rem}.df-to{font-size:1.2rem}}
+/* On a phone the child's levels are 40 px tall up to a cap of 2; taller
+   towers get shorter levels so the pair of rings stays on one screen. */
+@media (max-width:420px){.df-board{--df-w:28px;--df-we:40px;--df-c:24px}.df-cap1,.df-cap2{--df-c:40px}.df-cap3{--df-c:30px}.df-ring{padding:.45rem .4rem}.df-ring.n4{grid-template-columns:auto 1.9rem auto;grid-template-rows:auto 1.9rem auto}.df-gap{width:1.45rem;height:1.45rem;font-size:.9rem}.df-pair{gap:.25rem}.df-to{font-size:1.2rem}}
+/* A tablet held upright has room for 40 px levels at every cap. */
+@media (min-width:700px) and (min-height:1000px){.df-board{--df-w:44px;--df-we:48px;--df-c:40px}}

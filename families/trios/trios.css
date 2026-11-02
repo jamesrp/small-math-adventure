@@ -3,98 +3,98 @@
    ringed, ochre for attention and for a lit blocking pair, a brick line
    through a trio that breaks the goal and a pine line through one found;
    sun, sky and rose for colours and for the two players' tiles. */
-.tr-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
-.tr-board{position:relative;width:100%;max-width:380px;margin:0 auto}
-.tr-board.deck-3{max-width:520px}
-.tr-board.deck-4{max-width:640px}
-.tr-puzzle .tr-card{position:absolute;box-sizing:border-box;display:block;min-height:0;min-width:0;margin:0;padding:6px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:default;transition:opacity .15s}
-.tr-board.deck-3 .tr-card,.tr-board.deck-4 .tr-card{border-radius:9px;padding:4px 5px}
-.tr-board.deck-4 .tr-card{border-radius:6px;padding:2px}
-.tr-board.counts .tr-card{padding:3px}
-.tr-puzzle button.tr-card{cursor:pointer}
-.tr-puzzle .tr-card svg{display:block;width:100%;height:100%;overflow:visible}
-.tr-puzzle .tr-card.given{border:3px solid var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 5.5px var(--b-pine,#31533e)}
-.tr-puzzle .tr-card:is(.chosen,.picked){border:3px solid var(--b-pine,#31533e);background:#e3ead3;box-shadow:0 2px 0 var(--b-pine,#31533e)}
-.tr-puzzle .tr-card.dim{opacity:.3;box-shadow:none}
-.tr-puzzle .tr-card.missed{border:3px solid var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
-.tr-puzzle .tr-card:is(.pair-lit,.why){outline:3px solid var(--b-ochre,#b38840);outline-offset:2px;opacity:1}
-.tr-puzzle .tr-card.why{border-style:dashed}
-.tr-puzzle .tr-card.claim-picked{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
-.tr-puzzle .tr-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.tr-puzzle .tr-card:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
-.tr-puzzle .tr-card.paint-0,.tr-mini.paint-0,.tr-puzzle .tr-card.yours{background:var(--b-sun,#efc76e)}
-.tr-puzzle .tr-card.paint-1,.tr-mini.paint-1,.tr-puzzle .tr-card.theirs{background:var(--b-sky,#9cc9de)}
-.tr-puzzle .tr-card.paint-2,.tr-mini.paint-2{background:var(--b-rose,#e7a28f)}
-.tr-puzzle .tr-card.theirs.last{border:3px solid #5c8ba3}
-.tr-spot{position:absolute;box-sizing:border-box;border:2px dashed var(--b-line,#d0d6bd);border-radius:14px}
+.ts-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.ts-board{position:relative;width:100%;max-width:380px;margin:0 auto}
+.ts-board.ts-deck-3{max-width:520px}
+.ts-board.ts-deck-4{max-width:640px}
+.ts-puzzle .ts-card{position:absolute;box-sizing:border-box;display:block;min-height:0;min-width:0;margin:0;padding:6px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:default;transition:opacity .15s}
+.ts-board.ts-deck-3 .ts-card,.ts-board.ts-deck-4 .ts-card{border-radius:9px;padding:4px 5px}
+.ts-board.ts-deck-4 .ts-card{border-radius:6px;padding:2px}
+.ts-board.counts .ts-card{padding:3px}
+.ts-puzzle button.ts-card{cursor:pointer}
+.ts-puzzle .ts-card svg{display:block;width:100%;height:100%;overflow:visible}
+.ts-puzzle .ts-card.given{border:3px solid var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 5.5px var(--b-pine,#31533e)}
+.ts-puzzle .ts-card:is(.chosen,.picked){border:3px solid var(--b-pine,#31533e);background:#e3ead3;box-shadow:0 2px 0 var(--b-pine,#31533e)}
+.ts-puzzle .ts-card.dim{opacity:.3;box-shadow:none}
+.ts-puzzle .ts-card.missed{border:3px solid var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
+.ts-puzzle .ts-card:is(.pair-lit,.why){outline:3px solid var(--b-ochre,#b38840);outline-offset:2px;opacity:1}
+.ts-puzzle .ts-card.why{border-style:dashed}
+.ts-puzzle .ts-card.claim-picked{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
+.ts-puzzle .ts-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ts-puzzle .ts-card:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.ts-puzzle .ts-card.paint-0,.ts-mini.paint-0,.ts-puzzle .ts-card.yours{background:var(--b-sun,#efc76e)}
+.ts-puzzle .ts-card.paint-1,.ts-mini.paint-1,.ts-puzzle .ts-card.theirs{background:var(--b-sky,#9cc9de)}
+.ts-puzzle .ts-card.paint-2,.ts-mini.paint-2{background:var(--b-rose,#e7a28f)}
+.ts-puzzle .ts-card.theirs.last{border:3px solid #5c8ba3}
+.ts-spot{position:absolute;box-sizing:border-box;border:2px dashed var(--b-line,#d0d6bd);border-radius:14px}
 
 /* Lines through trios, over the cards. */
-.tr-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.tr-puzzle .tr-card,.tr-spot{z-index:1}
-.tr-line path{fill:none;stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
-.tr-line path.halo{stroke:var(--b-card,#fffdf5);stroke-width:8px}
-.tr-line.bad path:not(.halo){stroke:var(--b-bad,#a9503a)}
-.tr-line.good path:not(.halo){stroke:var(--b-pine,#31533e)}
-.tr-line.why path:not(.halo){stroke:var(--b-ochre,#b38840);stroke-dasharray:8 6}
-.tr-puzzle .tr-card.in-bad{border:3px solid var(--b-bad,#a9503a)}
+.ts-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.ts-puzzle .ts-card,.ts-spot{z-index:1}
+.ts-line path{fill:none;stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.ts-line path.halo{stroke:var(--b-card,#fffdf5);stroke-width:8px}
+.ts-line.bad path:not(.halo){stroke:var(--b-bad,#a9503a)}
+.ts-line.good path:not(.halo){stroke:var(--b-pine,#31533e)}
+.ts-line.why path:not(.halo){stroke:var(--b-ochre,#b38840);stroke-dasharray:8 6}
+.ts-puzzle .ts-card.in-bad{border:3px solid var(--b-bad,#a9503a)}
 
 /* Buttons and words. */
-.tr-bar,.tr-decks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
-.tr-puzzle .tr-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
-.tr-puzzle .tr-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
-.tr-puzzle .tr-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
-.tr-puzzle .tr-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
-.tr-puzzle .tr-deck{min-width:58px;font-family:var(--b-display,Georgia,serif);font-size:1.05rem}
-.tr-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
-.tr-tally{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.5rem;line-height:1;color:var(--b-ink,#294439)}
-.tr-top{display:flex;justify-content:center}
-.tr-count{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px}
-.tr-count i{width:14px;height:14px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
-.tr-count i.on{border:0;background:var(--b-pine,#31533e)}
+.ts-bar,.ts-decks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
+.ts-puzzle .ts-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ts-puzzle .ts-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ts-puzzle .ts-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.ts-puzzle .ts-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.ts-puzzle .ts-deck{min-width:58px;font-family:var(--b-display,Georgia,serif);font-size:1.05rem}
+.ts-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.ts-tally{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.5rem;line-height:1;color:var(--b-ink,#294439)}
+.ts-top{display:flex;justify-content:center}
+.ts-count{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.ts-count i{width:14px;height:14px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
+.ts-count i.on{border:0;background:var(--b-pine,#31533e)}
 
 /* Small cards: trios, the rule check, trays, shelves and pictures. */
-.tr-mini{display:inline-block;box-sizing:border-box;width:30px;height:30px;padding:2px;border:1px solid var(--b-line,#d0d6bd);border-radius:6px;background:var(--b-card,#fffdf5);vertical-align:middle}
-.tr-mini.tall{height:40px}
-.tr-mini svg{display:block;width:100%;height:100%;overflow:visible}
-.tr-trio{display:inline-flex;gap:3px}
-.tr-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .8rem;padding:.45rem .7rem;background:var(--b-paper,#f5f1e6);border:1px solid var(--b-line,#d0d6bd);border-radius:12px}
-.tr-strip .tr-mini{width:38px;height:38px}
-.tr-strip .tr-mini.tall{height:50px}
-.tr-rows{display:grid;gap:3px}
-.tr-row{display:flex;align-items:center;gap:3px}
-.tr-val{display:grid;place-items:center;width:20px;height:20px}
-.tr-val svg{width:20px;height:20px;overflow:visible}
-.tr-val b{font:400 1rem/1 var(--b-display,Georgia,serif)}
-.tr-val i{width:14px;height:14px;border-radius:50%}
-.tr-val i.ink-0{background:#294439}.tr-val i.ink-1{background:#a9503a}.tr-val i.ink-2{background:#3b6d96}
-.tr-mark{width:1.1rem;text-align:center;font-weight:700}
-.tr-row.ok .tr-mark{color:var(--b-good,#3c7a4a)}
-.tr-row.no .tr-mark{color:var(--b-bad,#a9503a)}
-.tr-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
-.tr-trio.kept{padding:3px;border-radius:8px;background:var(--b-good-soft,#e2ecd6)}
-.tr-trays{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
-.tr-tray{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:12px}
-.tr-tray.ok{border-style:solid;border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
-.tr-tray.no{border-style:solid;border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
-.tr-tray .tr-rows{grid-template-columns:auto auto;gap:2px 8px}
-.tr-tray .tr-val{width:16px;height:16px}
-.tr-tray .tr-val svg{width:16px;height:16px}
-.tr-slots{display:flex;gap:4px}
-.tr-puzzle .tr-slot{display:grid;place-items:center;box-sizing:border-box;width:46px;height:46px;min-height:0;padding:4px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:9px;background:transparent}
-.tr-puzzle .tr-slot.next{border-color:var(--b-pine,#31533e)}
-.tr-puzzle .tr-slot.filled{border-style:solid;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
-.tr-puzzle .tr-slot.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.tr-puzzle .tr-slot svg{width:100%;height:100%;overflow:visible}
-.tr-split{display:inline-flex;flex-direction:column;gap:2px;padding:4px;border:1px solid var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-good-soft,#e2ecd6)}
-.tr-split .tr-mini{width:22px;height:22px;padding:1px}
-.tr-dishes{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
-.tr-dish{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-paper,#f5f1e6)}
-.tr-dish .dish-tile{width:36px;height:36px;border:2px solid var(--b-muted,#5a6850)}
-.tr-dish.inside{justify-content:center;background:var(--b-bad-soft,#f5e3d9);border-color:var(--b-bad,#a9503a)}
-.tr-pair{display:inline-flex;gap:2px}
-.tr-pair .tr-mini{width:24px;height:24px;padding:1px}
-.tr-pair.empty{width:50px;height:24px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:6px;box-sizing:border-box}
-.tr-classes{display:flex;flex-direction:column;align-items:flex-start;gap:.4rem}
-.tr-class{display:flex;align-items:center;gap:3px}
-.tr-room{display:inline-flex;gap:3px;padding:3px;border:2px solid var(--b-pine,#31533e);border-radius:8px}
-.tr-mini.in-trio{outline:2.5px solid var(--b-bad,#a9503a);outline-offset:1px}
+.ts-mini{display:inline-block;box-sizing:border-box;width:30px;height:30px;padding:2px;border:1px solid var(--b-line,#d0d6bd);border-radius:6px;background:var(--b-card,#fffdf5);vertical-align:middle}
+.ts-mini.tall{height:40px}
+.ts-mini svg{display:block;width:100%;height:100%;overflow:visible}
+.ts-trio{display:inline-flex;gap:3px}
+.ts-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .8rem;padding:.45rem .7rem;background:var(--b-paper,#f5f1e6);border:1px solid var(--b-line,#d0d6bd);border-radius:12px}
+.ts-strip .ts-mini{width:38px;height:38px}
+.ts-strip .ts-mini.tall{height:50px}
+.ts-rows{display:grid;gap:3px}
+.ts-row{display:flex;align-items:center;gap:3px}
+.ts-val{display:grid;place-items:center;width:20px;height:20px}
+.ts-val svg{width:20px;height:20px;overflow:visible}
+.ts-val b{font:400 1rem/1 var(--b-display,Georgia,serif)}
+.ts-val i{width:14px;height:14px;border-radius:50%}
+.ts-val i.ink-0{background:#294439}.ts-val i.ink-1{background:#a9503a}.ts-val i.ink-2{background:#3b6d96}
+.ts-mark{width:1.1rem;text-align:center;font-weight:700}
+.ts-row.ok .ts-mark{color:var(--b-good,#3c7a4a)}
+.ts-row.no .ts-mark{color:var(--b-bad,#a9503a)}
+.ts-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.ts-trio.kept{padding:3px;border-radius:8px;background:var(--b-good-soft,#e2ecd6)}
+.ts-trays{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.ts-tray{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:12px}
+.ts-tray.ok{border-style:solid;border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.ts-tray.no{border-style:solid;border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
+.ts-tray .ts-rows{grid-template-columns:auto auto;gap:2px 8px}
+.ts-tray .ts-val{width:16px;height:16px}
+.ts-tray .ts-val svg{width:16px;height:16px}
+.ts-slots{display:flex;gap:4px}
+.ts-puzzle .ts-slot{display:grid;place-items:center;box-sizing:border-box;width:46px;height:46px;min-height:0;padding:4px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:9px;background:transparent}
+.ts-puzzle .ts-slot.next{border-color:var(--b-pine,#31533e)}
+.ts-puzzle .ts-slot.filled{border-style:solid;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.ts-puzzle .ts-slot.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ts-puzzle .ts-slot svg{width:100%;height:100%;overflow:visible}
+.ts-split{display:inline-flex;flex-direction:column;gap:2px;padding:4px;border:1px solid var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-good-soft,#e2ecd6)}
+.ts-split .ts-mini{width:22px;height:22px;padding:1px}
+.ts-dishes{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
+.ts-dish{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-paper,#f5f1e6)}
+.ts-dish .dish-tile{width:36px;height:36px;border:2px solid var(--b-muted,#5a6850)}
+.ts-dish.inside{justify-content:center;background:var(--b-bad-soft,#f5e3d9);border-color:var(--b-bad,#a9503a)}
+.ts-pair{display:inline-flex;gap:2px}
+.ts-pair .ts-mini{width:24px;height:24px;padding:1px}
+.ts-pair.empty{width:50px;height:24px;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:6px;box-sizing:border-box}
+.ts-classes{display:flex;flex-direction:column;align-items:flex-start;gap:.4rem}
+.ts-class{display:flex;align-items:center;gap:3px}
+.ts-room{display:inline-flex;gap:3px;padding:3px;border:2px solid var(--b-pine,#31533e);border-radius:8px}
+.ts-mini.in-trio{outline:2.5px solid var(--b-bad,#a9503a);outline-offset:1px}

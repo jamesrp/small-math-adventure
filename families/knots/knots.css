@@ -4,11 +4,12 @@
    fixed colour, an ochre halo for a hinted arc, a dashed brick halo for an arc
    a refused claim's chain does not force, and an ochre ring for the crossing
    a chain starts from. The tap band of an arc stops square at its ends, so a
-   tap on a crossing reaches the arc on top. */
+   tap on a crossing reaches the arc on top; where bands overlap, the nearest
+   cord takes the tap (knots.js, nearestArc). */
 .kn-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%;
   --kn-red:#d1473a;--kn-blue:#3a6dc3;--kn-yellow:#f1c232;--kn-paper:#fffdf5;--kn-ink:var(--b-ink,#294439)}
 .kn-frame{width:100%;display:flex;justify-content:center}
-.kn-board{width:100%;max-width:440px;max-height:72vh;height:auto;overflow:visible;touch-action:manipulation}
+.kn-board{width:100%;max-width:380px;max-height:52vh;height:auto;overflow:visible;touch-action:manipulation}
 /* A before and an after picture: side by side, or one above the other on a
    narrow screen, each on its own card. */
 .kn-pair{display:flex;align-items:center;justify-content:center;gap:.35rem;width:100%}
@@ -18,7 +19,7 @@
 
 /* Cords. */
 .kn-arc path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kn-arc .kn-hit{stroke:transparent;stroke-width:10px;stroke-linecap:butt;pointer-events:stroke;cursor:pointer}
+.kn-arc .kn-hit{stroke:transparent;stroke-width:16px;stroke-linecap:butt;pointer-events:stroke;cursor:pointer}
 .kn-arc .kn-ink{stroke:var(--kn-ink);stroke-width:4.6px;pointer-events:none}
 .kn-arc .kn-fill{stroke-width:2.8px;pointer-events:none;transition:stroke .12s}
 .kn-arc .kn-halo{stroke:transparent;stroke-width:9px;pointer-events:none}

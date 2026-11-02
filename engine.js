@@ -33,6 +33,12 @@ export function tilePlacements(puzzle) {
   }
   return placements;
 }
+// Whether some tile still fits the garden's empty patches.
+export function tileFits(puzzle, board) {
+  if (!Array.isArray(board)) return false;
+  const occupied = new Set(board.flat());
+  return tilePlacements(puzzle).some(piece => piece.every(c => !occupied.has(c)));
+}
 export function freshAttempt(puzzle, random = Math.random) {
   return { revision: puzzle.revision || 1, board: isExpansion(puzzle) ? mechanicFor(puzzle).fresh(puzzle, random) : puzzle.mechanic === 'tile' ? [] : [...puzzle.start], history: [], moves: 0, hintLevel: 0, helpUsed: false, completed: false, lastPlayed: Date.now() };
 }
@@ -112,11 +118,18 @@ export function solveSwaps(puzzle, board = puzzle.start) {
   while (node.next) { const [a,b] = node.next; path.push([a,b]); [current[a],current[b]] = [current[b],current[a]]; node = graph.get(current.join(',')); }
   return path;
 }
+// A board state a road keeper may react to (a mechanic's `cue`, such as a
+// proof garden's 'stuck' cover), or null. Keepers' lines for cues are per
+// encounter in dist/road.js.
+export const boardCue = (puzzle, board) => (isExpansion(puzzle) && mechanicFor(puzzle).cue?.(puzzle, board)) || null;
 export function nextHint(puzzle, attempt) {
   if (isSolved(puzzle, attempt.board)) return { type: 'done' };
   if (isExpansion(puzzle)) return mechanicFor(puzzle).hint(puzzle, attempt.board);
   const path = puzzle.mechanic === 'tile' ? solveTiles(puzzle, attempt.board) : solveSwaps(puzzle, attempt.board);
-  if (!path) return { type: 'deadend', text: 'The remaining cells cannot be covered. Lift a tile or undo.' };
+  // A garden that can't be finished is told unasked only once no tile fits
+  // anywhere; while one still fits it waits behind Hint (quiet), or the line
+  // would judge each placement and trial with Undo would find the few good starts.
+  if (!path) return { type: 'deadend', text: 'The remaining cells cannot be covered. Lift a tile or undo.', ...(puzzle.mechanic === 'tile' && tileFits(puzzle, attempt.board) ? { quiet: true } : {}) };
   return { type: 'move', pair: path[0], remaining: path.length };
 }
 export function move(puzzle, attempt, pair, random = Math.random) {
@@ -140,8 +153,17 @@ export function move(puzzle, attempt, pair, random = Math.random) {
 function commitBoard(puzzle, attempt, board) {
   if (JSON.stringify(board) === JSON.stringify(attempt.board)) return attempt;
   // Puzzles without Undo (Proofs one-check rounds and duels) keep no history.
-  const keep = !(isExpansion(puzzle) && mechanicFor(puzzle).noUndo?.(puzzle));
-  return { ...attempt, board, moves: attempt.moves + 1, history: keep ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : [], completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  const mechanic = isExpansion(puzzle) ? mechanicFor(puzzle) : null, keep = !mechanic?.noUndo?.(puzzle);
+  // A mechanic's `undoStep(puzzle, before, after, top)` may fold a step into
+  // the Undo step before it (false), so one Undo takes back both: the
+  // balance's pebble placements with their weighing, its Candidates toggles.
+  const step = keep && (!mechanic?.undoStep || mechanic.undoStep(puzzle, attempt.board, board, attempt.history.at(-1)?.board ?? null));
+  const history = !keep ? [] : step ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : attempt.history;
+  // `moves` counts Undo steps, so each history entry stays one move apart (storage checks it).
+  const next = { ...attempt, board, moves: attempt.moves + (keep && !step ? 0 : 1), history, completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  // A mechanic of several games may close the hint panel when a game ends (the proof duel on the road).
+  const settle = mechanic?.settleHints;
+  return settle ? settle(puzzle, attempt, next) : next;
 }
 export function removeTile(puzzle, attempt, cell) {
   if (puzzle.mechanic !== 'tile' || !attempt.board.some(pair => pair.includes(cell))) return null;
@@ -151,6 +173,23 @@ export function undo(attempt) {
   if (!attempt.history.length) return attempt;
   const previous = attempt.history.at(-1);
   return { ...attempt, board: clone(previous.board), moves: previous.moves, history: attempt.history.slice(0,-1), lastPlayed: Date.now() };
+}
+// One press of Undo: back a step, then the mechanic's `carry` (which keeps
+// discoveries, refusals and tallies), and on past any step that `draw` shows
+// just as the screen was before the press, so every press changes what the
+// child sees (a refusal the shelf has since outgrown draws nothing). `draw`
+// renders an attempt as the play screen will after the press; `shown` is the
+// screen before it, with its open steppers and one-time lines, which a press
+// closes. Without `shown`, the attempt is drawn before the first step, since
+// `carry` may close that view state.
+export function undoPress(puzzle, attempt, draw = null, shown = null) {
+  const carry = isExpansion(puzzle) ? mechanicFor(puzzle).carry : null;
+  const back = a => { const b = undo(a); return carry && b !== a ? { ...b, board: carry(puzzle, a.board, b.board) } : b; };
+  if (!draw || !attempt.history.length) return back(attempt);
+  if (shown === null) shown = draw(attempt);
+  let next = back(attempt);
+  while (next.history.length && draw(next) === shown) next = back(next);
+  return next;
 }
 export function restart(puzzle, attempt, random = Math.random) {
   return { ...freshAttempt(puzzle, random), completed: attempt.completed, helpUsed: attempt.helpUsed };

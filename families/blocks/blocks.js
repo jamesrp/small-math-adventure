@@ -191,7 +191,7 @@ function duelRender(p, a) {
   const looks = piece => { const i = b.pieces.indexOf(piece); return {act: false, cls: `${mine(i) ? 'you' : 'app'}${i === lastApp ? ' last' : ''}`, label: `${pieceName(g, piece)}, ${mine(i) ? 'yours' : 'mine'}`}; };
   const body = layBoard(p, g, b.pieces, {shape: yourTurn ? 'rhombus' : null, live: yourTurn, pick, hint: h, looks, fresh: newPieces(p, b.pieces), solved, label: 'Board'});
   const status = b.first === null ? 'Who goes first?' : winner === 'you' ? 'No room for my rhombus. You win!' : winner === 'app' ? 'No room for your rhombus. I win.' : lastApp >= 0 ? 'I laid the light rhombus. Your turn.' : 'Your turn.';
-  const choose = b.first === null ? `<div class="bk-actions">${moveButton('Me first', {type: 'choose', first: 'you'}, `primary${h?.type === 'choose' && h.first === 'you' ? ' hinted' : ''}`)}${moveButton('You first', {type: 'choose', first: 'app'}, h?.type === 'choose' && h.first === 'app' ? 'hinted' : '')}</div>` : '';
+  const choose = b.first === null ? `<div class="bk-actions">${moveButton('Go first', {type: 'choose', first: 'you'}, `primary${h?.type === 'choose' && h.first === 'you' ? ' hinted' : ''}`)}${moveButton('Go second', {type: 'choose', first: 'app'}, h?.type === 'choose' && h.first === 'app' ? 'hinted' : '')}</div>` : '';
   const again = winner === 'app' ? `<div class="bk-actions">${moveButton('Play again', {type: 'again'}, h?.type === 'again' ? 'hinted' : '')}</div>` : '';
   return `<div class="bk-puzzle mode-duel${solved ? ' solved' : ''}" data-mechanic-wire="blocks"><p class="bk-status" role="status">${esc(status)}</p>${choose}<div class="bk-stage">${body}</div>${again}</div>`;
 }
@@ -326,12 +326,14 @@ function redMove(p, b, action) {
     case 'place': { const pieces = placePiece(g, RED, b.pieces, action.cells); return pieces && withReds(p, b, pieces); }
     case 'lift': { const pieces = liftPiece(b.pieces, action.cell); return pieces && withReds(p, b, pieces); }
     case 'clear': return b.pieces.length ? withReds(p, b, []) : null;
+    // That's all opens once a filling is found, Can't once a trapezoid is
+    // down: a claim follows the child's own attempt.
     case 'claim': {
-      if (q.mode !== 'every' || b.missed) return null;
+      if (q.mode !== 'every' || b.missed || !b.found.length) return null;
       return b.found.length === redsOf(g).length ? {...b, claimed: true} : {...b, missed: true};
     }
     case 'cant': {
-      if (q.mode === 'every' || b.refused) return null;
+      if (q.mode === 'every' || b.refused || !b.pieces.length) return null;
       return redPossible(p) ? {...b, refused: true} : {...b, cant: true};
     }
   }
@@ -355,6 +357,12 @@ function redHint(p, b) {
     const route = homeRoute(g, b.pieces, b.path.length - 1, tilingKey(q.start));
     if (!route) return {type: 'move', action: {type: 'again'}, text: 'Start again.'};
     return {type: 'move', action: {type: 'recut', a: route[0], b: route[1]}, text: 'Re-cut the two glowing trapezoids.'};
+  }
+  if (q.mode !== 'every' && !redPossible(p) && !b.pieces.length) {
+    // Can't waits for a trapezoid: lay the first piece of a filling (one
+    // with the wrong count pointing down), or the first that fits.
+    const one = covers(g, 'trapezoid', 1)[0];
+    return placeHint(one ? one[0] : placements(g, 'trapezoid')[0]);
   }
   if (q.mode !== 'every' && !redPossible(p)) return {type: 'move', action: {type: 'cant'}, text: q.mode === 'kind' ? `Count the triangles pointing up and pointing down. Can ${q.down} trapezoids point down?` : 'Count the triangles. Can trapezoids of three cover them all?'};
   if (q.mode === 'every') {
@@ -406,9 +414,9 @@ function redRender(p, a) {
     if (q.mode === 'every') {
       const here = full(g, b.pieces) ? b.found.indexOf(tilingKey(b.pieces)) : -1;
       const shelf = b.found.length ? `<ol class="bk-shelf" aria-label="Fillings found: ${b.found.length}">${b.found.map((k, i) => `<li class="${i === here ? 'here' : ''}">${mini(g, piecesOf(k), `Filling ${i + 1}${i === here ? ', on the board' : ''}`)}</li>`).join('')}</ol>` : '';
-      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, h?.type === 'clear' ? 'hinted' : '', b.pieces.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h?.type === 'claim' ? 'hinted' : '', b.missed ? 'disabled' : '')}</div>`}${b.missed ? '<p class="bk-note" role="status">There’s another.</p>' : ''}${shelf}`;
+      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, h?.type === 'clear' ? 'hinted' : '', b.pieces.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h?.type === 'claim' ? 'hinted' : '', b.missed || !b.found.length ? 'disabled' : '')}</div>`}${b.missed ? '<p class="bk-note" role="status">There’s another.</p>' : ''}${shelf}`;
     } else {
-      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, '', b.pieces.length ? '' : 'disabled')}${moveButton('Can’t', {type: 'cant'}, h?.type === 'cant' ? 'hinted' : '', b.refused ? 'disabled' : '')}</div>`}${b.refused ? '<p class="bk-note" role="status">It can be done.</p>' : ''}`;
+      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, '', b.pieces.length ? '' : 'disabled')}${moveButton('Can’t', {type: 'cant'}, h?.type === 'cant' ? 'hinted' : '', b.refused || !b.pieces.length ? 'disabled' : '')}</div>`}${b.refused ? '<p class="bk-note" role="status">It can be done.</p>' : ''}`;
     }
   }
   const status = home ? `${plural(b.path.length - 1, 'move', 'moves')}.` : q.mode === 'every' ? `${plural(b.found.length, 'filling', 'fillings')} found.` : `${plural(g.cells.length - covered(b.pieces).size, 'empty triangle', 'empty triangles')}.`;
@@ -474,18 +482,41 @@ const common = {
 };
 export const blockMechanics = {
   blueduel: {
+    howTo: {parameters: {"board":{"outline":[[0,0],[4,0],[4,1],[0,1]]}},
+      steps: [
+        {"move":{"type":"choose","first":"you"},"taps":["[data-focus=\"bk-choose-you\"]"]},
+        {"move":{"type":"place","cells":[0,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"4\"]"]}
+      ]},
     ...common,
     fresh: () => ({first: null, pieces: []}),
     valid: duelValid, solved: duelSolved, move: duelMove, hint: duelHint, render: duelRender,
     demo: 'Choose who goes first. Then take turns laying a rhombus on two empty triangles. If there is no room for your rhombus on your turn, you lose.'
   },
   blockfill: {
+    howTo: {parameters: {"board":{"outline":[[0,0],[3,0],[3,2],[0,2]]},"budget":5},
+      steps: [
+        {"move":{"type":"place","cells":[0]},"taps":["[data-tg-cell=\"0\"]"]},
+        {"ui":{"tool":"rhombus"}},
+        {"move":{"type":"place","cells":[1,4]},"taps":["[data-tg-cell=\"1\"]","[data-tg-cell=\"4\"]"]}
+      ]},
     ...common,
     fresh: () => ({pieces: []}),
     valid: blockValid, solved: blockSolved, move: blockMove, hint: blockHint, render: blockRender,
     demo: 'Choose a block, then drag across its triangles or tap them one at a time. A hexagon can also go down by tapping the dot in its middle. Tap a block to lift it.'
   },
   redfill: {
+    howTo: [
+      {parameters: {"mode":"fill","board":{"outline":[[0,0],[3,0],[3,2],[0,2]]}},
+        steps: [
+          {"move":{"type":"place","cells":[0,1,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"1\"]","[data-tg-cell=\"4\"]"]},
+          {"move":{"type":"lift","cell":0},"taps":["[data-tg-piece]"]}
+        ]},
+      {mode: 'home', parameters: {"mode":"home","board":{"outline":[[0,0],[1,0],[1,1],[0,2],[-1,2],[-1,1]]},"start":[[0,1,2],[3,4,5]]},
+        steps: [
+          {"move":{"type":"recut","a":"0.1.2","b":"3.4.5"},"taps":["[data-tg-piece=\"0.1.2\"]","[data-tg-piece=\"3.4.5\"]"]},
+          {"move":{"type":"recut","a":"0.2.4","b":"1.3.5"},"taps":["[data-tg-piece=\"0.2.4\"]","[data-tg-piece=\"1.3.5\"]"]}
+        ]}
+    ],
     ...common,
     fresh: p => p.parameters.mode === 'home' ? {pieces: p.parameters.start.map(sortPiece), path: [tilingKey(p.parameters.start)]}
       : p.parameters.mode === 'every' ? {pieces: [], found: [], claimed: false, missed: false} : {pieces: [], cant: false, refused: false},

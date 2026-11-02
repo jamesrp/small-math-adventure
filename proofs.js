@@ -27,7 +27,9 @@ const moveButton = (label, action, cls = 'secondary', extra = '') => `<button ty
 // The main action of a round keeps focus across renders (Check, then New round).
 const primaryButton = (label, action, extra = '') => `<button type="button" class="primary expansion-action" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="proof-primary" ${extra}>${label}</button>`;
 const uiButton = (label, payload, pressed, extra = '') => `<button type="button" class="secondary proof-tool" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="ui-${esc(JSON.stringify(payload))}" aria-pressed="${pressed}" ${extra}>${label}</button>`;
-const card = (title, lines) => `<section class="proof-card${lines.every(line => line.state === true) ? ' done' : ''}" aria-label="${esc(title)}"><h2 class="proof-title">${esc(title)}</h2>${lines.map(line => `<p class="proof-check ${line.state === true ? 'ok' : line.state === false ? 'no' : ''}"><span class="proof-mark" aria-hidden="true"></span><span>${esc(line.text)}</span>${line.count ? `<span class="proof-count">${esc(line.count)}</span>` : ''}<span class="sr-only">${line.state === true ? 'done' : line.state === false ? 'not yet: fix this' : 'not yet'}</span></p>`).join('')}</section>`;
+// A line's state: true (ticked), false (a fault to fix), 'info' (a fact, no
+// fault) or null (not yet). `extra` is drawn after the lines (a question).
+const card = (title, lines, extra = '') => `<section class="proof-card${!extra && lines.every(line => line.state === true) ? ' done' : ''}" aria-label="${esc(title)}"><h2 class="proof-title">${esc(title)}</h2>${lines.map(line => `<p class="proof-check ${line.state === true ? 'ok' : line.state === false ? 'no' : line.state === 'info' ? 'info' : ''}"><span class="proof-mark" aria-hidden="true"></span><span>${esc(line.text)}</span>${line.count ? `<span class="proof-count">${esc(line.count)}</span>` : ''}<span class="sr-only">${line.state === true ? 'done' : line.state === false ? 'not yet: fix this' : line.state === 'info' ? '' : 'not yet'}</span></p>`).join('')}${extra}</section>`;
 const pips = (n, on, label) => `<span class="proof-pips" role="img" aria-label="${esc(label)}">${Array.from({ length: n }, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</span>`;
 const swatch = color => `<span class="proof-swatch c${color}" aria-hidden="true"></span>`;
 const colorName = color => color === 1 ? 'gold' : 'green';
@@ -110,7 +112,18 @@ export function paintStatus(p, paint) {
     if (color === 1) gold++; else if (color === 2) green++; else blank++;
     if (color && gridNeighbors(cols, rows, region, cell).some(n => paint[n] === color)) clash = true;
   }
-  return { gold, green, blank, clash, proved: blank === 0 && !clash && gold !== green };
+  return { gold, green, blank, clash, proved: blank === 0 && !clash && gold !== green, more: gold === green ? 0 : gold > green ? 1 : 2 };
+}
+// A finished painting asks one question before it counts as a proof: which
+// color has more squares (1 gold, 2 green, 0 the same). `board.more` holds the
+// child's answer; any other move clears it. Boards saved before the question
+// (no `more`) were proved by the painting alone and stay solved.
+const painted = pt => pt.blank === 0 && !pt.clash;
+// Cover mode with squares left and no two of them side by side.
+function stuckCover(p, board) {
+  const { cols, rows } = p.parameters, region = regionOf(p), covered = new Set(board.doms.flat());
+  const free = [...region].filter(cell => !covered.has(cell));
+  return free.length > 0 && free.every(cell => gridNeighbors(cols, rows, region, cell).every(n => covered.has(n)));
 }
 function gardenValid(p, board) {
   const { cols, rows } = p.parameters, region = regionOf(p), n = cols * rows;
@@ -124,23 +137,38 @@ function gardenValid(p, board) {
     pair.forEach(cell => used.add(cell));
   }
   if (!board.paint.every((color, cell) => [0, 1, 2].includes(color) && (region.has(cell) || color === 0))) return false;
+  if (board.more !== undefined && ![null, 0, 1, 2].includes(board.more)) return false;
   return new Set(board.stars).size === board.stars.length && board.stars.every(cell => integer(cell) && region.has(cell));
 }
 function gardenSolved(p, board) {
   if (!gardenValid(p, board)) return false;
   if (p.parameters.coverable) return board.doms.length * 2 === p.parameters.cells.length;
-  return starStatus(p, board.stars).proved || paintStatus(p, board.paint).proved;
+  if (starStatus(p, board.stars).proved) return true;
+  const pt = paintStatus(p, board.paint);
+  return pt.proved && (board.more === undefined || board.more === pt.more);
 }
 function cellList(p, cells) {
   const region = regionOf(p);
   const list = Array.isArray(cells) ? cells.map(index) : [];
   return list.length && list.length <= region.size && list.every(cell => integer(cell) && region.has(cell)) ? [...new Set(list)] : null;
 }
+// The answer to the paint question lasts until the paint changes; stars,
+// dominoes and mode switches keep it.
 function gardenMove(p, board, action) {
+  const next = gardenStep(p, board, action);
+  if (next && (next.more === undefined || (action.type !== 'more' && next.paint.some((color, cell) => color !== board.paint[cell])))) next.more = null;
+  return next;
+}
+function gardenStep(p, board, action) {
   if (!gardenValid(p, board) || !object(action) || gardenSolved(p, board)) return null;
   const next = clone(board), region = regionOf(p), { cols, rows } = p.parameters;
   const covered = new Set(next.doms.flat());
   switch (action.type) {
+    case 'more': {
+      const color = index(action.color);
+      if (board.mode !== 'prove' || ![0, 1, 2].includes(color) || color === board.more || !painted(paintStatus(p, board.paint))) return null;
+      next.more = color; return next;
+    }
     case 'mode':
       if (!['cover', 'prove'].includes(action.mode) || (action.mode === 'prove' && p.parameters.proveLocked)) return null;
       next.mode = action.mode; return next;
@@ -212,13 +240,18 @@ function gardenHint(p, board) {
   }
   if (p.parameters.proveLocked) return { type: 'equipment', text: p.equipmentHint || 'This garden needs a proof tool you have not found yet.' };
   if (board.mode !== 'prove') return { type: 'move', action: { type: 'mode', mode: 'prove' }, text: 'Look for squares that cannot all find a partner. Then switch to Prove it can’t.' };
-  const refutation = p.parameters.refutation;
+  const refutation = p.parameters.refutation, pt = paintStatus(p, board.paint);
+  if (pt.proved && board.more !== pt.more) return { type: 'move', action: { type: 'more', color: pt.more }, text: 'Count the squares of each color.' };
   if (refutation.kind === 'stars') {
     const target = new Set(refutation.stars);
     const extra = board.stars.find(cell => !target.has(cell));
     if (extra !== undefined) return { type: 'move', action: { type: 'star', cells: [extra], on: false }, pair: [extra], text: `Remove the star at ${place(p, extra)}.` };
     const missing = refutation.stars.find(cell => !board.stars.includes(cell));
-    return { type: 'move', action: { type: 'star', cells: [missing], on: true }, pair: [missing], text: `Star ${place(p, missing)}. Which squares could be its partner?` };
+    // Where the colors balance, paint can never prove it: the first nudge
+    // points to stars (a 4–5 child may not have met a star proof on the road).
+    const balanced = cells.filter(cell => gridParity(cols, cell)).length * 2 === cells.length;
+    const text = balanced && !board.stars.length ? 'Paint can’t prove this garden. Try stars.' : `Star ${place(p, missing)}. Which squares could be its partner?`;
+    return { type: 'move', action: { type: 'star', cells: [missing], on: true }, pair: [missing], text };
   }
   // Paint along the child's own convention when there is one.
   const first = cells.find(cell => board.paint[cell]);
@@ -237,15 +270,16 @@ function gardenRender(p, attempt, ctx = {}) {
   const hinted = new Set(ctx.highlighted || []);
   const pos = cell => `grid-row:${Math.floor(cell / cols) + 1};grid-column:${cell % cols + 1}`;
   const cellsHTML = Array.from({ length: cols * rows }, (_, cell) => {
-    if (!region.has(cell)) return `<span class="pg-hole" style="${pos(cell)}" data-cell="${cell}" aria-hidden="true"></span>`;
+    if (!region.has(cell)) return `<span class="pf-hole" style="${pos(cell)}" data-cell="${cell}" aria-hidden="true"></span>`;
     const color = prove ? board.paint[cell] : 0, star = prove && stars.has(cell), isCovered = !prove && covered.has(cell);
-    const classes = ['pg-cell', color ? `c${color}` : '', star ? 'starred' : '', partners.has(cell) && !star ? 'partner' : '', isCovered ? 'covered' : '', !prove && state.sel === cell ? 'selected' : '', hinted.has(cell) ? 'hinted' : ''].filter(Boolean).join(' ');
+    const classes = ['pf-cell', color ? `c${color}` : '', star ? 'starred' : '', partners.has(cell) && !star ? 'partner' : '', isCovered ? 'covered' : '', !prove && state.sel === cell ? 'selected' : '', hinted.has(cell) ? 'hinted' : ''].filter(Boolean).join(' ');
     const label = `Row ${Math.floor(cell / cols) + 1}, column ${cell % cols + 1}${isCovered ? ', covered; tap to lift' : ''}${color ? `, ${colorName(color)}` : ''}${star ? ', starred' : ''}${partners.has(cell) && !star ? ', partner square' : ''}`;
-    return `<button type="button" class="${classes}" style="${pos(cell)}" data-cell="${cell}" data-focus="pg-cell-${cell}" aria-label="${esc(label)}" ${solved ? 'disabled' : ''}><span aria-hidden="true">${star ? '★' : color === 1 ? '●' : color === 2 ? '◆' : ''}</span></button>`;
+    return `<button type="button" class="${classes}" style="${pos(cell)}" data-cell="${cell}" data-focus="pf-cell-${cell}" aria-label="${esc(label)}" ${solved ? 'disabled' : ''}><span aria-hidden="true">${star ? '★' : color === 1 ? '●' : color === 2 ? '◆' : ''}</span></button>`;
   }).join('');
-  const dominoes = prove ? '' : board.doms.map((pair, i) => {
+  // In Prove the dominoes stay, drawn as outlines over the paint.
+  const dominoes = board.doms.map((pair, i) => {
     const first = Math.min(...pair), horizontal = Math.floor(pair[0] / cols) === Math.floor(pair[1] / cols);
-    return `<span class="pg-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
+    return `<span class="pf-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
   }).join('');
   const locked = Boolean(p.parameters.proveLocked);
   const modeButton = (mode, icon, label) => mode === 'prove' && locked
@@ -259,21 +293,30 @@ function gardenRender(p, attempt, ctx = {}) {
     ['erase', '<span class="proof-tool-icon" aria-hidden="true">⌫</span> Erase', 'Erase']
   ];
   const st = starStatus(p, board.stars), pt = paintStatus(p, board.paint), anyPaint = pt.gold + pt.green > 0;
-  const proofCards = card('Star proof', [
-    { text: 'Stars don’t touch', state: st.count ? !st.touching : null },
-    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count ? st.count > st.partners : null }
-  ]) + card('Paint proof', [
-    { text: 'Every square painted', count: anyPaint && pt.blank ? `${pt.blank} blank` : '', state: anyPaint && !pt.blank ? true : null },
-    { text: 'Touching squares differ', state: pt.clash ? false : anyPaint && !pt.blank ? true : null },
-    { text: 'Different counts', count: `● ${pt.gold} · ◆ ${pt.green}`, state: anyPaint && !pt.blank ? pt.gold !== pt.green : null }
-  ]);
+  // Each card appears once its tool has been used, so Prove doesn't open on a
+  // printed recipe. A finished painting ends with a question the child
+  // answers; the counts show only after a right answer.
+  const counts = `● ${pt.gold} · ◆ ${pt.green}`, answered = board.more === undefined ? (pt.proved ? pt.more : null) : board.more;
+  const option = (color, label) => `<button type="button" class="secondary expansion-action${board.more === color ? ' miss' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({ type: 'more', color }))}" data-focus="pf-more-${color}" aria-pressed="${board.more === color}">${label}</button>`;
+  const ask = painted(pt) && answered !== pt.more ? `<div class="proof-ask" role="group" aria-labelledby="pf-ask-${esc(p.id)}"><p class="proof-ask-q" id="pf-ask-${esc(p.id)}">Which color has more squares?</p><div class="proof-ask-options">${option(1, `${swatch(1)} Gold`)}${option(2, `${swatch(2)} Green`)}${option(0, 'Same')}</div>${board.more !== null && board.more !== undefined ? '<p class="proof-ask-note" role="status">Count again.</p>' : ''}</div>` : '';
+  const answer = painted(pt) && answered === pt.more ? [pt.more ? { text: `${pt.more === 1 ? 'Gold' : 'Green'} has more`, count: counts, state: true } : { text: 'Same counts: paint can’t prove it here.', count: counts, state: 'info' }] : [];
+  const proofCards = (st.count ? card('Star proof', [
+    { text: 'Stars don’t touch', state: !st.touching },
+    // Too few stars yet is not a fault: the count stays "not yet" until it
+    // holds, and only touching stars are marked to fix.
+    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count > st.partners ? true : null }
+  ]) : '') + (anyPaint ? card('Paint proof', [
+    { text: 'Every square painted', count: pt.blank ? `${pt.blank} blank` : '', state: !pt.blank ? true : null },
+    { text: 'Touching squares differ', state: pt.clash ? false : !pt.blank ? true : null },
+    ...answer
+  ], ask) : '');
   return `<div class="proof-puzzle proof-garden" data-mechanic-wire="proofgarden">
     <div class="proof-modes" role="group" aria-label="Mode">${modeButton('cover', '▰', 'Cover')}${modeButton('prove', '✎', 'Prove it can’t')}</div>
-    <div class="pg-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares">${cellsHTML}${dominoes}</div>
+    <div class="pf-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares${prove && board.doms.length ? `, ${plural(board.doms.length, 'domino', 'dominoes')} drawn as outlines` : ''}">${cellsHTML}${dominoes}</div>
     ${solved ? '' : prove ? `<div class="proof-toolbox" role="group" aria-label="Proof tools">${tools.map(([tool, label, name]) => uiButton(label, { tool }, state.tool === tool, `aria-label="${name}"`)).join('')}</div>
       <div class="proof-actions">${state.tool === 1 || state.tool === 2 ? actionButton(`Fill blanks ${swatch(state.tool)}`, { type: 'fill', color: state.tool }, `aria-label="Fill blanks ${colorName(state.tool)}" ${pt.blank ? '' : 'disabled'}`) : ''}${actionButton('Clear all', { type: 'wipe' }, anyPaint || st.count ? '' : 'disabled')}</div>`
       : `<div class="proof-actions">${board.doms.length ? '' : '<span class="proof-hintline">Drag across two squares.</span>'}${actionButton('Clear', { type: 'clear' }, board.doms.length ? '' : 'disabled')}</div>`}
-    ${prove ? `<div class="proof-cards">${proofCards}</div>` : ''}
+    ${prove && proofCards ? `<div class="proof-cards">${proofCards}</div>` : ''}
   </div>`;
 }
 // Pointer gestures follow the Tile Garden board: main.js passes in the rules
@@ -291,12 +334,12 @@ function tileGarden(p) {
 // pointerup that has already been handled. Keyboard clicks are never echoes.
 let lastPointerTap = null;
 function gardenWire(root, p, api) {
-  const boardEl = root.querySelector('.pg-board');
-  if (!boardEl || root.querySelector('.pg-cell:disabled')) return;
+  const boardEl = root.querySelector('.pf-board');
+  if (!boardEl || root.querySelector('.pf-cell:disabled')) return;
   const state = ui(p), region = regionOf(p), tp = tileGarden(p);
   const { extendTileStroke, startTileStroke, tapTileSelection, tileReleaseAction, tileStrokeTarget } = api.tile;
   let gesture = null;
-  const cellNode = cell => boardEl.querySelector(`.pg-cell[data-cell="${cell}"]`);
+  const cellNode = cell => boardEl.querySelector(`.pf-cell[data-cell="${cell}"]`);
   const board = () => api.attempt().board;
   const tap = cell => {
     const b = board();
@@ -330,7 +373,7 @@ function gardenWire(root, p, api) {
       node.firstElementChild.textContent = state.tool === 'star' ? (value ? '★' : '') : value === 1 ? '●' : value === 2 ? '◆' : '';
     }
   };
-  const showCover = () => boardEl.querySelectorAll('.pg-cell').forEach(node => {
+  const showCover = () => boardEl.querySelectorAll('.pf-cell').forEach(node => {
     const on = gesture?.kind === 'cover' && gesture.multi && gesture.stroke.cells.includes(Number(node.dataset.cell));
     node.classList.toggle('preview', Boolean(on && gesture.stroke.status !== 'blocked'));
     node.classList.toggle('invalid', Boolean(on && gesture.stroke.status === 'blocked'));
@@ -345,12 +388,12 @@ function gardenWire(root, p, api) {
   };
   boardEl.addEventListener('pointerdown', e => {
     if (gesture || !e.isPrimary || e.button !== 0) return;
-    const node = e.target.closest('.pg-cell');
+    const node = e.target.closest('.pf-cell');
     if (!node || !boardEl.contains(node)) return;
     e.preventDefault();
     boardEl.setPointerCapture(e.pointerId);
     const cell = Number(node.dataset.cell), b = board();
-    const rects = [...boardEl.querySelectorAll('.pg-cell,.pg-hole')].map(n => ({ cell: Number(n.dataset.cell), rect: n.getBoundingClientRect() }));
+    const rects = [...boardEl.querySelectorAll('.pf-cell,.pf-hole')].map(n => ({ cell: Number(n.dataset.cell), rect: n.getBoundingClientRect() }));
     const base = { id: e.pointerId, start: cell, boardRect: boardEl.getBoundingClientRect(), rects, startRect: node.getBoundingClientRect(), last: [e.clientX, e.clientY] };
     if (b.mode === 'cover') {
       gesture = b.doms.some(pair => pair.includes(cell)) ? { ...base, kind: 'tap' } : { ...base, kind: 'cover', stroke: startTileStroke(tp, b.doms, cell), multi: false, departed: false };
@@ -401,7 +444,7 @@ function gardenWire(root, p, api) {
   boardEl.addEventListener('lostpointercapture', e => finish(e, true));
   // Keyboard activation reaches the cell as a click with no pointer details.
   boardEl.addEventListener('click', e => {
-    const node = e.target.closest('.pg-cell');
+    const node = e.target.closest('.pf-cell');
     if (!node || e.detail !== 0) return;
     const cell = Number(node.dataset.cell);
     if (lastPointerTap && lastPointerTap.id === p.id && lastPointerTap.cell === cell && Date.now() - lastPointerTap.time < 600) return;
@@ -409,11 +452,21 @@ function gardenWire(root, p, api) {
   });
 }
 const garden = {
-  fresh: p => ({ mode: 'cover', doms: [], paint: Array(p.parameters.cols * p.parameters.rows).fill(0), stars: [] }),
+  howTo: {parameters: {cols: 2, rows: 3, cells: [0, 1, 2, 3, 4, 5], coverable: true}, steps: [{move: {type: 'place', cells: [0, 1]}, taps: ['[data-cell="0"]', '[data-cell="1"]']}, {move: {type: 'lift', cell: 0}, taps: ['[data-cell="0"]']}]},
+  fresh: p => ({ mode: 'cover', doms: [], paint: Array(p.parameters.cols * p.parameters.rows).fill(0), stars: [], more: null }),
   valid: gardenValid,
   solved: gardenSolved,
   move: gardenMove,
   hint: gardenHint,
+  // A cue for the road's keeper (dist/road-ui.js): 'stuck' when a cover of an
+  // uncoverable garden has squares left that no domino fits, 'even' when the
+  // child has said a finished painting's colors are the same.
+  cue(p, board) {
+    if (!gardenValid(p, board) || gardenSolved(p, board)) return null;
+    if (board.mode === 'cover') return !p.parameters.coverable && stuckCover(p, board) ? 'stuck' : null;
+    const pt = paintStatus(p, board.paint);
+    return board.more === 0 && painted(pt) && pt.more === 0 ? 'even' : null;
+  },
   render: gardenRender,
   wire: gardenWire,
   reset: resetUI,
@@ -422,7 +475,7 @@ const garden = {
     if (object(payload) && ['star', 1, 2, 'checker', 'erase'].includes(payload.tool)) state.tool = payload.tool;
     if (object(payload) && (payload.sel === null || integer(payload.sel))) state.sel = payload.sel;
   },
-  help: () => '<div class="proof-help"><p>Dashed rings mark partners: the squares next to a star. Fill blanks paints every empty square in the chosen color.</p></div>',
+  help: () => '<div class="proof-help"><p>Dashed rings mark partners: the squares next to a star. Fill blanks paints every empty square in the chosen color. In Prove, your dominoes show as dashed outlines.</p></div>',
   demo: 'Drag across two squares to place a domino. If the garden cannot be covered, switch to Prove it can’t and build a star proof or a paint proof.',
   // Authoring helpers used by scripts/build-proofs.mjs and the validators.
   cover: (cols, rows, region) => tilingOf(cols, rows, region),
@@ -491,9 +544,9 @@ const narrowScreen = () => Boolean(narrowQuery?.matches);
 let mapRerender = null;
 narrowQuery?.addEventListener?.('change', () => mapRerender?.());
 function mapSVG(options) {
-  const { paint = [0, 0, 0, 0, 0, 0], here = null, goal = null, interactive = false, painting = false, hinted = [], disabled = false } = options;
-  // The interactive map stands upright on phones; reference maps stay compact.
-  const layout = interactive && narrowScreen() ? FLIP.tall : FLIP.wide;
+  const { paint = [0, 0, 0, 0, 0, 0], here = null, goal = null, interactive = false, painting = false, hinted = [], disabled = false, compact = false } = options;
+  // The interactive map stands upright on phones; references and scaled demos stay compact.
+  const layout = interactive && !compact && narrowScreen() ? FLIP.tall : FLIP.wide;
   const edges = FLIP.edges.map(([a, b]) => {
     const [x1, y1] = layout.pos[a], [x2, y2] = layout.pos[b];
     const cls = painting && paint[a] && paint[b] ? (paint[a] !== paint[b] ? ' ok' : ' bad') : '';
@@ -633,7 +686,7 @@ function flipRender(p, attempt, ctx = {}) {
     const proved = solved && !tripPossible(q.s, q.e, q.k);
     return `<div class="proof-puzzle proof-flip" data-mechanic-wire="flipmap">
       ${solved ? '' : `<div class="proof-modes" role="group" aria-label="Mode">${modeButton('walk', '⇢', 'Walk')}${modeButton('prove', '✎', 'Prove it can’t')}</div>`}
-      ${mapSVG({ paint: prove || proved ? board.paint : [0, 0, 0, 0, 0, 0], here: prove ? null : cur, goal: prove ? null : q.e, interactive: true, painting: prove, hinted: ctx.highlighted || [], disabled: solved })}
+      ${mapSVG({ paint: prove || proved ? board.paint : [0, 0, 0, 0, 0, 0], here: prove ? null : cur, goal: prove ? null : q.e, interactive: true, compact: ctx.demo, painting: prove, hinted: ctx.highlighted || [], disabled: solved })}
       ${proved ? dotStrip(board.paint, q) : prove ? `<div class="proof-toolbox" role="group" aria-label="Paint">${[[1, `${swatch(1)} Paint`, 'Paint gold'], [2, `${swatch(2)} Paint`, 'Paint green'], [0, '<span class="proof-tool-icon" aria-hidden="true">⌫</span> Erase', 'Erase']].map(([tool, label, name]) => uiButton(label, { tool }, state.tool === tool, `aria-label="${name}"`)).join('')}</div>
         <div class="proof-cards">${card('Paint proof', [{ text: 'Every card painted', state: status.painted ? true : null }, { text: 'Every line joins two colors', state: status.clash ? false : status.painted ? true : null }])}</div>
         ${status.proper && !solved ? '<p class="proof-note" role="status">This painting doesn’t rule it out.</p>' : ''}`
@@ -682,6 +735,7 @@ function flipWire(root, p, api) {
   });
 }
 const flipmap = {
+  howTo: {parameters: {task: 'route', s: 1, e: 5, k: 5}, steps: [{move: {type: 'flip', to: 2}, taps: ['[data-card="2"]']}, {move: {type: 'flip', to: 4}, taps: ['[data-card="4"]']}]},
   fresh(p, random = Math.random) {
     const q = p.parameters;
     if (q.task === 'route') return { mode: 'walk', trail: [q.s], paint: [0, 0, 0, 0, 0, 0] };
@@ -781,9 +835,9 @@ export function makeSortRound(level, random) {
 function sortValid(p, board) {
   const level = p.parameters.level;
   const sizeOK = n => level === 1 ? n >= 1 && n <= 3 : level === 2 ? n === 2 : n === 4;
-  return object(board) && Array.isArray(board.boards) && board.boards.length === 6 &&
+  return object(board) && Array.isArray(board.boards) && board.boards.length === (p.parameters.gardens?.length ?? 6) &&
     board.boards.every(h => Array.isArray(h) && sizeOK(h.length) && new Set(h).size === h.length && h.every(c => integer(c) && c >= 0 && c < SN * SN)) &&
-    Array.isArray(board.answers) && board.answers.length === 6 && board.answers.every(a => a === null || typeof a === 'boolean') &&
+    Array.isArray(board.answers) && board.answers.length === (p.parameters.gardens?.length ?? 6) && board.answers.every(a => a === null || typeof a === 'boolean') &&
     typeof board.checked === 'boolean' && (!board.checked || board.answers.every(a => a !== null)) &&
     integer(board.clean) && board.clean >= 0 && board.clean <= p.parameters.rounds && (board.clean < p.parameters.rounds || board.checked);
 }
@@ -815,16 +869,18 @@ function caption(holes) {
   return '';
 }
 const sortSolved = (p, board) => sortValid(p, board) && board.clean >= p.parameters.rounds;
+// A demo supplies two authored gardens instead of dealing a six-card round.
 const sortgarden = {
-  fresh: (p, random = Math.random) => ({ boards: makeSortRound(p.parameters.level, random), answers: Array(6).fill(null), checked: false, clean: 0 }),
+  howTo: {parameters: {level: 1, rounds: 1, gardens: [[0], [1, 2]]}, steps: [{move: {type: 'answer', i: 0, value: true}}, {move: {type: 'answer', i: 0, value: false}}]},
+  fresh: (p, random = Math.random) => ({ boards: p.parameters.gardens?.map(h => [...h]) ?? makeSortRound(p.parameters.level, random), answers: Array(p.parameters.gardens?.length ?? 6).fill(null), checked: false, clean: 0 }),
   valid: sortValid,
   solved: sortSolved,
   move(p, board, action, random = Math.random) {
     if (!sortValid(p, board) || !object(action) || board.clean >= p.parameters.rounds) return null;
     const next = clone(board), i = index(action.i);
-    if (action.type === 'answer' && !board.checked && integer(i) && i >= 0 && i < 6 && typeof action.value === 'boolean') { next.answers[i] = action.value; return next; }
+    if (action.type === 'answer' && !board.checked && integer(i) && i >= 0 && i < board.answers.length && typeof action.value === 'boolean') { next.answers[i] = action.value; return next; }
     if (action.type === 'check' && !board.checked && board.answers.every(a => a !== null)) { next.checked = true; next.clean = sortRight(board) ? board.clean + 1 : 0; return next; }
-    if (action.type === 'next' && board.checked) return { boards: makeSortRound(p.parameters.level, random), answers: Array(6).fill(null), checked: false, clean: board.clean };
+    if (action.type === 'next' && board.checked) return { boards: p.parameters.gardens?.map(h => [...h]) ?? makeSortRound(p.parameters.level, random), answers: Array(p.parameters.gardens?.length ?? 6).fill(null), checked: false, clean: board.clean };
     return null;
   },
   hint(p, board) {
@@ -886,6 +942,7 @@ function duelValid(p, board) {
   const q = p.parameters;
   if (!object(board) || !Array.isArray(board.start) || board.start.length !== q.piles || !board.start.every(n => integer(n) && n >= 1 && n <= q.max)) return false;
   if (![null, 'you', 'opponent'].includes(board.first) || !Array.isArray(board.turns) || !integer(board.streak) || board.streak < 0 || board.streak > q.streak || typeof board.fresh !== 'boolean') return false;
+  if (board.hinted !== undefined && board.hinted !== true) return false;
   if (board.first === null && board.turns.length) return false;
   let piles = [...board.start];
   for (const [i, t] of board.turns.entries()) {
@@ -929,14 +986,15 @@ function duelMove(p, board, action, random = Math.random) {
   if ((action.type === 'new' || action.type === 'again') && duelOver(board) && board.first !== null) {
     if (action.type === 'again' && duelWinner(board) !== 'opponent') return null;
     const start = action.type === 'new' ? duelStart(p.parameters, random) : [...board.start];
-    return { start, piles: [...start], first: null, turns: [], streak: board.streak, fresh: action.type === 'new' };
+    return { start, piles: [...start], first: null, turns: [], streak: board.streak, fresh: action.type === 'new', ...(board.hinted ? { hinted: true } : {}) };
   }
   return null;
 }
 function duelHint(p, board) {
   if (!duelValid(p, board)) return { type: 'deadend', text: 'Restart the duel.' };
   if (board.streak >= p.parameters.streak) return { type: 'done' };
-  if (board.first !== null && duelOver(board)) return { type: 'move', action: { type: 'new' }, text: 'Try a new start.' };
+  // After a loss the authored nudges stay (the first suggests Same start again).
+  if (board.first !== null && duelOver(board) && duelWinner(board) !== 'opponent') return { type: 'move', action: { type: 'new' }, text: 'Try a new start.' };
   return note();
 }
 function duelSolve(p, board) {
@@ -954,21 +1012,41 @@ function duelSolve(p, board) {
   return { type: 'move', action: { type: 'take', pile: i + 1, remove: 1 }, text: `No winning move is left from here. Take 1 from pile ${i + 1} and watch for a mistake.` };
 }
 const duelSolveAction = (p, board) => duelSolve(p, board).action;
+// On the road (Plume's rematch) each game ends with the hint panel closed. A
+// hint that cost the No-hints star (level 2 or more) is kept on the board for
+// the rest of the run of wins (`hinted`); a loss ends the run and forgets it,
+// so only the winning run counts. Library duels keep their hints as before.
+function duelSettleHints(p, before, next) {
+  if (!p.campaignEncounter || duelOver(before.board) || !duelOver(next.board)) return next;
+  const { hinted, ...board } = next.board, keep = duelWinner(next.board) === 'you' && (hinted === true || before.hintLevel >= 2);
+  return { ...next, hintLevel: 0, board: keep ? { ...board, hinted: true } : board };
+}
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five'];
 function duelRender(p, attempt) {
   const board = attempt.board, q = p.parameters, state = ui(p), over = duelOver(board), winner = duelWinner(board), solved = board.streak >= q.streak;
-  const yourTurn = board.first !== null && !over;
+  const yourTurn = board.first !== null && !over, choosing = board.first === null && !solved;
+  // Before a start is chosen a pebble still answers a tap: the status asks who
+  // goes first and Go first / Go second call for attention until one is pressed.
+  if (choosing && state.pick) state.call = true;
+  if (!choosing) state.call = false;
   if (!yourTurn || !state.pick || state.pick.pile > board.piles.length || state.pick.from >= board.piles[state.pick.pile - 1]) state.pick = null;
   const last = board.turns.at(-1)?.player === 'opponent' ? board.turns.at(-1) : null;
   const ghost = last ? { pile: last.pile, count: last.remove } : null;
   const names = q.piles === 2 ? ['left', 'right'] : q.piles === 3 ? ['left', 'middle', 'right'] : Array.from({ length: q.piles }, (_, i) => `number ${i + 1}`);
-  const status = board.first === null ? '' : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : 'I took the last pebble.') :
-    `${last ? `I took ${last.remove} from the ${names[last.pile - 1]} pile. ` : ''}Your turn`;
+  // On the road the opponent is Plume (p.rival); in the library it speaks as "I".
+  // Before each game the status says how many more wins in a row are needed,
+  // or that a game from the same start is practice. Before the first win it
+  // says nothing: the goal above the board already asks for the whole run.
+  const rival = p.rival || 'I', left = q.streak - board.streak, count = COUNT_WORDS[left] || String(left);
+  const choose = !board.fresh ? 'Wins count from a new start.' : left === q.streak ? '' : `${count[0].toUpperCase()}${count.slice(1)} more in a row.`;
+  const status = board.first === null ? (state.call ? 'Choose who goes first.' : choose) : over ? (winner === 'you' ? (solved || board.fresh ? 'You took the last pebble.' : 'You took the last pebble. Wins count from a new start.') : `${rival} took the last pebble.`) :
+    `${last ? `${rival} took ${last.remove} from the ${names[last.pile - 1]} pile. ` : ''}Your turn`;
   const piles = board.piles.map((size, i) => {
     const shown = size + (ghost && ghost.pile === i + 1 ? ghost.count : 0);
     const pebbles = Array.from({ length: shown }, (_, k) => {
       if (k >= size) return '<span class="duel-pebble gone" aria-hidden="true"></span>';
       const take = size - k, lifted = state.pick && state.pick.pile === i + 1 && k >= state.pick.from;
-      return `<button type="button" class="duel-pebble${lifted ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="duel-${i}-${k}" aria-label="Lift ${plural(take, 'pebble', 'pebbles')} from the ${names[i]} pile" aria-pressed="${Boolean(lifted)}" ${yourTurn ? '' : 'disabled'}></button>`;
+      return `<button type="button" class="duel-pebble${lifted ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="duel-${i}-${k}" aria-label="Lift ${plural(take, 'pebble', 'pebbles')} from the ${names[i]} pile" aria-pressed="${Boolean(lifted)}" ${yourTurn || choosing ? '' : 'disabled'}></button>`;
     }).join('');
     return `<div class="duel-bowl" role="group" aria-label="${names[i]} pile, ${plural(size, 'pebble', 'pebbles')}"><div class="duel-pile">${pebbles}</div><span class="duel-base" aria-hidden="true"></span></div>`;
   }).join('');
@@ -977,16 +1055,18 @@ function duelRender(p, attempt) {
     <div class="proof-roundbar">${pips(q.streak, board.streak, `${board.streak} of ${q.streak} wins in a row`)}</div>
     <p class="duel-status" role="status" tabindex="-1" data-focus="duel-status">${esc(status)}</p>
     <div class="duel-piles">${piles}</div>
-    <div class="proof-actions">${board.first === null ? `${primaryButton('Me first', { type: 'choose', first: 'you' })}${actionButton('You first', { type: 'choose', first: 'opponent' })}` :
+    <div class="proof-actions${state.call ? ' is-calling' : ''}">${board.first === null ? `${primaryButton('Go first', { type: 'choose', first: 'you' })}${actionButton('Go second', { type: 'choose', first: 'opponent' })}` :
       over ? (solved ? '' : `${winner === 'opponent' ? actionButton('Same start again', { type: 'again' }) : ''}${primaryButton('New start', { type: 'new' })}`) :
       state.pick ? `${moveButton(`Take ${takeCount}`, { type: 'take', pile: state.pick.pile, remove: takeCount }, 'primary')}${uiButton('Cancel', { pick: null }, false)}` : ''}</div>
   </div>`;
 }
 const duel = {
+  howTo: {parameters: {piles: 2, max: 3, streak: 2}, steps: [{move: {type: 'choose', first: 'you'}}, {ui: {pick: {pile: 1, from: 0}}}, {move: {type: 'take', pile: 1, remove: 1}}]},
   fresh: (p, random = Math.random) => { const start = duelStart(p.parameters, random); return { start, piles: [...start], first: null, turns: [], streak: 0, fresh: true }; },
   valid: duelValid,
   solved: (p, board) => duelValid(p, board) && board.streak >= p.parameters.streak,
   move: duelMove,
+  settleHints: duelSettleHints,
   hint: duelHint,
   solve: duelSolveAction,
   render: duelRender,

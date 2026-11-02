@@ -584,7 +584,8 @@ function renderPlantest(p, a) {
 function wire(root, p, api) {
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-sx-move]');
-    if (!el || !root.contains(el) || el.disabled) return;
+    // The budget or question tab already chosen does nothing (items toggle).
+    if (!el || !root.contains(el) || el.disabled || (el.matches?.('.sx-budget, .sx-tab') && el.getAttribute('aria-pressed') === 'true')) return;
     try { api.apply(JSON.parse(el.dataset.sxMove)); } catch { /* malformed control */ }
   });
 }
@@ -606,6 +607,42 @@ export const secretMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Signal Lanterns
 // as its Slippery secrets group, so the module adds no satchel family.
+// How to play: demonstrate the controls on a separate, small board.
+secretMechanics.secret.howTo = [
+{
+  parameters: {"mode":"ask","items":"shapes","count":3,"budgets":[2],"goal":"find"},
+  steps: [
+    {"move":{"type":"item","item":0},"taps":["[data-sx-move='{\"type\":\"item\",\"item\":0}']"]},
+    {"move":{"type":"ask"},"taps":["[data-sx-move='{\"type\":\"ask\"}']"]}
+  ]
+},
+{
+  mode: "test",
+  parameters: {"mode":"test","length":2,"budgets":[3],"goal":"find","hit":false},
+  steps: [
+    {"move":{"type":"lantern","lantern":1},"taps":["[data-sx-move='{\"type\":\"lantern\",\"lantern\":1}']"]},
+    {"move":{"type":"test"},"taps":["[data-sx-move='{\"type\":\"test\"}']"]}
+  ]
+},
+{
+  mode: "plan",
+  parameters: {"mode":"plan","items":"shapes","count":3,"questions":2},
+  steps: [
+    {"move":{"type":"item","item":0},"taps":["[data-sx-move='{\"type\":\"item\",\"item\":0}']"]},
+    {"move":{"type":"question","question":1},"taps":["[data-sx-move='{\"type\":\"question\",\"question\":1}']"]},
+    {"move":{"type":"item","item":1},"taps":["[data-sx-move='{\"type\":\"item\",\"item\":1}']"]}
+  ]
+},
+{
+  mode: "plantest",
+  parameters: {"mode":"plantest","length":2,"tests":2},
+  steps: [
+    {"move":{"type":"lantern","test":0,"lantern":0},"taps":["[data-sx-move='{\"type\":\"lantern\",\"test\":0,\"lantern\":0}']"]},
+    {"move":{"type":"lantern","test":1,"lantern":1},"taps":["[data-sx-move='{\"type\":\"lantern\",\"test\":1,\"lantern\":1}']"]}
+  ]
+}
+];
+
 export default {
   id: 'secrets',
   mechanics: secretMechanics,

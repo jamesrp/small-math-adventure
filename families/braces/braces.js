@@ -83,11 +83,23 @@ export function pushAngles(q, braces, t, amount = 0.42) {
 }
 
 // --- Boards ------------------------------------------------------------------
-// fewest: {braces, told, claimed}   one, loose, playground: {braces}
-// `told` answers a wrong Fewest: the frame still moves, or a brace that can go.
+// fewest: {braces, told, claimed, last?}   one, loose, playground: {braces}
+// `told` answers a wrong Fewest: the frame still moves, or it holds with a
+// brace to spare. `last` is the braces at the last Fewest (absent before the
+// first, and in saves from before October 24, when it counts as the start).
 const startOf = q => sorted(q.start || []);
 const validSet = (q, list) => Array.isArray(list) && list.every(k => allowed(q, k)) && new Set(list).size === list.length && list.every((k, i) => i === 0 || list[i - 1] < k);
-const toldFor = (q, braces) => !holds(q, braces) ? {kind: 'moves'} : braces.length > fewest(q) ? {kind: 'spare', cell: spare(q, braces)[0]} : null;
+// A spare brace is marked only when the child added it since the last Fewest
+// (Who knows' rule); otherwise the answer names only the kind of fault, so
+// bracing every cell and taking out each marked brace no longer reaches the
+// fewest (claims audit).
+const toldFor = (q, braces, last = startOf(q)) => {
+  if (!holds(q, braces)) return {kind: 'moves'};
+  if (braces.length <= fewest(q)) return null;
+  const cell = spare(q, braces).find(k => !last.includes(k));
+  return cell === undefined ? {kind: 'spare'} : {kind: 'spare', cell};
+};
+const keysOf = (o, list) => Object.keys(o).sort().join() === [...list].sort().join();
 function fresh(p) {
   const q = p.parameters;
   return q.mode === 'fewest' ? {braces: startOf(q), told: null, claimed: false} : {braces: startOf(q)};
@@ -99,8 +111,17 @@ function valid(p, b) {
   if (q.mode === 'loose') return b.braces.length <= q.count;
   if (q.mode !== 'fewest') return true;
   if (typeof b.claimed !== 'boolean') return false;
+  if ('last' in b && !validSet(q, b.last)) return false;
   if (b.claimed) return b.told === null && holds(q, b.braces) && b.braces.length === fewest(q);
-  return b.told === null || (b.braces.length > 0 && JSON.stringify(b.told) === JSON.stringify(toldFor(q, b.braces)));
+  if (b.told === null) return true;
+  // An answer stands only on the frame it judged (`last` is that frame), and
+  // says what is true of it: it moves, or it holds with a brace to spare (the
+  // brace marked, if any, is one that can go).
+  if (!b.braces.length || ('last' in b && JSON.stringify(b.last) !== JSON.stringify(b.braces))) return false;
+  const kind = toldFor(q, b.braces)?.kind;
+  if (!object(b.told) || b.told.kind !== kind) return false;
+  if (kind === 'moves') return keysOf(b.told, ['kind']);
+  return keysOf(b.told, ['kind']) || (keysOf(b.told, ['kind', 'cell']) && spare(q, b.braces).includes(b.told.cell));
 }
 function solved(p, b) {
   const q = p.parameters;
@@ -118,13 +139,13 @@ function move(p, b, action) {
     const has = b.braces.includes(k), braces = has ? b.braces.filter(j => j !== k) : sorted([...b.braces, k]);
     if (q.mode === 'one' && (startOf(q).includes(k) || braces.length > startOf(q).length + 1)) return null;
     if (q.mode === 'loose' && braces.length > q.count) return null;
-    return q.mode === 'fewest' ? {braces, told: null, claimed: false} : {braces};
+    return q.mode === 'fewest' ? {braces, told: null, claimed: false, ...('last' in b ? {last: b.last} : {})} : {braces};
   }
   if (action.type === 'claim' && q.mode === 'fewest') {
     // An answer to this same frame waits for a change.
     if (!b.braces.length || b.told) return null;
-    const told = toldFor(q, b.braces);
-    return told ? {...b, told} : {...b, claimed: true};
+    const told = toldFor(q, b.braces, 'last' in b ? b.last : startOf(q));
+    return told ? {...b, told, last: b.braces} : {...b, claimed: true, last: b.braces};
   }
   return null;
 }
@@ -190,11 +211,13 @@ function frameSvg(q, b, opts) {
 // for each brace, dots tinted by piece and lit when there is one piece. The
 // links and tints show only after a push (braces.css), so the graph explains
 // what the push did rather than predicting it.
-function rowColumnGraph(q, braces) {
-  const span = Math.max(q.rows, q.cols), aspect = .85, y = (i, n) => span === 1 ? 50 : 10 + 80 * (i + (span - n) / 2) / (span - 1);
+// On a phone the graph lies across under the frame instead, rows along the
+// top and columns along the bottom, so frame and graph fit one screen.
+function rowColumnGraph(q, braces, wide = false) {
+  const span = Math.max(q.rows, q.cols), aspect = wide ? 2.3 : .85, y = (i, n) => span === 1 ? 50 : 10 + 80 * (i + (span - n) / 2) / (span - 1);
   const nodes = {};
-  for (let r = 0; r < q.rows; r++) nodes[`R${r + 1}`] = [16, y(r, q.rows)];
-  for (let c = 0; c < q.cols; c++) nodes[`C${c + 1}`] = [84, y(c, q.cols)];
+  for (let r = 0; r < q.rows; r++) nodes[`R${r + 1}`] = wide ? [y(r, q.rows), 20] : [16, y(r, q.rows)];
+  for (let c = 0; c < q.cols; c++) nodes[`C${c + 1}`] = wide ? [y(c, q.cols), 80] : [84, y(c, q.cols)];
   const g = graphOf({nodes, edges: braces.map(k => [`R${rowOf(q, k) + 1}`, `C${colOf(q, k) + 1}`]), aspect, scale: 1.25});
   const p0 = pieces(q, braces), one = p0.count === 1, size = {};
   for (const x of [...p0.row, ...p0.col]) size[x] = (size[x] || 0) + 1;
@@ -214,10 +237,11 @@ function render(p, a) {
   const beads = q.mode === 'loose' ? `<span class="bf-beads" role="img" aria-label="${b.braces.length} of ${q.count} braces">${Array.from({length: q.count}, (_, k) => `<i class="${k < b.braces.length ? 'on' : ''}"></i>`).join('')}</span>` : '';
   const claim = q.mode === 'fewest' && !done ? button('Fewest', `data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'claim'}))}" data-focus="bf-claim"`, 'bf-claim', b.braces.length > 0 && !b.told, hinted?.action?.type === 'claim') : '';
   const push = button('Push', 'data-bf-push data-focus="bf-push"', 'bf-push', true, false);
-  const words = {moves: 'It still moves.', spare: 'It holds, but this brace can go.'};
-  const note = b.told ? `<p class="bf-told">${words[b.told.kind]}</p>` : '';
-  const graph = q.graph ? `<div class="bf-side" data-bf-after="${esc(`Rows and columns linked by braces: ${plural(pieces(q, b.braces).count, 'piece')}`)}">${rowColumnGraph(q, b.braces)}</div>` : '';
-  const status = `${plural(b.braces.length, 'brace')}.${b.told ? ` ${words[b.told.kind]}` : ''}`;
+  const say = told => told.kind === 'moves' ? 'It still moves.' : told.cell === undefined ? 'It holds, but a brace can go.' : 'It holds, but this brace can go.';
+  const note = b.told ? `<p class="bf-told">${say(b.told)}</p>` : '';
+  const after = esc(`Rows and columns linked by braces: ${plural(pieces(q, b.braces).count, 'piece')}`);
+  const graph = q.graph ? [false, true].map(wide => `<div class="bf-side${wide ? ' bf-wide' : ' bf-tall'}" data-bf-after="${after}">${rowColumnGraph(q, b.braces, wide)}</div>`).join('') : '';
+  const status = `${plural(b.braces.length, 'brace')}.${b.told ? ` ${say(b.told)}` : ''}`;
   return `<div class="bf-puzzle${q.graph ? ' with-graph' : ''}${b.told?.kind === 'moves' ? ' push-now' : ''}" data-mechanic-wire="braces"><div class="bf-bar">${beads}<span class="bf-buttons">${push}${claim}</span></div><div class="bf-boards"><div class="bf-main">${frame}</div>${graph}</div>${note}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
@@ -240,8 +264,7 @@ function animate(root, q, braces) {
   if (firm) svg.classList.add('bf-firm');
   // The push reveals the graph's links and the pieces that turned together.
   root.classList.add('pushed');
-  const side = root.querySelector('[data-bf-after]'), board = side?.querySelector('.gb-board');
-  if (board) board.setAttribute('aria-label', side.dataset.bfAfter);
+  for (const side of root.querySelectorAll('[data-bf-after]')) side.querySelector('.gb-board')?.setAttribute('aria-label', side.dataset.bfAfter);
   const status = root.querySelector('[role=status]');
   if (status) status.textContent = firm ? 'It holds.' : 'It moves.';
   const step = now => {
@@ -274,9 +297,20 @@ export const bracesMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+bracesMechanics["braces"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"mode": "fewest", "rows": 2, "cols": 2, "start": [1]},
+  steps: [
+    {"move": {"type": "brace", "cell": 0}, "taps": ["[data-bf-cell=\"0\"]"]},
+    {"move": {"type": "brace", "cell": 3}, "taps": ["[data-bf-cell=\"3\"]"]}
+  ]
+};
+
 export default {
   id: 'braces',
-  family: {id: 'braces', symbol: '▧'},
+  family: {id: 'braces', symbol: '▧', area: 'networks', region: 'networks'},
   mechanics: bracesMechanics,
   pack: new URL('./braces.json', import.meta.url).href,
   css: new URL('./braces.css', import.meta.url).href,

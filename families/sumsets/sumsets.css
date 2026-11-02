@@ -66,11 +66,16 @@
 /* Words that answer a finished route, That's all or a tray. */
 .ss-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
 
+/* Phones: the trays and the strip run to the panel's edges, so a card is
+   about 32 px wide (44 tall) and a total's numeral 13 px. Ten cards in a row
+   are the number line whose spacing the puzzles are about, so they stay one
+   row rather than two rows of five; 40 px cards would need a 520 px screen. */
 @media (max-width:480px){
   .ss-puzzle{gap:.55rem}
-  .ss-tray{grid-template-columns:18px minmax(0,1fr);gap:4px}
-  .ss-cards{gap:2px}
-  .ss-puzzle .ss-card{font-size:1rem;border-radius:6px}
-  .ss-num{font-size:.68rem}
+  .ss-tray{grid-template-columns:16px minmax(0,1fr);gap:3px;align-self:stretch;width:auto;max-width:none;margin-inline:-12px}
+  .ss-cards{gap:1px}
+  .ss-puzzle .ss-card{font-size:1.05rem;border-radius:6px}
+  .ss-strip{align-self:stretch;width:auto;max-width:none;margin-inline:-12px}
+  .ss-num{font-size:.8125rem}
   .ss-slot{height:24px}
 }

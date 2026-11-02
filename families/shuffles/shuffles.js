@@ -208,6 +208,10 @@ function catalogFor(q, steps) {
   if (q.mode === 'design') return catalogHTML(stories(steps), orderBins(q.cups), madeBy(q.start, steps), {...storySaid(q.start, steps), label: 'Every story', mark: () => 'yes'});
   return '';
 }
+function exploreCatalog(q, steps) {
+  const catalog = catalogFor(q, steps);
+  return catalog ? `<details class="shuffle-explore" data-view-key="shuffle-catalog"><summary>${q.mode === 'rows' ? 'Every row' : 'Every story'}</summary>${catalog}</details>` : '';
+}
 // A design that fails shows why: two stories that make one order, or an
 // order no story makes.
 function verdictHTML(q, steps) {
@@ -226,7 +230,7 @@ function renderPuzzle(p, a) {
     const cups = cupsBoard(q.start, {slots: true, inert: true, label: 'Cups in their slots'});
     const tickets = ticketsHTML(steps, [], {design: true, cups: q.cups, still: solved, hint: h?.type === 'toggle' ? h : null});
     const actions = solved ? '' : `<div class="case-actions">${button('Try it', {type: 'try'}, h?.type === 'try' ? 'hinted' : '', b.tried ? 'disabled' : '')}</div>`;
-    const result = solved ? catalogFor(q, steps) : b.tried ? verdictHTML(q, steps) : '';
+    const result = solved ? exploreCatalog(q, steps) : b.tried ? verdictHTML(q, steps) : '';
     return `<div class="shuffle-puzzle" data-mechanic-wire="shuffles">${cups}${tickets}${actions}${result}</div>`;
   }
   const board = cupsFor(steps, row, b.story, {still: solved, hint: h?.type === 'draw' ? h.ticket : null});
@@ -237,7 +241,7 @@ function renderPuzzle(p, a) {
   const missed = every && b.missed ? '<p class="case-note" role="status">There’s another.</p>' : '';
   const current = finished(steps, b.story) && !solved ? keyOf(q, b.story) : null;
   const shelf = every ? shelfFor(q, steps, b, {current, load: !solved, label: q.mode === 'rows' ? 'Rows kept' : 'Stories kept'}) : '';
-  const cat = solved ? catalogFor(q, steps) : '';
+  const cat = solved ? exploreCatalog(q, steps) : '';
   return `<div class="shuffle-puzzle" data-mechanic-wire="shuffles">${board}${tickets}${actions}${missed}${shelf}${cat}<p class="sr-only" role="status">${esc(describe(row, b.story) + '.')}</p></div>`;
 }
 
@@ -348,9 +352,28 @@ export const shuffleMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+shuffleMechanics.shuffles.howTo = [
+{
+  parameters: {"mode":"stories","cups":3,"start":"BAC","steps":[{"slot":1,"tickets":[1,3]},{"slot":2,"tickets":[1,2]}]},
+  steps: [
+    {"move":{"type":"draw","ticket":3},"taps":["[data-shuffle-move='{\"type\":\"draw\",\"ticket\":3}']"]},
+    {"move":{"type":"draw","ticket":2},"taps":["[data-shuffle-move='{\"type\":\"draw\",\"ticket\":2}']"]}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","cups":3,"start":"ABC","slots":[1,2]},
+  steps: [
+    {"move":{"type":"toggle","step":0,"ticket":3},"taps":["[data-shuffle-move='{\"type\":\"toggle\",\"step\":0,\"ticket\":3}']"]},
+    {"move":{"type":"toggle","step":1,"ticket":1},"taps":["[data-shuffle-move='{\"type\":\"toggle\",\"step\":1,\"ticket\":1}']"]}
+  ]
+}
+];
+
 export default {
   id: 'shuffles',
-  family: {id: 'shuffles', symbol: '⇆'},
+  family: {id: 'shuffles', symbol: '⇆', area: 'chance', region: 'chance'},
   mechanics: shuffleMechanics,
   pack: new URL('./shuffles.json', import.meta.url).href,
   css: new URL('./shuffles.css', import.meta.url).href,

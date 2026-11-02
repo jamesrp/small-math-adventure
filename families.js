@@ -64,13 +64,80 @@ const paths = [
   './families/nests/nests.js',
   './families/joins/joins.js',
   './families/strings/strings.js',
-  './families/shares/shares.js'
+  './families/shares/shares.js',
+  './families/stairs/stairs.js',
+  './families/tropical/tropical.js',
+  './families/shrink/shrink.js',
+  './families/creases/creases.js',
+  './families/aims/aims.js',
+  './families/folds/folds.js',
+  './families/holes/holes.js',
+  './families/mobius/mobius.js',
+  './families/islands/islands.js',
+  './families/octagon/octagon.js',
+  './families/rookrace/rookrace.js',
+  './families/width/width.js',
+  './families/globe/globe.js',
+  './families/friezes/friezes.js',
+  './families/corners/corners.js',
+  './families/tetra/tetra.js',
+  './families/buckets/buckets.js',
+  './families/taquin/taquin.js',
+  './families/hackenbush/hackenbush.js',
+  './families/piles/piles.js',
+  './families/cops/cops.js',
+  './families/seeds/seeds.js',
+  './families/loops/loops.js',
+  './families/catches/catches.js',
+  './families/primes/primes.js',
+  './families/reshape/reshape.js',
+  './families/knowledge/knowledge.js',
+  './families/totals/totals.js',
+  './families/rotor/rotor.js',
+  './families/tent/tent.js',
+  './families/pantograph/pantograph.js',
+  './families/leftovers/leftovers.js',
+  './families/votes/votes.js',
+  './families/calibrate/calibrate.js'
 ];
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));
 
-// The satchel families the modules add, newest first. The newest starts open.
+// The satchel families the modules add, newest first.
 export const newFamilies = () => FAMILIES.filter(m => m.family).map(m => m.family).reverse();
+
+// The areas of mathematics that Grown-ups groups the families' notes under. A
+// module's family names one (`family.area`); the twelve base mechanics have
+// theirs in dist/ui.js. A family without one is listed under More. (The
+// Puzzles library has its own regions, REGIONS below.)
+export const AREAS = {
+  games: 'Games and strategy',
+  logic: 'Logic and information',
+  networks: 'Maps and networks',
+  numbers: 'Numbers and measuring',
+  patterns: 'Orders and patterns',
+  shapes: 'Tilings and shapes',
+  geometry: 'Geometry and symmetry',
+  surfaces: 'Surfaces and knots',
+  chance: 'Chance and fairness',
+};
+
+// The regions of the Puzzles library, in the order it shows them, named in a
+// child's words. The keys are the worksheet catalog's eight areas
+// (catalog/concepts.toml in the worksheets repository), which decide where a
+// family goes: a module's family names one (`family.region`); the twelve base
+// mechanics have theirs in dist/caravan-ui.js. docs/library.md lists every
+// family's region and why.
+export const REGIONS = {
+  games: 'Games and choices',
+  networks: 'Maps and networks',
+  shape: 'Shapes and spaces',
+  symmetry: 'Patterns and symmetry',
+  number: 'Numbers',
+  counting: 'Counting and arranging',
+  logic: 'Codes and logic',
+  chance: 'Chance and machines',
+};
 
 // The app's single pack: the base pack, then each module's pack in registry order.
 export function mergePacks(base, packs) {

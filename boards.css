@@ -9,7 +9,8 @@
 /* Shared controls: chips for moves, pine for the main action. */
 .board-panel .expansion-action,.board-panel .pair-button,.board-panel .latin-keypad button,.board-panel .proof-actions .secondary{background:var(--b-card);color:var(--b-ink);border:1px solid var(--b-line);border-radius:11px;box-shadow:0 2px 0 var(--b-line);font-weight:600}
 .board-panel .expansion-action[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine);box-shadow:inset 0 0 0 1.5px var(--b-pine);color:var(--b-ink)}
-.board-panel .expansion-action:disabled,.board-panel .pair-button:disabled{opacity:.45;box-shadow:none}
+.board-panel .expansion-action:disabled,.board-panel .pair-button:disabled,.board-panel .network-graph .expansion-action[aria-disabled="true"]{opacity:.45;box-shadow:none}
+.board-panel .network-graph .expansion-action[aria-disabled="true"]{cursor:default}
 .board-panel .primary,.board-panel button[type="submit"]{background:var(--b-pine);color:var(--b-on-pine);border:0;border-radius:12px;box-shadow:0 3px 0 #1d3526;font-weight:700}
 .board-panel select,.board-panel input[type="number"]{border:1px solid var(--b-line);border-radius:11px;background:var(--b-card);color:var(--b-ink);min-height:46px;font:inherit}
 .board-panel label{color:var(--b-ink)}
@@ -45,13 +46,6 @@
 .board-panel .clock-center{font-family:var(--b-display);font-weight:400;fill:var(--b-ink)}
 .board-panel .clock-picture figcaption{font-family:var(--b-display);font-weight:400}
 
-/* Mirror rooms */
-.board-panel .room-wall{stroke:var(--b-ink);stroke-width:3.5}
-.board-panel .room-grid line{stroke:#e2e4d4}
-.board-panel :is(.aim-line){stroke:var(--b-pine)}
-.board-panel :is(.aim-tip,.launch-dot){fill:var(--b-pine)}
-.board-panel :is(.courier-path,.unfolded-path){stroke:var(--b-ochre)}
-.board-panel .bounce-dot{fill:var(--b-ochre)}
 .board-panel .motion-result{background:var(--b-paper);border:1px solid var(--b-line)}
 
 /* Maps: routes and colors */
@@ -85,6 +79,9 @@
 .board-panel .code-choices button{border-radius:50%;width:56px;height:56px;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;box-shadow:0 2px 0 rgba(41,68,57,.25)}
 .board-panel .code-choices button[data-bit="blank"]{background:var(--b-card);border-style:dashed}
 .board-panel .code-mismatch{background:var(--b-bad-soft)}
+.board-panel .code-mark-good{color:var(--b-good)}
+.board-panel .code-mark-bad{color:var(--b-bad);font-weight:700}
+.board-panel .code-feedback{margin:0 0 8px}
 
 /* Pebble duel (Nim) uses the proof duel's piles */
 .board-panel .nim-puzzle{max-width:none}
@@ -99,6 +96,17 @@
 .board-panel .nim-puzzle .duel-pebble:disabled{opacity:1}
 .board-panel .nim-count{font-family:var(--b-display);color:var(--b-muted);font-size:1rem}
 @media (max-width:460px){.board-panel .nim-puzzle .duel-pebble{width:44px;min-width:44px}.board-panel .nim-puzzle .duel-base{width:52px}.board-panel .nim-piles{gap:12px 8px}}
+/* Both pebble games keep the next action on screen. Under the piles when the
+   board fits; on a shorter screen Go first / Go second, Take / Cancel and New
+   start stick to the bottom edge over a paper fade until the board's end
+   scrolls up to meet them. A pebble tapped before a start is chosen makes the
+   two buttons call (a ring, and a pulse unless motion is reduced). */
+.board-panel :is(.nim-puzzle,.proof-duel)>.proof-actions:not(:empty){position:sticky;bottom:0;z-index:2;margin-top:0;padding:16px 0 max(10px,env(safe-area-inset-bottom));background:linear-gradient(#fffdf500,var(--b-card) 16px)}
+.board-panel .proof-duel>.proof-actions.is-calling button{box-shadow:0 0 0 3px var(--b-card),0 0 0 6px var(--b-ochre)}
+@media (prefers-reduced-motion:no-preference){.board-panel .proof-duel>.proof-actions.is-calling button{animation:pebble-call .4s ease-in-out 4 alternate}}
+@keyframes pebble-call{to{transform:scale(1.08)}}
+/* On a phone the rematch's four piles keep inside the card: narrower bowls and gaps. */
+@media (max-width:460px){.board-panel .proof-duel .duel-base{width:52px}.board-panel .proof-duel .duel-piles{gap:clamp(8px,4vw,48px)}}
 
 /* Spring-water jugs */
 .board-panel .jug-station h3{font-family:var(--b-display);font-weight:400;font-size:1.3rem}
@@ -107,7 +115,7 @@
 .board-panel .jug-vessel>strong{font-family:var(--b-display);font-weight:400;color:var(--b-ink)}
 
 /* Odd-pebble balance */
-.board-panel .balance-art{display:block;width:min(100%,460px);height:auto;margin:6px auto 2px}
+.board-panel .balance-art{display:block;width:min(100%,340px);height:auto;margin:2px auto}
 .board-panel .balance-stand{stroke:var(--b-ink);stroke-width:5;stroke-linecap:round;fill:none}
 .board-panel .balance-beam{stroke:var(--b-ink);stroke-width:7;stroke-linecap:round}
 .board-panel .balance-pivot-dot{fill:var(--b-sun);stroke:var(--b-ink);stroke-width:2.5}
@@ -115,16 +123,19 @@
 .board-panel .balance-dish{fill:#e9e2c9;stroke:var(--b-ink);stroke-width:2.5}
 .board-panel .balance-stone ellipse{fill:#c9cbbd;stroke:var(--b-ink);stroke-width:2}
 .board-panel .balance-stone.is-normal ellipse{fill:var(--b-leaf)}
-.board-panel .balance-stone text{font-family:var(--b-display);font-size:12px;text-anchor:middle;fill:var(--b-ink)}
-.board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;margin:12px 0}
-.board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:4px 6px 8px}
+.board-panel .balance-stone text{font-family:var(--b-display);font-size:14px;text-anchor:middle;fill:var(--b-ink)}
+.board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:6px;margin:8px 0}
+.board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:2px 5px 4px}
 .board-panel .balance-pebble.pebble-on-left,.board-panel .balance-pebble.pebble-on-right{background:#f6edd2;border-color:#e3cf98}
 .board-panel .balance-pebble legend{display:flex;align-items:center;gap:6px;padding:0 4px}
+.board-panel .balance-pebble legend:not(.sr-only){float:left;width:100%;margin-bottom:2px}
 .board-panel .pebble-token{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:50%;background:#c9cbbd;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;font-size:1.05rem;color:var(--b-ink)}
 .board-panel .pebble-token.pebble-normal{background:var(--b-leaf)}
 .board-panel .pebble-normal-label{font-size:.8rem;color:var(--b-muted)}
-.board-panel .pebble-places{gap:3px}
-.board-panel .pebble-places button{min-width:0;padding:6px 2px;font-size:.95rem}
+.board-panel .pebble-places{gap:3px;clear:both}
+.board-panel .pebble-places button{min-width:0;min-height:44px;padding:2px;font-size:.95rem}
+.board-panel .pebble-places button[aria-pressed="true"]{background:var(--b-card);color:var(--b-ink)}
+.board-panel .pebble-place-icon{color:var(--b-muted)}
 .board-panel .pebble-place-name{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .board-panel .balance-controls{justify-content:center}
 .board-panel .balance-history{border:1px solid var(--b-line);background:var(--b-paper)}
@@ -136,10 +147,32 @@
 .board-panel .balance-answer legend{font-size:.85rem;color:var(--b-muted);margin-bottom:4px;width:100%}
 .board-panel .answer-coin,.board-panel .answer-choice{position:relative;cursor:pointer}
 .board-panel .answer-coin input,.board-panel .answer-choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.board-panel .answer-coin .pebble-token{width:44px;height:40px}
+.board-panel .answer-coin .pebble-token{width:44px;height:44px}
 .board-panel .answer-coin input:checked+.pebble-token{background:var(--b-sun);box-shadow:0 0 0 3px #f1dca5}
 .board-panel .answer-choice span{display:inline-grid;place-items:center;min-height:44px;padding:0 14px;border-radius:11px;border:1px solid var(--b-line);background:var(--b-card);font-weight:600}
 .board-panel .answer-choice input:checked+span{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine)}
 .board-panel :is(.answer-coin,.answer-choice) input:focus-visible+*{outline:3px solid var(--b-ochre);outline-offset:2px}
+/* On a phone the answer is two rows: the pebbles (one line, or two even lines
+   from 7 pebbles on), then Weight and Check side by side (Check alone when the
+   odd pebble can only be heavy). */
+@media (max-width:620px){
+ .board-panel .balance-answer{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:end;gap:10px 16px}
+ .board-panel .balance-answer .answer-coins{grid-column:1/-1;justify-self:center;display:grid;grid-template-columns:repeat(var(--coin-cols,6),44px);gap:6px}
+ .board-panel .balance-answer:not(:has(.answer-weight)) [type=submit]{grid-column:1/-1;justify-self:center}
+ .board-panel .balance-answer .answer-weight{flex-wrap:nowrap}
+}
 .board-panel .measurement-observation:empty{display:none}
 .board-panel .measurement-observation{background:var(--b-paper);border:1px solid var(--b-line)}
+
+/* Tall Nim piles keep every stone large enough to tap in two columns. */
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7)){display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--nim-rows,6),44px);gap:2px;transform:scaleY(-1)}
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7))>.duel-pebble{transform:scaleY(-1)}
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7))>.duel-pebble.lift{transform:scaleY(-1) translateY(-8px)}
+/* Checker colors: a 44 px switch (the whole pill is the target). */
+.board-panel .checker-toggle{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px 0 8px;border:2px solid var(--b-line);border-radius:999px;background:var(--b-card);color:var(--b-ink);font-weight:650;cursor:pointer}
+.board-panel .checker-toggle input{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:44px;height:28px;margin:0;border:2px solid var(--b-muted);border-radius:999px;background:var(--b-chip);cursor:pointer;transition:background .15s,border-color .15s}
+.board-panel .checker-toggle input::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);transition:left .15s}
+.board-panel .checker-toggle input:checked{background:var(--b-pine);border-color:var(--b-pine)}
+.board-panel .checker-toggle input:checked::after{left:18px}
+.board-panel .checker-toggle input:focus-visible{outline:3px solid var(--b-ochre);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.board-panel .checker-toggle input,.board-panel .checker-toggle input::after{transition:none}}

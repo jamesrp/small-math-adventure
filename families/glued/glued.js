@@ -508,7 +508,7 @@ function renderGlue(p, a) {
     return `<div class="gl-trip"><div class="gl-head"><span class="gl-from t${k}">${g.from}</span>${arrowIcon(g.dir, 22)}${beads}</div>${strip(S, p, k, dotOf(q, g.from), g.dir, t, {label, letterAt: letterSpot([g.dir], q.spot)})}<p class="sr-only">${esc(label)}</p></div>`;
   }).join('');
   const open = cantOpen(q, b), hintCant = shown?.type === 'cant' && !claiming;
-  const bar = done ? '' : `<div class="gl-bar"><button type="button" class="secondary gl-button gl-cant${hintCant ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" aria-pressed="${claiming}" ${open ? '' : 'disabled'}>Can’t</button></div>`;
+  const bar = done ? '' : `<div class="gl-bar"><button type="button" class="secondary gl-button gl-cant${hintCant ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" data-toggle="gl-cant" aria-pressed="${claiming}" ${open ? '' : 'disabled'}>Can’t</button></div>`;
   const told = b.told === 'way' ? 'There is a way.' : b.told === 'taps' ? 'The taps must follow the trip to every dot and home.' : '';
   const status = `${trips.map((t, k) => `${q.trips[k].from}: ${t.home ? `home after ${t.home}` : 'not home'}`).join('. ')}.${told ? ` ${told}` : ''}`;
   return `<div class="gl-puzzle mode-glue${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="glued">${bar}<div class="gl-stage${q.trips.length > 1 ? ' two' : ''}"><div class="gl-room-view">${room}</div><div class="gl-trips">${cards}</div></div>${told ? `<p class="gl-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
@@ -652,6 +652,18 @@ function wire(root, p, api) {
 // the move made when the last dot is tapped, with the dots in the order tapped.
 export const gluedMechanics = {
   glued: {
+    howTo: [
+      {parameters: {"mode": "glue","squares": {"A": [0,0],"B": [2,0]},"sides": ["right"],"start": {"right": {"A": null,"B": null},"up": {"A": null,"B": null}},"spot": [[1,2],[1,4]],"trips": [{"from": "A","dir": [1,0],"blocks": 3}]},
+        steps: [
+          {"move": {"type": "glue","side": "right","from": "A","to": "B"},"taps": ["[data-pb-point=\"side,A,right\"]","[data-pb-point=\"side,B,left\"]"]},
+          {"move": {"type": "glue","side": "right","from": "B","to": "A"},"taps": ["[data-pb-point=\"side,B,right\"]","[data-pb-point=\"side,A,left\"]"]}
+        ]},
+      {mode: 'corners', parameters: {"mode": "corners","squares": {"A": [0,0],"B": [1,0]},"right": {"A": "B","B": null},"up": {"A": null,"B": null}},
+        steps: [
+          {"move": {"type": "link","a": "A:10","b": "B:00"},"taps": ["[data-pb-point=\"corner,A:10\"]","[data-pb-point=\"corner,B:00\"]"]},
+          {"move": {"type": "link","a": "A:11","b": "B:01"},"taps": ["[data-pb-point=\"corner,A:11\"]","[data-pb-point=\"corner,B:01\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: setView,
     reset: p => { views.delete(p.id); },
@@ -671,7 +683,7 @@ export const gluedMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'glued',
-  family: {id: 'glued', symbol: '⊞'},
+  family: {id: 'glued', symbol: '⊞', area: 'surfaces', region: 'shape'},
   mechanics: gluedMechanics,
   pack: new URL('./glued.json', import.meta.url).href,
   css: new URL('./glued.css', import.meta.url).href,

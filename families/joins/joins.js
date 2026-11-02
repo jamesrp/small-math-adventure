@@ -434,9 +434,28 @@ export const joinsMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+joinsMechanics.joins.howTo = [
+{
+  parameters: {"mode":"reach","start":[3,3,2],"goal":[6,1,1],"span":8},
+  steps: [
+    {"move":{"type":"join","sizes":[3,3]},"taps":["[data-focus=\"jn-bench-0\"]","[data-focus=\"jn-bench-1\"]"]},
+    {"move":{"type":"cut","size":6,"at":3},"taps":["[data-focus=\"jn-bench-0\"]"]}
+  ]
+},
+{
+  mode: "match",
+  parameters: {"mode":"match","to":"odd","total":5,"cards":[[4,1],[3,2]],"span":5},
+  steps: [
+    {"move":{"type":"load","card":0}},
+    {"move":{"type":"cut","size":4,"at":2},"taps":["[data-focus=\"jn-bench-0\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'joins',
-  family: {id: 'joins', symbol: '▤'},
+  family: {id: 'joins', symbol: '▤', area: 'numbers', region: 'counting'},
   mechanics: joinsMechanics,
   pack: new URL('./joins.json', import.meta.url).href,
   css: new URL('./joins.css', import.meta.url).href,

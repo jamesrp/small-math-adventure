@@ -1,12 +1,23 @@
 import { BANDS, CONTENT_VERSION, freshAttempt, validBoard, isSolved, clone } from './engine.js';
 import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
+import { legacyBilliardBoard, launchesHold } from './couriers.js';
 import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle, campaignAttemptReachable } from './road.js';
 import { validateJourney as validateRoad3Journey } from './caravan-road3.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
 import { validateJourney as validateRescueJourney, resolvePuzzle as resolveRescuePuzzle } from './caravan-rescue.js';
-export const SAVE_KEY = 'small-math-adventure:saves:v1';
-export const BACKUP_KEY = 'small-math-adventure:previous:v1';
+import { PREVIEW } from './preview.js';
+// A preview copy shares the live app's origin, so it keeps its saves under its
+// own keys: neither copy reads, overwrites or clears the other's.
+// The repair key holds a save exactly as it was before loadStore last had to
+// start some of its puzzles afresh (see readSaved).
+export const saveKeys = preview => preview
+  ? { save:`small-math-adventure:preview:${preview}:saves:v1`, backup:`small-math-adventure:preview:${preview}:previous:v1`, repair:`small-math-adventure:preview:${preview}:before-repair:v1` }
+  : { save:'small-math-adventure:saves:v1', backup:'small-math-adventure:previous:v1', repair:'small-math-adventure:before-repair:v1' };
+export const SAVE_KEY = saveKeys(PREVIEW).save;
+export const BACKUP_KEY = saveKeys(PREVIEW).backup;
+export const REPAIR_KEY = saveKeys(PREVIEW).repair;
+export const REPAIRED_WARNING = 'Some puzzles changed and start fresh. Your stars are kept.';
 export const emptyStore = () => ({ schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: null, profiles: [] });
 // Only these revision-1 definitions may migrate to the L-only revision 2.
 const legacyGardens = {
@@ -216,7 +227,14 @@ const legacyGardens = {
 };
 const savedDefinition = (p, a) => p?.revision === 2 && p.tileShape === 'l-tromino' && a?.revision === 1 && Object.hasOwn(legacyGardens,p.id) ? legacyGardens[p.id] : p;
 const readableBoard = (p, board) => validBoard(p, board) || p.mechanic === 'nim' && legacyNimBoard(p, board);
+// A Mirror Couriers save from revision 1 (the predict-and-launch menus) is a
+// prediction or a menu setting; revision 2 starts that puzzle afresh and keeps
+// what was earned, as the L-tromino gardens do. The old hint level would name
+// the new puzzle's answer at once, so it starts at 0 (helpUsed stays).
+const legacyCourier = (p, a) => p?.mechanic === 'billiard' && p.revision === 2 && a?.revision === 1 && legacyBilliardBoard(a.board) && Array.isArray(a.history) && a.history.every(h => legacyBilliardBoard(h?.board));
+const courierAttempt = (p, a) => legacyCourier(p, a) ? {...a, revision:p.revision, board:freshAttempt(p).board, history:[], moves:0, hintLevel:0} : a;
 function restoredAttempt(p, a) {
+  a = courierAttempt(p, a);
   const saved = {revision:a.revision,board:clone(a.board),history:clone(a.history),moves:a.moves,hintLevel:a.hintLevel,helpUsed:a.helpUsed,completed:a.completed,lastPlayed:a.lastPlayed};
   if (savedDefinition(p,a) !== p) {
     const fresh = freshAttempt(p);
@@ -234,14 +252,44 @@ function restoredAttempt(p, a) {
   }
   return saved;
 }
-export function validateStore(value, puzzles) {
+// A puzzle as this explorer sees it. Archived pump capability belongs to the
+// original rescue, never the new road.
+const currentPuzzle = (base, profile, effectiveProfile, rescueJourney) => base?.campaignVersion===2 ? resolveRescuePuzzle(base,{...profile,journey:rescueJourney}) : resolvePuzzle(base,effectiveProfile);
+// One saved attempt against its puzzle; throws when they no longer match.
+function checkAttempt(id, saved, base, profile, effectiveProfile, rescueJourney, roadJourney) {
+  const archived=base?.campaignVersion===2;
+  const current = currentPuzzle(base,profile,effectiveProfile,rescueJourney);
+  const p = savedDefinition(current,saved), a = courierAttempt(p,saved);
+  if (base?.campaignOnly) {
+    const reached = base.campaignVersion===4 ? campaignAttemptReachable(effectiveProfile,base) : Object.values((archived?rescueJourney:roadJourney)?.bindings||{}).includes(id);
+    if (!reached) throw new Error('A campaign puzzle has not been reached.');
+  }
+  if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
+  if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
+  for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);
+  if (p.mechanic === 'weigh' && a.history.some(h => JSON.stringify(weighingSecret(p,h.board)) !== JSON.stringify(weighingSecret(p,a.board)))) throw new Error(`Undo history for ${id} changes the hidden pebble.`);
+  // A Mirror Couriers launch tally never falls along the Undo history.
+  if (p.mechanic === 'billiard' && !launchesHold(a)) throw new Error(`Undo history for ${id} is not valid.`);
+}
+// A new attempt at a puzzle that changed since it was saved. Only its earned
+// star, its help mark and when it was last played carry over, and only when
+// they have the right type.
+function restartedAttempt(p, saved) {
+  const fresh = freshAttempt(p), old = saved && typeof saved === 'object' ? saved : {};
+  return { ...fresh, helpUsed: old.helpUsed === true, completed: old.completed === true, lastPlayed: Number.isFinite(old.lastPlayed) && old.lastPlayed >= 0 ? old.lastPlayed : fresh.lastPlayed };
+}
+// Everything but the attempts is checked as strictly in both modes. With
+// repairs (an array), an attempt that no longer matches its puzzle starts
+// afresh and one whose puzzle is gone (or not reached) is left out; each is
+// recorded in repairs. Without it, any mismatch throws.
+function readStore(value, puzzles, repairs) {
   if (!value || value.schemaVersion !== 1 || value.contentVersion !== CONTENT_VERSION || !Array.isArray(value.profiles) || value.profiles.length > 30) throw new Error('This backup has an unsupported version or too many explorers.');
   const allPuzzles = withCampaignPuzzles(puzzles);
   const byId = new Map(allPuzzles.map(p => [p.id,p]));
-  const journeys = new Map();
+  const journeys = new Map(), kept = new Map();
   const ids = new Set();
   for (const profile of value.profiles) {
-    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
+    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || (Object.hasOwn(profile,'readAloud') && typeof profile.readAloud !== 'boolean') || (Object.hasOwn(profile,'importedAt') && !(Number.isFinite(profile.importedAt) && profile.importedAt >= 0)) || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
     ids.add(profile.id);
     // Earlier stories stay readable as archives; the current road is version 4.
     let journey, caravanJourney, rescueJourney, roadJourney;
@@ -267,33 +315,50 @@ export function validateStore(value, puzzles) {
       } else journey=validateJourney(profile.journey,profile,puzzles);
     }
     journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{}),...(rescueJourney?{rescueJourney}:{}),...(roadJourney?{roadJourney}:{})});
-    const effectiveProfile={...profile,journey};
-    for (const [id,a] of Object.entries(profile.attempts)) {
-      const base = byId.get(id);
-      // Archived pump capability belongs to the original rescue, never the new road.
-      const archived=base?.campaignVersion===2;
-      const current = archived?resolveRescuePuzzle(base,{...profile,journey:rescueJourney}):resolvePuzzle(base,effectiveProfile);
-      const p = savedDefinition(current,a);
-      if (base?.campaignOnly) {
-        const reached = base.campaignVersion===4 ? campaignAttemptReachable(effectiveProfile,base) : Object.values((archived?rescueJourney:roadJourney)?.bindings||{}).includes(id);
-        if (!reached) throw new Error('A campaign puzzle has not been reached.');
+    const effectiveProfile={...profile,journey}, attempts=[];
+    for (const [id,saved] of Object.entries(profile.attempts)) {
+      const base = byId.get(id), check = a => checkAttempt(id,a,base,profile,effectiveProfile,rescueJourney,roadJourney);
+      try { check(saved); attempts.push([id,saved]); } catch (error) {
+        if (!repairs) throw error;
+        let fresh = null;
+        if (base) { try { fresh = restartedAttempt(currentPuzzle(base,profile,effectiveProfile,rescueJourney),saved); check(fresh); } catch { fresh = null; } }
+        if (fresh) attempts.push([id,fresh]);
+        repairs.push({ profileId:profile.id, puzzleId:id, reset:Boolean(fresh), reason:error.message });
       }
-      if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
-      if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
-      for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);
-      if (p.mechanic === 'weigh' && a.history.some(h => JSON.stringify(weighingSecret(p,h.board)) !== JSON.stringify(weighingSecret(p,a.board)))) throw new Error(`Undo history for ${id} changes the hidden pebble.`);
     }
+    kept.set(profile.id,attempts);
   }
   if (value.activeProfileId !== null && !ids.has(value.activeProfileId)) throw new Error('The selected explorer is missing.');
   // Copy only documented fields; never merge arbitrary imported object keys.
-  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,attempts:Object.fromEntries(Object.entries(p.attempts).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...journeys.get(p.id) })) };
+  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,...(Object.hasOwn(p,'readAloud')?{readAloud:p.readAloud}:{}),...(Object.hasOwn(p,'importedAt')?{importedAt:p.importedAt}:{}),attempts:Object.fromEntries(kept.get(p.id).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...journeys.get(p.id) })) };
+}
+export const validateStore = (value, puzzles) => readStore(value, puzzles, null);
+// For saves in this browser only: imports stay strict (parseBackup).
+export function repairStore(value, puzzles) {
+  const repairs = [];
+  return { store:readStore(value, puzzles, repairs), repairs };
+}
+// A save from before an app update can hold attempts at puzzles that have
+// changed since. Rather than lose the whole save, those attempts start afresh
+// (keeping their stars) and attempts at puzzles that are gone are dropped,
+// after the save is copied untouched to REPAIR_KEY. Anything wrong outside the
+// attempts still makes the save unreadable.
+function readSaved(storage, text, puzzles) {
+  const value = JSON.parse(text);
+  try { return { store:validateStore(value,puzzles), repaired:false }; } catch { /* try a repair */ }
+  const { store, repairs } = repairStore(value, puzzles);
+  // The repaired store must be one persistStore will write.
+  if (!repairs.length) throw new Error('This save is not valid.');
+  validateStore(store, puzzles);
+  try { storage.setItem(REPAIR_KEY, text); } catch { /* The stars still load; the old boards could not be kept. */ }
+  return { store, repaired:true };
 }
 export function loadStore(storage, puzzles) {
   let primary;
   try { primary = storage.getItem(SAVE_KEY); } catch { return { store:emptyStore(), warning:'This browser is blocking saves. You can play, but export a backup before leaving.' }; }
   if (!primary) return { store:emptyStore(), warning:'' };
-  try { return { store:validateStore(JSON.parse(primary),puzzles), warning:'' }; } catch {
-    try { const previous = storage.getItem(BACKUP_KEY); if (previous) return { store:validateStore(JSON.parse(previous),puzzles), warning:'The latest save could not be read. Your previous good save was recovered. Export a backup now.' }; } catch { /* Preserve damaged data until an explicit change or clear. */ }
+  try { const { store, repaired } = readSaved(storage,primary,puzzles); return { store, warning:repaired?REPAIRED_WARNING:'' }; } catch {
+    try { const previous = storage.getItem(BACKUP_KEY); if (previous) { const { store, repaired } = readSaved(storage,previous,puzzles); return { store, warning:`The latest save could not be read. Your previous good save was recovered. Export a backup now.${repaired?' '+REPAIRED_WARNING:''}` }; } } catch { /* Preserve damaged data until an explicit change or clear. */ }
     return { store:emptyStore(), warning:'Saved data could not be read. The old save is still in browser storage. Import a backup or start a new explorer to continue.' };
   }
 }
@@ -303,7 +368,8 @@ export function persistStore(storage, store, puzzles) {
     const old = storage.getItem(SAVE_KEY);
     // Keep only a known-good previous snapshot, never overwrite it with corruption.
     if (old) { try { validateStore(JSON.parse(old),puzzles); storage.setItem(BACKUP_KEY,old); } catch { /* Current save still gets its own write attempt. */ } }
-    storage.setItem(SAVE_KEY,serialized);
+    // Today's progress matters more than the copy kept from before a repair.
+    try { storage.setItem(SAVE_KEY,serialized); } catch (error) { if (storage.getItem(REPAIR_KEY) === null) throw error; storage.removeItem(REPAIR_KEY); storage.setItem(SAVE_KEY,serialized); }
     return '';
   } catch { return 'Progress is only in memory: this device could not save it. Export a backup before closing the app.'; }
 }
@@ -311,8 +377,10 @@ export function parseBackup(text, puzzles) {
   if (typeof text !== 'string' || text.length > 5000000) throw new Error('Choose a Small math adventure JSON backup smaller than 5 MB.');
   try { return validateStore(JSON.parse(text),puzzles); } catch (e) { if (e instanceof SyntaxError) throw new Error('This file is not a readable JSON backup.'); throw e; }
 }
-export function importProfiles(store, backup, makeId) {
+// Each imported explorer remembers when it arrived (importedAt), so Grown-ups
+// can tell a copy from an explorer of the same name.
+export function importProfiles(store, backup, makeId, now = Date.now()) {
   if (store.profiles.length + backup.profiles.length > 30) throw new Error('There is room for 30 saved explorers. Remove an unused save first.');
-  const incoming = backup.profiles.map(p => ({...clone(p),id:makeId(),name:p.name.slice(0,24)}));
+  const incoming = backup.profiles.map(p => ({...clone(p),id:makeId(),name:p.name.slice(0,24),importedAt:now}));
   return { ...store, profiles:[...store.profiles,...incoming], activeProfileId:store.activeProfileId || incoming[0]?.id || null };
 }

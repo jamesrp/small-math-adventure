@@ -67,7 +67,7 @@
    "objective": "Put down, move and take away dots, and watch every dot’s region change.",
    "visibleObjective": "",
    "instruction": "Put down, move and take away dots, and watch every dot’s region change.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away; the regions change as you go. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away; the regions change as you go. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -130,7 +130,7 @@
    "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
    "visibleObjective": "Make A’s region exactly the shaded part.",
    "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -204,7 +204,7 @@
    "objective": "Put one new dot in the frame so that A’s region and B’s region share no place at all, not even a point. Press Check to see the regions.",
    "visibleObjective": "Make A’s region and B’s region stop touching.",
    "instruction": "Put one new dot in the frame so that A’s region and B’s region share no place at all, not even a point. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -305,7 +305,7 @@
    "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
    "visibleObjective": "Make A’s region exactly the shaded part.",
    "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -386,7 +386,7 @@
    "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
    "visibleObjective": "Make A’s region exactly the shaded part.",
    "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -462,7 +462,7 @@
    "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
    "visibleObjective": "Make A’s region exactly the shaded part.",
    "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -539,7 +539,7 @@
    "objective": "Put D in the frame so that one place belongs to four dots at once: A, B, C and D are all nearest to it. Press Check to see the regions.",
    "visibleObjective": "Make one place belong to four dots.",
    "instruction": "Put D in the frame so that one place belongs to four dots at once: A, B, C and D are all nearest to it. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -627,7 +627,7 @@
    "objective": "Put D in the frame so that D’s region shares at least one place with A’s region and one with B’s, and no place with C’s. Press Check to see the regions.",
    "visibleObjective": "Make D’s region touch A’s and B’s, but not C’s.",
    "instruction": "Put D in the frame so that D’s region shares at least one place with A’s region and one with B’s, and no place with C’s. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -939,7 +939,7 @@
    "objective": "Put new dots so that S stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
    "visibleObjective": "Take S from A, but keep P and Q with A.",
    "instruction": "Put new dots so that S stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -1141,7 +1141,7 @@
    "objective": "Put new dots so that A’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
    "visibleObjective": "Fit A’s whole region in the frame, with the fewest dots.",
    "instruction": "Put new dots so that A’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. Press Fewest once the region fits.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. Press Fewest once the region fits.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -1232,7 +1232,7 @@
    "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
    "visibleObjective": "Make A’s region exactly the shaded part.",
    "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -1328,7 +1328,7 @@
    "objective": "Put new dots so that R stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
    "visibleObjective": "Take R from A, but keep P and Q with A.",
    "instruction": "Put new dots so that R stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",
@@ -1417,7 +1417,7 @@
    "objective": "Put new dots so that R stops belonging to A while P still belongs to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
    "visibleObjective": "Take R from A, but keep P with A.",
    "instruction": "Put new dots so that R stops belonging to A while P still belongs to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
-   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "controls": "A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
    "rules": [
     "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
     "A dot’s region is all of its places. The map goes on past the frame.",

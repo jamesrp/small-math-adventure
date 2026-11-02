@@ -41,16 +41,29 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-scene-art>:is(img,video){object-position:50% 62%}
 .lr-keeper{position:relative;z-index:2;display:flex;align-items:flex-start;gap:12px;margin:-50px 14px 0;pointer-events:none}
 .lr-keeper>*{pointer-events:auto}
-.lr-portrait{flex:none;width:100px;height:100px;border-radius:50%;overflow:hidden;background:var(--rd-card);border:4px solid var(--rd-card);box-shadow:0 3px 0 rgba(0,0,0,.18)}
-.lr-bubble{position:relative;margin:58px 0 0;max-width:min(52ch,100%);background:var(--rd-card);color:var(--rd-ink);border-radius:18px;padding:10px 44px 11px 14px;font-size:1.08rem;line-height:1.35;box-shadow:0 0 0 1px var(--rd-line),0 3px 0 rgba(0,0,0,.12)}
+.lr-portrait{flex:none;width:100px;height:100px;border-radius:50%;overflow:hidden;background:var(--keeper,var(--rd-card));border:4px solid var(--rd-card);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.lr-bubble{position:relative;margin:58px 0 0;max-width:min(52ch,100%);min-height:52px;background:var(--rd-card);color:var(--rd-ink);border-radius:18px;padding:10px 54px 11px 14px;font-size:1.08rem;line-height:1.35;box-shadow:0 0 0 1px var(--rd-line),0 3px 0 rgba(0,0,0,.12)}
 .lr-bubble::before{content:"";position:absolute;left:-9px;top:14px;border:9px solid transparent;border-right-color:var(--rd-card);border-left:0}
-.lr-speaker{display:block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rd-muted);margin-bottom:1px}
-.lr-listen{position:absolute;right:6px;bottom:6px;min-height:34px;width:34px;padding:0;display:grid;place-items:center;border-radius:50%;background:#eef0e2;color:var(--rd-ink);border:0;box-shadow:none}
+.lr-speaker{display:block;font-size:.78rem;line-height:1.25;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rd-muted);margin-bottom:1px}
+.lr-listen{position:absolute;right:4px;bottom:4px;min-height:44px;width:44px;padding:0;display:grid;place-items:center;border-radius:50%;background:#eef0e2;color:var(--rd-ink);border:0;box-shadow:none}
+/* Only the Listen whose line is being read shows the stop square. */
+.lr-listen.is-reading svg{display:none}
+.lr-listen.is-reading::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}
+/* The hint card's own Listen sits in its top-right corner, like the keeper's in the bubble. */
+.hint-card{position:relative;padding-right:58px}
+.hint-card .lr-listen{top:6px;bottom:auto;right:6px}
 .lr-rival{position:absolute;top:12px;right:12px;z-index:2;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(255,253,245,.94);color:var(--rd-ink);box-shadow:0 3px 0 rgba(0,0,0,.14);max-width:min(60%,330px)}
 .lr-rival .lr-portrait{width:46px;height:46px;border-width:2px;box-shadow:none}
-.lr-rival strong{display:block;font-family:var(--rd-display);font-weight:400;font-size:1.15rem;line-height:1.1}
-.lr-rival strong::before{content:"Plume · ";font-family:var(--rd-body);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--rd-muted)}
-.lr-rival span{display:block;font-size:.92rem;line-height:1.2}
+/* The race: the child's count beside Plume's, and Plume's line under them. */
+.lr-rival-body{min-width:0}
+.lr-race{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;font-family:var(--rd-body);font-weight:650;font-size:.86rem;line-height:1.2;color:var(--rd-muted)}
+.lr-race>span{white-space:nowrap}
+.lr-race b{font-family:var(--rd-display);font-weight:400;font-size:1.3rem;color:var(--rd-ink)}
+.lr-race-you b{color:var(--rd-pine)}
+.lr-race-sep{color:#b9bea6}
+.lr-rival-line{display:block;margin-top:2px;font-size:.92rem;line-height:1.25}
+.lr-rival.has-line{border-radius:18px;max-width:min(70%,360px)}
+.lr-rival .lr-listen{position:static;display:inline-grid;vertical-align:middle;margin-left:2px;pointer-events:auto}
 .lr-rival.is-beat,.lr-rival.is-tie{box-shadow:0 0 0 3px var(--rd-star),0 3px 0 rgba(0,0,0,.14)}
 @media (prefers-reduced-motion:no-preference){
   .lr-bubble{animation:rd-pop .32s cubic-bezier(.3,1.5,.6,1)}
@@ -68,32 +81,59 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
   .lr-portrait{width:80px;height:80px;border-width:3px}
   .lr-bubble{margin-top:46px;font-size:1rem}
   .lr-bubble::before{display:none}
-  .lr-rival{top:8px;right:8px;padding:4px 10px 4px 4px}
+  .lr-rival{top:8px;right:8px;padding:4px 10px 4px 4px;max-width:min(76%,330px)}
   .lr-rival .lr-portrait{width:38px;height:38px}
+  .lr-rival.has-line{max-width:min(92%,360px)}
+}
+
+/* The workshop's art puts Sprocket in the top-right corner, so Plume's card
+   takes the top-left (the window) there until the art keeps that corner clear
+   (docs/art/ROADMAP.md). */
+.lr-scene[data-stop="workshop"]:not(.is-staged) .lr-rival{right:auto;left:12px}
+@media (max-width:620px){.lr-scene[data-stop="workshop"]:not(.is-staged) .lr-rival{left:8px}}
+
+/* Wide, short screens (a tablet or laptop in landscape): the scene and the
+   keeper stand beside the board, so the board starts at the top of the screen
+   instead of below a picture half the screen tall. The picture shows its
+   middle 80%, as on phones, and Plume's card sits under the keeper. Stages
+   are the board, and keep their own layout. */
+@media (min-width:1000px) and (max-height:900px) and (min-aspect-ratio:5/4){
+  .lr-play:not(.is-staged){max-width:1180px;display:grid;grid-template-columns:minmax(300px,30%) minmax(0,1fr);align-items:start;gap:16px 24px}
+  .lr-play:not(.is-staged) .lr-scene-art{aspect-ratio:1440/690;max-height:none}
+  .lr-play:not(.is-staged) .lr-keeper{margin:-40px 8px 0}
+  .lr-play:not(.is-staged) .lr-keeper .lr-portrait{width:84px;height:84px}
+  .lr-play:not(.is-staged) .lr-keeper .lr-bubble{margin-top:48px;font-size:1rem}
+  .lr-play:not(.is-staged) .lr-rival{position:static;align-self:flex-start;margin:12px 0 0;max-width:100%}
 }
 
 /* Stages: road puzzles played in their picture (dist/road-stage.js) -----------
    The backdrop and the drawn layers share one 1600 × 900 space and pieces sit
-   at (--x, --y) in it. Phones show the middle 1200 (x 200–1400). The page
+   at (--x, --y) in it. The stage shows --vw × --vh of it from (--x0, --y0):
+   all of it on wider screens; on phones the middle 1200 (x 200–1400), or the
+   stage's own crop (--px0, --pvw, --py0, --pvh from phoneView). The page
    narrows on short screens so the picture and its controls fit together. */
 .lr-play.is-staged{max-width:min(1000px,max(560px,calc((100svh - 330px) * 16 / 9)))}
 /* The seats' pair buttons and the bell's number chart are taller than one row,
    so their pictures are a little smaller. */
 .lr-play.staged-seats{max-width:min(1000px,max(560px,calc((100svh - 380px) * 16 / 9)))}
 .lr-play.staged-bell{max-width:min(1000px,max(560px,calc((100svh - 440px) * 16 / 9)))}
-.lr-stage{--x0:0;--vw:1600;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* The lamps' goal card is drawn large enough to read, so their picture is a little smaller too. */
+.lr-play.staged-lights{max-width:min(1000px,max(560px,calc((100svh - 400px) * 16 / 9)))}
+.lr-stage{--x0:0;--vw:1600;--y0:0;--vh:900;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .lr-stage.stage-marsh{background:#0e2a33}
-.stage-world{position:absolute;top:0;bottom:0;left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
+.stage-world{position:absolute;top:calc(var(--y0) / var(--vh) * -100%);height:calc(900 / var(--vh) * 100%);left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
 .stage-world>*{position:absolute;inset:0;width:100%;height:100%}
 .stage-world>.stage-backdrop>:is(img,video,svg){object-fit:fill}
 .stage-layer{z-index:1;pointer-events:none;overflow:hidden}
 .stage-pieces{z-index:2;pointer-events:none}
 .stage-front{z-index:3}
+/* Rope and lamp taps lie over everything drawn, so a traveler never takes them. */
+.stage-hits{z-index:4}
 .stage-piece{position:absolute;left:calc(var(--x) / 16 * 1%);top:calc(var(--y) / 9 * 1%);width:calc(var(--s) / 16 * 1%);aspect-ratio:1;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:inherit;pointer-events:auto}
 .stage-piece:is(div,span){pointer-events:none}
 .stage-piece .art-slot>:is(img,svg){object-fit:contain}
 .stage-piece:focus-visible{outline:3px solid #fff8d9;outline-offset:2px;border-radius:18px}
-@media (max-width:620px){.lr-stage{--x0:200;--vw:1200;aspect-ratio:4/3;border-radius:18px}.lr-stage.kind-bell{--x0:700;--vw:900;aspect-ratio:1}.stage-wagon{display:none}}
+@media (max-width:620px){.lr-stage{--x0:200;--vw:1200;aspect-ratio:4/3;border-radius:18px}.lr-stage.has-crop{--x0:var(--px0);--vw:var(--pvw);--y0:var(--py0);--vh:var(--pvh);aspect-ratio:var(--pvw) / var(--pvh)}.stage-wagon{display:none}}
 
 /* Travelers stand on their spot; the one picked first glows underfoot. */
 .stage-wagon{aspect-ratio:4/3;translate:-50% -100%;pointer-events:none}
@@ -105,11 +145,12 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .stage-traveler.is-hinted::before{opacity:1;background:radial-gradient(closest-side,#effbe6,#86c46f 55%,rgba(134,196,111,0))}
 button.stage-traveler:hover{filter:drop-shadow(0 0 5px #fffdf0) drop-shadow(0 0 2px #fffdf0)}
 button.stage-traveler:disabled{cursor:default;filter:none}
-.stage-tag{translate:-50% -50%;border-radius:50%;background:#fffdf5;border:3px solid #fffdf5;box-shadow:0 3px 0 rgba(0,0,0,.25)}
-.stage-tag .art-slot{border-radius:50%;overflow:hidden;opacity:.55;filter:grayscale(.35)}
+/* A seat's tag shows whose seat it is: at least 36 px, so the face reads on a phone. */
+.stage-tag{width:max(calc(var(--s) / 16 * 1%), 36px);translate:-50% -50%;border-radius:50%;background:#fffdf5;border:3px solid #fffdf5;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.stage-tag .art-slot{border-radius:50%;overflow:hidden;opacity:.8;filter:grayscale(.2)}
 .stage-tag.is-matched{border-color:var(--rd-good);box-shadow:0 0 0 2px #fffdf5,0 3px 0 rgba(0,0,0,.25)}
 .stage-tag.is-matched .art-slot{opacity:1;filter:none}
-.stage-tag b{position:absolute;left:-18%;top:-18%;z-index:1;width:48%;aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--rd-pine);color:#fff8d9;font-size:clamp(.62rem,1.5vw,.95rem);line-height:1}
+.stage-tag b{position:absolute;left:-18%;top:-18%;z-index:1;width:max(48%,19px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--rd-pine);color:#fff8d9;font-size:clamp(12px,1.5vw,.95rem);line-height:1}
 
 /* The bell rings on its own tap, or the Ring button's; each bell swings it. */
 .stage-bell{translate:-50% -50%;cursor:pointer}
@@ -118,23 +159,41 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @media (prefers-reduced-motion:no-preference){.stage-bell.is-ringing .art-slot{animation:rd-ring .32s ease-in-out}}
 @keyframes rd-ring{25%{rotate:16deg}75%{rotate:-13deg}}
 .stage-wheel-rim{fill:#fbf3df;stroke:#8a5a33;stroke-width:8}
-.lr-stage .clock-position text{font-size:27px}
-.lr-stage .clock-position .clock-star{font-size:26px}
-.lr-stage .clock-center{font-size:40px}
-.lr-stage .clock-center-label{font-size:17px}
+/* The star may sit on the rim. */
+.lr-stage .stage-wheel{overflow:visible}
+/* Wheel numbers and the star read at 12 px or more where the wheel is smallest
+   (a phone, a tablet in landscape). The bell count needs no word beside it. */
+.lr-stage .clock-position text{font-size:36px}
+.lr-stage .clock-position .clock-star{font-size:36px;fill:#ffc61a;stroke:#6b4a00;stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+.lr-stage .clock-center{font-size:44px}
+.lr-stage .clock-center-label{display:none}
+@media (max-width:620px){.lr-stage .clock-position text,.lr-stage .clock-position .clock-star{font-size:46px}.lr-stage .clock-center{font-size:54px}}
+/* A short phone draws the bell's stage narrower (--pshort, from phoneView), so
+   the goal and the whole chart fit under it; the numbers stay 12 px or more. */
+@media (max-width:620px) and (max-height:700px){.lr-stage.kind-bell{width:min(100%,var(--pshort,100%));margin-inline:auto}}
 
 /* Lamps and the ropes that flip them. */
-.stage-rope-under{fill:none;stroke:#5e3b1f;stroke-width:17;stroke-linecap:round}
-.stage-rope{fill:none;stroke:#f3e2b0;stroke-width:9;stroke-linecap:round;stroke-dasharray:14 6}
-.stage-rope-hit{fill:none;stroke:transparent;stroke-width:64;stroke-linecap:round;cursor:pointer;pointer-events:stroke}
-.stage-rope-hit:hover{stroke:rgba(255,248,214,.35)}
+/* Lamps and the ropes that flip them. A rope is a thick gold line on a dark
+   cord, unlike the deck's pale rail; it takes taps 44 screen px wide at any
+   size and lights up while pressed. A lamp's own tap makes its ropes glow. */
+.stage-rope-under{fill:none;stroke:#3a2312;stroke-width:24;stroke-linecap:round}
+.stage-rope{fill:none;stroke:#ffd774;stroke-width:11;stroke-linecap:round;stroke-dasharray:22 8}
+.stage-rope-set.is-pulsing .stage-rope-under{stroke:#fff3b0}
+.stage-rope-set.is-pulsing .stage-rope{stroke:#e98a12;stroke-dasharray:none}
+@media (prefers-reduced-motion:no-preference){.stage-rope-set.is-pulsing{animation:rd-rope .45s ease-in-out 3}}
+@keyframes rd-rope{50%{opacity:.35}}
+/* Square ends: where two ropes leave one lamp, neither takes the other's taps. */
+.stage-rope-hit{fill:none;stroke:transparent;stroke-width:44px;vector-effect:non-scaling-stroke;stroke-linecap:butt;cursor:pointer;pointer-events:stroke}
+@media (hover:hover){.stage-rope-hit:hover{stroke:rgba(255,248,214,.3)}}
+.stage-rope-hit:active{stroke:rgba(255,240,170,.55)}
 .stage-rope-hit:focus-visible{stroke:rgba(255,248,214,.6);outline:none}
 .stage-rope-hit.is-hinted{stroke:rgba(134,196,111,.55)}
 .stage-rope-hit[aria-disabled="true"]{pointer-events:none}
+.stage-lamp-hit{fill:transparent;pointer-events:all;cursor:pointer}
 .stage-lamp-cap{fill:#3a2a1c}
 .stage-lamp-glass{fill:#33424d;stroke:#1d2830;stroke-width:4}
 .stage-lamp.is-lit .stage-lamp-glass{fill:#ffd653;stroke:#9a6b10}
-.stage-lamp-label{font:700 26px var(--rd-body);text-anchor:middle;fill:#e9eef2}
+.stage-lamp-label{font:700 34px var(--rd-body);text-anchor:middle;fill:#e9eef2}
 .stage-lamp.is-lit .stage-lamp-label{fill:#5a3d00}
 .stage-glow{fill:url(#stage-glow)}
 @media (prefers-reduced-motion:no-preference){.stage-glow{animation:rd-glow 2.6s ease-in-out infinite}}
@@ -150,11 +209,13 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-marsh-lamp.is-lit .stage-lamp-glass{fill:#ffe27a;stroke:#9a6b10}
 .stage-pad-label{font:700 30px var(--rd-body);fill:#f3efe0;text-anchor:middle;paint-order:stroke;stroke:#0e2a33;stroke-width:6}
 .stage-junction{translate:-50% -50%;aspect-ratio:150/92;border-radius:50%;cursor:pointer}
-.stage-junction:disabled{cursor:default}
+.stage-junction:is(:disabled,[aria-disabled="true"]){cursor:default}
 .stage-junction.can-go:not(.is-here){box-shadow:0 0 0 3px rgba(255,240,170,.8),0 0 18px 6px rgba(255,214,90,.45)}
 .stage-junction.can-go:not(.is-here):hover{box-shadow:0 0 0 4px #fff3c4,0 0 26px 10px rgba(255,214,90,.7)}
 .stage-junction.is-hinted{box-shadow:0 0 0 4px #b9e6a0,0 0 22px 8px rgba(134,196,111,.7)!important}
 .stage-junction:focus-visible{outline:3px solid #fff8d9;outline-offset:4px;border-radius:50%}
+/* On a phone a junction takes taps at least 56 × 46 px and its letter reads at 12 px or more. */
+@media (max-width:620px){.stage-junction{width:max(calc(var(--s) / 16 * 1%), 56px);min-height:46px}.stage-pad-label{font-size:44px}}
 @media (prefers-reduced-motion:no-preference){.stage-junction.can-go:not(.is-here):not(:hover){animation:rd-call 2.2s ease-in-out infinite}}
 @keyframes rd-call{50%{box-shadow:0 0 0 3px rgba(255,240,170,.55),0 0 10px 3px rgba(255,214,90,.25)}}
 .stage-hops{translate:-50% -100%;z-index:1}
@@ -176,16 +237,23 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 /* A solved stage locks its pieces without fading them. */
 .lr-stage .stage-piece:disabled{opacity:1}
 .lr-play.is-staged .pair-button{min-height:40px;min-width:0;padding:6px 8px;font-size:.9rem}
-@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 270px))}}
+@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 320px))}}
 @media (max-width:760px){.lr-play.is-staged .play-layout{grid-template-columns:1fr}.lr-play.is-staged .play-sidebar{display:block}}
 .stage-count{margin:0;display:flex;align-items:baseline;justify-content:center;gap:6px 16px;flex-wrap:wrap;color:var(--rd-ink);font-size:1rem}
 .stage-count strong{font-family:var(--rd-display);font-size:1.6rem;font-weight:400}
 .stage-count span{color:var(--rd-muted)}
+.stage-count.is-lit{display:block;text-align:center}
+/* Plume's card counts a road walk ("You 7 · Plume 9 steps"), so the library's own distance line is not shown beside it. */
+.lr-play:has(.lr-rival) .network-score{display:none}
 .stage-goal-row{display:flex;align-items:center;justify-content:center;gap:12px 24px;flex-wrap:wrap}
 .stage-goal{margin:0;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;background:#fbf4dc;border:1px solid #ead9a4}
 .stage-goal figcaption{font-family:var(--rd-display);font-size:1.05rem;color:var(--rd-ink)}
-.stage-goal svg{display:block;width:clamp(120px,22vw,190px);height:auto;max-height:110px}
-.stage-goal-lines line{stroke:#9c7a4f;stroke-width:8;stroke-linecap:round}
+.stage-goal svg{display:block;width:max(var(--goal-w,150px),min(22vw,190px));max-width:100%;height:auto}
+.stage-goal-lines line{stroke:#9c7a4f;stroke-linecap:round}
+.stage-goal-glow{fill:#ffe48a;opacity:.6}
+.stage-goal-label{font-family:var(--rd-body);font-weight:700;text-anchor:middle;fill:#e9eef2}
+.stage-goal-lamp.is-lit .stage-lamp-glass{fill:#ffd653;stroke:#9a6b10}
+.stage-goal-lamp.is-lit .stage-goal-label{fill:#5a3d00}
 
 /* Bell chart: tap a number, then ring. Numbers already rung stay marked. */
 .bell-chart{flex:1 1 100%;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;max-width:560px;margin:0 auto}
@@ -198,12 +266,21 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .bell-number.is-tried input:checked+span{background:#f6dfa0;color:var(--rd-ink)}
 .stage-bell-form{margin:0;flex-wrap:nowrap;align-items:center}
 .stage-bell-form .bell-chart{flex:1 1 auto;margin:0}
+/* Ten numbers in a row need about 560 px beside Ring; narrower, they take two
+   rows of five, so each stays at least 40 px wide. */
+.stage-bell-form{container-type:inline-size}
+@container (max-width:561px){.stage-bell-form .bell-chart{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .stage-bell-form>button{flex:none;min-width:96px}
-.lr-play.is-staged .bell-number>span:first-of-type{min-height:36px}
-@media (max-width:620px){.stage-bell-form{flex-wrap:wrap}.stage-bell-form>button{flex:1 1 100%}}
-/* Beside the pair buttons and the bell chart, Undo, Restart and Hint stack so
-   the controls keep their width. */
-@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
+/* A long bell count is typed: the word sits beside its box, in one row with Ring. */
+.stage-bell-form label.bell-count{flex:0 1 auto;max-width:none;flex-direction:row;align-items:center;gap:10px;font-size:1rem}
+.stage-bell-form .bell-count input{width:104px}
+.lr-play.is-staged .bell-number>span:first-of-type{min-height:44px}
+/* On a phone the chart is two rows of five with Ring beside it, so chart and
+   Ring stay on a small screen together. */
+@media (max-width:620px){.stage-bell-form{align-items:stretch;gap:8px}.stage-bell-form .bell-chart{grid-template-columns:repeat(5,minmax(0,1fr))}.stage-bell-form>button{min-width:64px;width:64px;padding-inline:4px}}
+/* Beside the pair buttons, the bell chart and the lamps' goal card, Undo,
+   Restart and Hint stack so the controls keep their width. */
+@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell,.lr-play.staged-lights) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell,.lr-play.staged-lights) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
 .lr-play.is-staged .motion-result{margin:10px auto 0;padding:8px 12px;max-width:560px;text-align:center}
 
 /* Solved strip ------------------------------------------------------------------ */
@@ -217,6 +294,8 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @keyframes rd-star{from{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.25)}}
 .lr-star-reasons{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--rd-muted)}
 .lr-star-reasons li{display:flex;align-items:center;gap:6px;opacity:.5}
+.lr-reason-detail{display:block;font-size:.8rem;line-height:1.2;color:var(--rd-muted)}
+.lr-star-reasons li:not(.got) .lr-reason-detail{color:var(--rd-ink)}
 .lr-star-reasons li.got{opacity:1;color:var(--rd-ink)}
 .lr-reason-icon{display:inline-grid;place-items:center;width:24px;height:24px}
 .lr-reason-icon svg{width:24px;height:24px}
@@ -244,12 +323,12 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .lr-map-art>svg,.lr-map-art>img,.lr-map-art>video{object-fit:fill}
 @media (max-width:699px){.lr-map-wide{display:none}.lr-map-tall{display:block}}
 .lr-stop{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);translate:-50% -50%;z-index:3;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;color:var(--rd-ink)}
-.lr-stop:disabled{opacity:1;pointer-events:none}
-.lr-stop:focus-visible{outline:none}
+.lr-stop:disabled{opacity:1;pointer-events:none}.lr-stop[aria-disabled="true"]{cursor:default}
+.lr-stop:focus-visible{outline:3px solid #fff8d9;outline-offset:0;box-shadow:0 0 0 6px var(--rd-pine)}
 .lr-stop-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s,box-shadow .2s,background .2s}
 .lr-stop.is-current .lr-stop-glow{opacity:1;background:radial-gradient(closest-side,rgba(255,240,170,.34),rgba(255,226,110,.14) 72%,rgba(255,226,110,0));box-shadow:0 0 0 3px rgba(255,248,214,.95),0 0 0 5px rgba(179,136,64,.45),0 0 16px 6px rgba(255,208,70,.8)}
 .lr-stop.is-current:is(:hover,:focus-visible) .lr-stop-glow{background:radial-gradient(closest-side,rgba(255,244,190,.5),rgba(255,226,110,.24) 72%,rgba(255,226,110,0));box-shadow:0 0 0 5px #fff6cc,0 0 34px 14px rgba(255,204,60,.95)}
-.lr-stop:not(.is-current):is(:hover,:focus-visible) .lr-stop-glow{opacity:1;box-shadow:0 0 0 3px rgba(255,253,245,.92),0 0 12px 3px rgba(255,253,245,.55)}
+.lr-stop:not(.is-current):not(.is-ahead):hover .lr-stop-glow,.lr-stop:not(.is-current):focus-visible .lr-stop-glow{opacity:1;box-shadow:0 0 0 3px rgba(255,253,245,.92),0 0 12px 3px rgba(255,253,245,.55)}
 @media (prefers-reduced-motion:no-preference){.lr-stop.is-current:not(:hover):not(:focus-visible) .lr-stop-glow{animation:rd-beckon 2.4s ease-in-out infinite}}
 @keyframes rd-beckon{50%{box-shadow:0 0 0 3px rgba(255,248,214,.85),0 0 0 5px rgba(179,136,64,.3),0 0 28px 11px rgba(255,208,70,.95)}}
 .lr-stop-badge{position:absolute;left:50%;bottom:2%;translate:-50% 0;display:flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:rgba(255,253,245,.92);box-shadow:0 2px 0 rgba(0,0,0,.16);pointer-events:none;white-space:nowrap}
@@ -257,6 +336,13 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .lr-medals{display:flex;gap:3px}
 .lr-medals i{width:8px;height:8px;border-radius:50%;background:#0002}
 .lr-medals i.on.band-k1{background:#d58b4f}.lr-medals i.on.band-23{background:#a9b4bf}.lr-medals i.on.band-45{background:#e3b23c}
+/* The key to the stops' medal colors sits with the star total. */
+.lr-hud{flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 16px)}
+.lr-medal-key{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:rgba(255,253,245,.94);box-shadow:0 3px 0 rgba(0,0,0,.16);font-size:.8rem;font-weight:700;color:var(--rd-ink);line-height:1.3}
+.lr-medal-key>span,.lr-medal-key>b{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lr-medal-key>b{font-weight:700;color:var(--rd-muted)}
+.lr-medal-key i{width:10px;height:10px;border-radius:50%}
+.lr-medal-key .band-k1{background:#d58b4f}.lr-medal-key .band-23{background:#a9b4bf}.lr-medal-key .band-45{background:#e3b23c}
 .lr-side{position:absolute;left:var(--x);top:var(--y);translate:42px -64px;z-index:4;width:52px;height:52px;min-height:52px;padding:4px;border-radius:16px;border:2px solid #fff;background:rgba(255,253,245,.95);box-shadow:0 3px 0 rgba(0,0,0,.2)}
 .lr-side .art-slot{width:100%;height:100%}
 .lr-side>span{position:absolute;right:-6px;bottom:-6px;font-size:.9rem;background:var(--rd-card);border-radius:999px;padding:0 4px;line-height:1.4}
@@ -271,6 +357,10 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @media (prefers-reduced-motion:no-preference){.lr-wagon{transition:left .8s,top .8s}.lr-wagon-party .art-slot{animation:rd-roll 2.4s ease-in-out infinite}}
 @keyframes rd-roll{50%{transform:translateY(-3px) rotate(-1deg)}}
 .lr-map-tall .lr-wagon{width:clamp(52px,13%,78px)}
+/* On the tall map the medal key runs under the HUD, beside the fair, so the
+   fair's stars and pips sit at the top of its region (the wagons wait below
+   the key, MAP_WAGON). */
+.lr-map-tall .lr-stop[data-id="fair"] .lr-stop-badge{bottom:auto;top:6%}
 @media (max-width:699px){.lr-hud{top:8px;right:8px}.lr-total{font-size:1.1rem}.lr-tool{width:34px;height:34px}}
 
 /* Header: the explorer's name and puzzle level sit together. */
@@ -278,7 +368,10 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .caravan-account .profile-nav{gap:0;padding:6px 8px;font-weight:650}
 .caravan-account .trail-choice{gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;background:var(--rd-card);border:1px solid var(--rd-line);box-shadow:none;color:var(--rd-ink);font-size:.86rem;font-weight:600;white-space:nowrap}
 body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-stop="fair"]) .caravan-account .trail-choice{background:transparent;border-color:#f3efe066}
-@media (max-width:700px){.caravan-account .profile-label{display:inline-block;max-width:10ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.trail-word{display:none}.caravan-nav{gap:28px}}
+body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-stop="fair"]) .explorer-toggle[aria-expanded=true] .caravan-avatar{border-color:#f3efe0;box-shadow:0 0 0 2px #f3efe0}
+@media (max-width:700px){.caravan-account .profile-label{display:inline-block;max-width:10ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.trail-word{display:none}}
+/* Just above the phone layout the one-row bar is a little too wide: the level drops its word. */
+@media (min-width:701px) and (max-width:800px){.trail-word{display:none}.caravan-nav{gap:24px}}
 .welcome-crew .welcome-traveler{width:15%;height:auto;aspect-ratio:1}
 .welcome-crew .welcome-traveler>img{object-fit:contain}
 .welcome-crew .welcome-traveler>svg{object-fit:contain}
@@ -303,6 +396,27 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-medal-list li.on{opacity:1}
 .lr-medal-list i{width:16px;height:16px;border-radius:50%;display:inline-block}
 .lr-medal-list .band-k1{background:#d58b4f}.lr-medal-list .band-23{background:#a9b4bf}.lr-medal-list .band-45{background:#e3b23c}
+.lr-finale-stars span{font-size:1.15rem;color:var(--rd-muted)}
+.lr-byes{list-style:none;margin:0;padding:0;width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px 14px;text-align:left}
+.lr-bye{display:flex;align-items:flex-start;gap:8px}
+.lr-bye .lr-portrait{width:60px;height:60px;border-width:3px}
+.lr-bye .lr-bubble{flex:1;margin:4px 0 0;font-size:1rem}
+.lr-bye .lr-bubble::before{top:12px}
+.lr-bye:last-child .lr-bubble{box-shadow:0 0 0 2px var(--rd-star),0 3px 0 rgba(0,0,0,.12)}
+.lr-medal-award{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;padding:8px 20px 8px 10px;border-radius:999px;background:var(--rd-card);border:1px solid var(--rd-line);box-shadow:0 3px 0 var(--rd-line)}
+.lr-medal-award svg{width:52px;height:65px}
+.lr-medal-award strong{font-family:var(--rd-display);font-weight:400;font-size:1.4rem}
+.medal-disc.band-k1{fill:#d58b4f}.medal-disc.band-23{fill:#c3ccd4}.medal-disc.band-45{fill:#e3b23c}
+.lr-medal-other{display:inline-flex;align-items:center;gap:4px;font-size:.88rem;font-weight:700;color:var(--rd-muted)}
+.lr-medal-other i{width:12px;height:12px;border-radius:50%}
+.lr-medal-other.band-k1 i{background:#d58b4f}.lr-medal-other.band-23 i{background:#a9b4bf}.lr-medal-other.band-45 i{background:#e3b23c}
+.lr-missing{width:100%;max-width:560px;text-align:left}
+@media (prefers-reduced-motion:no-preference){.lr-medal-award svg{animation:rd-bounce .6s .3s backwards}}
+/* A side puzzle before its tool: what it needs, where Hint would be. */
+.needs-tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 14px 4px 6px;border-radius:999px;background:#f6edd2;border:1px solid #e3cf98;color:var(--rd-ink);font-weight:650;font-size:.92rem}
+.needs-tool-icon{flex:none;width:34px;height:34px}
+.lr-row .lr-needs{display:inline-flex;align-items:center;gap:4px;max-width:132px;min-height:44px;padding:2px 12px 2px 4px;border-radius:22px;background:#f6edd2;border:1px solid #e3cf98;color:var(--rd-ink);font-weight:650;font-size:.88rem;line-height:1.15;text-align:left}
+.lr-needs-icon{flex:none;width:30px;height:30px}
 
 /* Travelers as the swap pieces ----------------------------------------------------- */
 .party-board .cup-button{background:var(--rd-card);border:2px solid var(--rd-line);border-radius:22px;aspect-ratio:1;padding:4px;color:var(--rd-ink)}

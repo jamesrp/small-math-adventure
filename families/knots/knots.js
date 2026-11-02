@@ -419,16 +419,36 @@ function render(p, a) {
   return `<div class="kn-puzzle${done ? ' solved' : ''}" data-mechanic-wire="knots">${top}<div class="kn-frame">${board}</div>${note}${below}${shelf}<p class="sr-only" role="status">${esc(say)}</p></div>`;
 }
 
+// The arc a tap is nearest to, among the arcs that take taps in the tapped
+// picture. Tap bands are wide (16 units, so 40 px or more on a phone) and may
+// overlap where cords run close; the nearest cord takes the tap, and at a
+// crossing that is the cord on top, since the one beneath has a gap there.
+export function nearestArc(q, arcs, [x, y]) {
+  let best = null;
+  for (const i of arcs) {
+    const d = q.arcs[i].d;
+    for (let k = 0; k + 1 < d.length; k++) {
+      const [ax, ay] = d[k], [bx, by] = d[k + 1], vx = bx - ax, vy = by - ay, len = vx * vx + vy * vy;
+      const t = len ? Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / len)) : 0, dist = Math.hypot(x - ax - t * vx, y - ay - t * vy);
+      if (!best || dist < best.dist) best = {i, dist};
+    }
+  }
+  return best?.i ?? null;
+}
 function wire(root, p, api) {
+  const paint = i => ({type: 'paint', arc: i, colour: nextColour(api.attempt().board.colours[i])});
   const act = target => {
     const arc = target.closest('[data-arc]');
-    if (arc && root.contains(arc)) {
-      const b = api.attempt().board, i = Number(arc.dataset.arc);
-      return {type: 'paint', arc: i, colour: nextColour(b.colours[i])};
-    }
-    return null;
+    return arc && root.contains(arc) ? paint(Number(arc.dataset.arc)) : null;
   };
-  root.addEventListener('click', e => { const action = act(e.target); if (action) api.apply(action); });
+  const tapped = e => {
+    const arc = e.target.closest?.('[data-arc]'), svg = arc?.closest('svg'), ctm = svg?.getScreenCTM?.();
+    if (!arc || !root.contains(arc) || !ctm || !e.detail) return act(e.target);
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+    const i = nearestArc(shapeOf(p, api.attempt().board), [...svg.querySelectorAll('[data-arc]')].map(el => Number(el.dataset.arc)), [pt.x, pt.y]);
+    return i === null ? act(e.target) : paint(i);
+  };
+  root.addEventListener('click', e => { const action = tapped(e); if (action) api.apply(action); });
   root.addEventListener('keydown', e => {
     if (!['Enter', ' '].includes(e.key) || !e.target.closest?.('[data-arc]')) return;
     e.preventDefault();
@@ -439,6 +459,11 @@ function wire(root, p, api) {
 
 export const knotsMechanics = {
   knots: {
+    howTo: {parameters: {"mode":"fill","aspect":1,"arcs":[{"d":[[10,50],[90,50]],"name":"the horizontal arc","pic":0},{"d":[[50,10],[50,43]],"name":"the top arc","pic":0},{"d":[[50,57],[50,90]],"name":"the bottom arc","pic":0}],"crossings":[{"at":[50,50],"over":0,"under":[1,2],"pic":0}],"ends":[{"at":[10,50],"arc":0},{"at":[90,50],"arc":0},{"at":[50,10],"arc":1},{"at":[50,90],"arc":2}],"pictures":[{"arcs":[0,3]}]},
+      steps: [
+        {"move":{"type":"paint","arc":0,"colour":0},"taps":["[data-arc=\"0\"]"]},
+        {"move":{"type":"paint","arc":0,"colour":1},"taps":["[data-arc=\"0\"]"]}
+      ]},
     fresh, valid, solved, move, hint, render, wire,
     // Undo keeps the colourings already found.
     carry(p, from, to) {
@@ -452,7 +477,7 @@ export const knotsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'knots',
-  family: {id: 'knots', symbol: '⌘'},
+  family: {id: 'knots', symbol: '⌘', area: 'surfaces', region: 'shape'},
   mechanics: knotsMechanics,
   pack: new URL('./knots.json', import.meta.url).href,
   css: new URL('./knots.css', import.meta.url).href,

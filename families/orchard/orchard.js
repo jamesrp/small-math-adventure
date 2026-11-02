@@ -252,6 +252,33 @@ export const orchardMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Mirror Couriers
 // as its Sight lines group, so the module adds no satchel family.
+// How to play: demonstrate the controls on a separate, small board.
+orchardMechanics.orchard.howTo = [
+{
+  parameters: {"mode":"chop","size":3,"lanterns":[[3,3]],"budget":3},
+  steps: [
+    {"move":{"type":"tap","at":[0,1]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[0,1]}']"]},
+    {"move":{"type":"tap","at":[0,1]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[0,1]}']"]}
+  ]
+},
+{
+  mode: "plant",
+  parameters: {"mode":"plant","size":3,"lanterns":[[3,3]],"budget":2},
+  steps: [
+    {"move":{"type":"tap","at":[0,1]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[0,1]}']"]},
+    {"move":{"type":"tap","at":[0,2]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[0,2]}']"]}
+  ]
+},
+{
+  mode: "stand",
+  parameters: {"mode":"stand","size":3,"lanterns":[[3,3],[3,0]]},
+  steps: [
+    {"move":{"type":"tap","at":[1,0]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[1,0]}']"]},
+    {"move":{"type":"tap","at":[1,1]},"taps":["[data-orchard-move='{\"type\":\"tap\",\"at\":[1,1]}']"]}
+  ]
+}
+];
+
 export default {
   id: 'orchard',
   mechanics: orchardMechanics,

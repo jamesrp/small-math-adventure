@@ -175,6 +175,10 @@ function canKeep(q, b) {
   if (q.mode === 'counts') return done(b) && !keptOrders(b.kept).includes(orderOf(b.machine));
   return false;
 }
+// Can't opens once the child's own machine (not the straight arrows) has run
+// until every cup is home, and stays off after "Keep looking." until the
+// machine changes.
+const cantOpen = (q, b) => !b.wrong && done(b) && b.machine !== straight(q.cups);
 const canTurn = (q, b) => q.mode === 'undo' ? b.stage <= len(q) : !done(b);
 const started = (q, b) => q.mode === 'undo' ? b.stage > 0 : b.turns > 0;
 function movePuzzle(p, b, action) {
@@ -196,8 +200,10 @@ function movePuzzle(p, b, action) {
       if (!started(q, b)) return null;
       return q.mode === 'undo' ? {...b, stage: 0} : {...b, turns: 0};
     case 'cant':
-      // Can't is checked: right when no machine does it, otherwise refused until the machine changes.
-      if (q.mode !== 'make' || b.wrong) return null;
+      // Can't waits for a finished run of a machine changed from straight,
+      // and is checked: right when no machine does it, otherwise refused
+      // until the machine changes.
+      if (q.mode !== 'make' || !cantOpen(q, b)) return null;
       return achievable(q.cups, q.goal) ? {...b, wrong: true} : {...b, cant: true};
     case 'keep': {
       if (!canKeep(q, b)) return null;
@@ -241,7 +247,12 @@ function hintPuzzle(p, b) {
   const q = p.parameters, row = rowOf(q, b);
   if (q.mode === 'run') return turnHint('Turn the machine.');
   if (q.mode === 'make') {
-    if (!achievable(q.cups, q.goal)) return {type: 'move', action: {type: 'cant'}, text: q.goal.self ? CANT.self : CANT.moved};
+    if (!achievable(q.cups, q.goal)) {
+      // Can't waits for a run: first a machine as close as any, run home.
+      if (b.machine === straight(q.cups)) return swapToward(b.machine, swapRow(b.machine, 0, 1), row);
+      if (!done(b)) return turnHint('Turn the machine until every cup is home.');
+      return {type: 'move', action: {type: 'cant'}, text: q.goal.self ? CANT.self : CANT.moved};
+    }
     if (meets(q.goal, b.machine)) return turnHint('Turn the machine until every cup is home.');
     return swapToward(b.machine, nearest(machinesMeeting(q.cups, q.goal), b.machine), row);
   }
@@ -401,7 +412,7 @@ function renderPuzzle(p, a) {
   const run = runHTML(b, h, solved);
   if (q.mode === 'run') return wrap(rows, run);
   if (q.mode === 'make') {
-    const actions = solved ? '' : `<div class="case-actions">${button('Can’t', {type: 'cant'}, hinted('cant'), b.wrong ? 'disabled' : '')}</div>`;
+    const actions = solved ? '' : `<div class="case-actions">${button('Can’t', {type: 'cant'}, hinted('cant'), cantOpen(q, b) ? '' : 'disabled')}</div>`;
     return wrap(rows, run, actions, b.wrong ? note('Keep looking.') : '', solved && b.cant ? certificate(q) : '');
   }
   const keepable = canKeep(q, b), claim = q.mode === 'counts' && q.rule === 'most' ? 'That’s the most' : 'That’s all';
@@ -480,6 +491,25 @@ export const machineMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Cup swaps as its
 // Shuffle machines group, so the module adds no satchel family.
+// How to play: demonstrate the controls on a separate, small board.
+machineMechanics.machine.howTo = [
+{
+  parameters: {"mode":"every","cups":2,"rule":"any"},
+  steps: [
+    {"move":{"type":"swap","a":0,"b":1},"taps":["[data-cup=\"0\"]","[data-cup=\"1\"]"]},
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]}
+  ]
+},
+{
+  mode: "run",
+  parameters: {"mode":"run","cups":3,"machine":"BCA"},
+  steps: [
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]},
+    {"move":{"type":"turn"},"taps":["[data-mach-move='{\"type\":\"turn\"}']"]}
+  ]
+}
+];
+
 export default {
   id: 'machines',
   mechanics: machineMechanics,

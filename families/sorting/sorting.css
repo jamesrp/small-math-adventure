@@ -18,11 +18,13 @@
 .cards-binary .sort-card.v1{background:var(--b-pine,#31533e);border-color:#1d3526}
 .sort-board button.sort-card{cursor:pointer;touch-action:none}
 .sort-board button.sort-card[aria-disabled="true"]{cursor:default;touch-action:auto}
-.sort-board button.sort-card::after{content:"";position:absolute;inset:-6px;border-radius:50%}
+/* A card takes taps across max(its size, 44 px), so a big card's tap area
+   stops short of the first column of lane ends. */
+.sort-board button.sort-card::after{content:"";position:absolute;inset:min(0px,calc((var(--size) - 44px) / 2));border-radius:50%}
 button.sort-card:hover{filter:brightness(1.04)}
 .sort-card.picked{box-shadow:0 0 0 4px var(--b-card,#fffdf5),0 0 0 7px var(--b-pine,#31533e)}
 .sort-card.hinted,.sort-peg.hinted,.sort-remove.hinted,.sort-action.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
-.sort-card.finish{z-index:1}
+.sort-card.finish{z-index:1;pointer-events:none}
 .sort-card.finish.wrong{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-bad,#a9503a)}
 .sort-board.is-sorted .sort-card.finish{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-good,#3c7a4a)}
 .sort-finish.waiting{visibility:hidden}
@@ -33,8 +35,9 @@ button.sort-card:hover{filter:brightness(1.04)}
 /* Lane ends in an open slot: tap two to place a bar; tap a placed bar to take it away. */
 .sort-board .sort-peg{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px dashed #8a9a80;z-index:1;touch-action:none}
 .sort-peg::after{content:"";position:absolute;inset:-9px;border-radius:50%}
-/* Columns sit closer with more slots; keep each lane end's tap area inside its own column. */
-.sort-board[data-slots="6"] .sort-peg::after{inset:-9px -5px;border-radius:12px}
+/* Nine slots sit closer; keep each lane end's tap area inside its own column
+   (six slots spread far enough apart for the full 40 px, inset counted from
+   inside the 2 px border). */
 .sort-board[data-slots="9"] .sort-peg{width:18px;height:18px}
 .sort-board[data-slots="9"] .sort-peg::after{inset:-12px -2px;border-radius:10px}
 .sort-board[data-slots="9"] .sort-remove{width:16px}
@@ -80,4 +83,6 @@ button.sort-card:hover{filter:brightness(1.04)}
 .sort-lane-icon line{stroke:var(--b-ink,#294439);stroke-width:2.2;stroke-linecap:round}
 .sort-kind i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
 .sort-kind i.b1{width:14px;height:14px;background:var(--b-pine,#31533e)}
-@media (max-width:420px){.sort-board{--gap:60px}.sort-card{font-size:1.05rem}}
+/* Phones: the board runs to the panel's edges, so six slots' lane ends
+   take taps 40 px wide. */
+@media (max-width:420px){.sort-board{--gap:60px;width:calc(100% + 24px);max-width:none;margin-inline:-12px}.sort-card{font-size:1.05rem}}

@@ -395,11 +395,13 @@ export function tapAction(p, b, id) {
   if (chasing(p, b)) return Object.hasOwn(q.places, id) && !b.chase.includes(id) ? {move: {type: 'chase', id}} : null;
   return q.free.includes(id) ? {choose: id} : null;
 }
-// A key on the board: a digit sets the chosen place, arrows step it up or down.
-export function keyAction(p, b, key) {
+// A key on a place edits that place; the number row edits the chosen one.
+export function keyAction(p, b, key, focused = null) {
   const q = boardQ(p, b);
   if (solved(p, b) || chasing(p, b)) return null;
-  const id = chosenOf(p, b), now = b.values[id];
+  const id = focused === null ? chosenOf(p, b) : focused;
+  if (!q.free.includes(id)) return null;
+  const now = b.values[id];
   let value = null;
   if (/^[0-9]$/.test(key)) value = Number(key);
   else if (key === 'ArrowUp' || key === 'ArrowRight') value = now === null ? q.range[0] : now + 1;
@@ -456,7 +458,7 @@ function keysHTML(p, q, b, chosen, hinted) {
   }
   return `<div class="av-keys${q.range[1] - q.range[0] > 6 ? ' many' : ''}" role="group" aria-label="${esc(cap(nameOf(q, chosen)))}">${keys.join('')}</div>`;
 }
-const button = (label, action, cls, {enabled = true, pressed = null, hinted = false, focus} = {}) => `<button type="button" class="av-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"${pressed === null ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
+const button = (label, action, cls, {enabled = true, pressed = null, hinted = false, focus, toggle} = {}) => `<button type="button" class="av-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"${toggle ? ` data-toggle="${toggle}"` : ''}${pressed === null ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
 
 function render(p, a) {
   const q0 = p.parameters, b = a.board, q = boardQ(p, b), done = solved(p, b);
@@ -497,7 +499,7 @@ function render(p, a) {
     const act = hinted?.action?.type;
     // The two refusals: a tap away from the chase, and a chase that ran out.
     told = b.told === 'apart' ? 'Not joined to the chase.' : b.told === 'out' ? `Every square it reaches is ${M}.` : '';
-    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: triedTie(q, b.values) && b.told !== 'out', hinted: act === 'cant', focus: 'av-cant'})}</div>`;
+    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop', toggle: 'av-cant'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: triedTie(q, b.values) && b.told !== 'out', hinted: act === 'cant', focus: 'av-cant', toggle: 'av-cant'})}</div>`;
   }
   const working = shapeOf(q).circles.filter(c => works(q, vals, c));
   const status = done && proof ? `Can’t: ${listWords(path.map(id => nameOf(q, id)))}; ${nameOf(q, path.at(-1))} is not ${M}.`
@@ -516,9 +518,14 @@ function wire(root, p, api) {
       return action.move;
     }
   }, api.apply);
+  root.addEventListener('focusin', e => {
+    const id = e.target.closest('[data-gb-node]')?.dataset.gbNode;
+    if (!id || solved(p, now()) || chasing(p, now()) || !boardQ(p, now()).free.includes(id)) return;
+    if (ui(p).chosen !== id) api.ui({chosen: id});
+  });
   root.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey || !e.target.closest('[data-gb-board],.av-keys')) return;
-    const action = keyAction(p, now(), e.key);
+    const action = keyAction(p, now(), e.key, e.target.closest('[data-gb-node]')?.dataset.gbNode ?? null);
     if (!action) return;
     e.preventDefault();
     api.apply(action);
@@ -544,9 +551,20 @@ export const averagesMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+averagesMechanics.averages.howTo = {
+  parameters: {"mode":"change","aspect":3,"scale":1.4,"places":{"l":{"at":[12,50],"shape":"square","name":"left square"},"c":{"at":[50,50],"shape":"circle","name":"circle"},"r":{"at":[88,50],"shape":"square","name":"right square"}},"edges":[["l","c"],["c","r"]],"given":{"c":3},"free":["l","r"],"range":[0,8],"start":{"l":0,"r":4}},
+  steps: [
+    {"ui":{"chosen":"r"},"taps":["[data-gb-node=\"r\"]"]},
+    {"move":{"type":"set","id":"r","value":3}},
+    {"ui":{"chosen":"l"},"taps":["[data-gb-node=\"l\"]"]},
+    {"move":{"type":"set","id":"l","value":1}}
+  ]
+};
+
 export default {
   id: 'averages',
-  family: {id: 'averages', symbol: '⊜'},
+  family: {id: 'averages', symbol: '⊜', area: 'numbers', region: 'chance'},
   mechanics: averagesMechanics,
   pack: new URL('./averages.json', import.meta.url).href,
   css: new URL('./averages.css', import.meta.url).href,

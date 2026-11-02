@@ -8,7 +8,7 @@
 .deduction-puzzle select { min-width: 100px; max-width: 100%; padding: 10px 12px; border: 1px solid #aab9ab; border-radius: 10px; background: #fffef8; color: #213d32; font: inherit; }
 .deduction-note { font-size: .9rem; color: #536159; }
 .deduction-feedback { margin: 16px 0; padding: 12px 16px; border-radius: 12px; background: #edf1e5; }
-.latin-grid { display: grid; grid-template-columns: repeat(var(--latin-order), minmax(44px, 1fr)); gap: 5px; max-width: 440px; }
+.latin-grid { display: grid; grid-template-columns: repeat(var(--latin-order), minmax(44px, 1fr)); gap: 5px; width: min(100%, calc(var(--latin-order) * 68px + (var(--latin-order) - 1) * 5px)); margin: 0 auto; max-width: 440px; }
 .latin-cell, .latin-given { min-width: 44px; min-height: 48px; aspect-ratio: 1; border-radius: 8px; font-size: 1.65rem; font-weight: 750; }
 .latin-given { display: grid; place-items: center; background: #284f40; color: #fff; }
 .latin-cell { display: grid; place-items: center; padding: 0; border: 2px solid #bbc8b7; background: #fffef8; color: #213d32; cursor: pointer; }
@@ -16,7 +16,7 @@
 .latin-cell:focus-visible { outline: 3px solid #151c89; outline-offset: 3px; }
 .latin-conflict { outline: 3px dashed #a33c24; outline-offset: -4px; }
 .latin-cell.latin-conflict { background: #ffeddf; }
-.latin-keypad { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; max-width: 440px; }
+.latin-keypad { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; max-width: 360px; margin-inline: auto; }
 .latin-keypad button { flex: 1; min-width: 44px; padding: 10px 4px; font-size: 1.15rem; }
 .latin-keypad button:last-child { flex-grow: 1.5; font-size: .95rem; }
 .latin-cell:disabled { opacity: 1; cursor: default; }
@@ -57,3 +57,38 @@
 .nim-take { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin-top: 14px; }
 .nim-take > span { flex-basis: 100%; font-size: .9rem; }
 .nim-take button { width: 44px; min-width: 44px; height: 44px; padding: 0; }
+
+/* One pair of choices per position, with the transcript aligned above on wider screens. */
+.code-choices>.code-word{gap:4px;flex-wrap:nowrap;padding-left:6px}
+.code-position{display:flex;flex-direction:column;gap:4px}
+.board-panel .code-choices .code-position button{width:44px;min-width:44px;height:44px;min-height:44px;padding:0}
+.board-panel .code-position button[aria-pressed="false"]{background:var(--b-card);color:var(--b-muted);border-style:dashed;box-shadow:none}
+.board-panel .code-position button[aria-pressed="true"]{border-color:var(--b-pine);box-shadow:0 0 0 2px var(--b-pine)}
+@media (max-width:360px){
+  .code-choices>.code-word:has(.code-position:nth-child(4)){display:grid;grid-template-columns:repeat(3,44px);gap:10px 12px;padding-left:0;justify-content:center}
+  .code-choices>.code-word:has(.code-position:nth-child(4)):not(:has(.code-position:nth-child(5))){grid-template-columns:repeat(2,44px)}
+}
+@media (min-width:760px){
+  .board-panel .code-puzzle .code-bit{width:44px;height:34px;box-sizing:border-box}
+  .code-puzzle .code-word{gap:4px;flex-wrap:nowrap}
+}
+
+/* Shared by Pebble Duel's board (nim) and the Proofs duel, once in proofs.css:
+   the --pf-* colors on .proof-puzzle, the action row, the win pips (Move menus
+   too) and the piles of pebbles. */
+.proof-puzzle{--pf-ink:#294439;--pf-muted:#5a6850;--pf-line:#d0d6bd;--pf-paper:#f5f1e6;--pf-card:#fffdf5;--pf-pine:#31533e;--pf-ochre:#b38840;--pf-sun:#efc76e;--pf-leaf:#86a68c;--pf-good:#3c7a4a;--pf-good-soft:#e2ecd6;--pf-bad:#a9503a;--pf-bad-soft:#f5e3d9;--pf-cell:#edf2e4;--pf-cell-line:#c9d4ba;--pf-hole:#8e8a76;max-width:720px;margin:0 auto;color:var(--pf-ink)}
+.proof-puzzle .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.proof-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:10px 0 0}
+.proof-pips{display:inline-flex;gap:6px}.proof-pips span{width:14px;height:14px;border-radius:50%;border:2px solid var(--pf-pine)}.proof-pips span.on{background:var(--pf-pine)}
+.duel-status{text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:1.15rem;min-height:1.6em;margin:0 0 6px}
+.duel-piles{display:flex;justify-content:center;align-items:flex-end;gap:clamp(14px,6vw,48px);min-height:200px;padding:8px 0}
+.duel-bowl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.duel-pile{display:flex;flex-direction:column-reverse;align-items:center;gap:4px}
+.duel-pebble{width:44px;height:40px;min-height:40px;min-width:44px;padding:0;border-radius:50%;background:#aabf9a;border:2px solid #294439;box-shadow:none}
+.duel-pebble:disabled{opacity:1;cursor:default}
+.duel-pebble.lift{background:var(--pf-sun);border-color:var(--pf-ochre);transform:translateY(-4px)}
+.duel-pebble.gone{display:block;opacity:.25;border-style:dashed}
+@media (hover:hover){.duel-pile .duel-pebble:not(:disabled):hover,.duel-pile .duel-pebble:not(:disabled):hover~.duel-pebble:not(.gone){background:var(--pf-sun);border-color:var(--pf-ochre)}}
+.duel-base{width:76px;height:16px;border-radius:0 0 40px 40px;background:#eceddf;border:1.5px solid var(--pf-line);border-top:0}
+@media (max-width:460px){.duel-pebble{width:40px;min-width:40px;height:36px;min-height:36px}}
+@media (prefers-reduced-motion:no-preference){.duel-pebble{transition:transform .15s,background .15s}}

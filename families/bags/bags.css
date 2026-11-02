@@ -21,3 +21,12 @@
 @media (max-width:420px){.board-panel .bag-choice{width:42px;height:42px}}
 /* Piles fill row by row, so equal piles stand equally tall. */
 .bag-puzzle .case-bin .case-list,.bag-play .case-bin .case-list{flex-direction:row;align-content:flex-start;max-width:11rem}
+/* Pair numbers read at 12 px or more; on a phone each pile is a full-width
+   row with its shape at the left, so long lists of pairs stay on screen. */
+.bag-puzzle :is(.case-mini,.case-bin-label) .case-counter,.bag-play :is(.case-mini,.case-bin-label) .case-counter{font-size:1em}
+@media (max-width:480px){
+  .bag-puzzle :is(.case-bins,.case-catalog),.bag-play :is(.case-bins,.case-catalog){grid-template-columns:1fr}
+  .bag-puzzle .case-bin,.bag-play .case-bin{flex-direction:row;align-items:flex-start;min-height:2.9rem;padding:.4rem .5rem}
+  .bag-puzzle .case-bin-label,.bag-play .case-bin-label{flex:none;width:1.6rem;padding-top:.45rem;justify-content:center}
+  .bag-puzzle .case-bin .case-list,.bag-play .case-bin .case-list{flex:1;max-width:none;justify-content:flex-start}
+}

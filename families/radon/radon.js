@@ -182,8 +182,9 @@ const isBool = v => typeof v === 'boolean';
 // Four labels on four different points of the board.
 const validSpread = (q, pos) => keysAre(pos, LETTERS) && LETTERS.every(l => isPoint(q, pos[l])) && new Set(LETTERS.map(l => pointKey(pos[l]))).size === 4;
 // Find every: the shelf holds splits the child has claimed, unjudged until
-// That's all. A refusal names the first shelved split that misses, or says
-// one is missing; it stays until the shelf changes.
+// That's all. A refusal records the first shelved split that misses, or that
+// one is missing (the board shows only "Not yet."); it stays until the shelf
+// changes.
 const judge = (q, shelf) => { const answers = answersOf(q), miss = shelf.find(k => !answers.includes(k)); return miss ? {kind: 'apart', key: miss} : shelf.length < answers.length ? {kind: 'more'} : null; };
 function validEvery(q, b) {
   const letters = lettersOf(q), splits = splitList(letters);
@@ -393,8 +394,19 @@ const DISC = 3.2;
 const SPREAD = {1: [[0, 0]], 2: [[-2.75, 0], [2.75, 0]], 3: [[-2.6, 1.5], [2.6, 1.5], [0, -2.6]], 4: [[-2.5, -2.5], [2.5, -2.5], [-2.5, 2.5], [2.5, 2.5]]};
 const RADIUS = {1: DISC, 2: 2.55, 3: 2.3, 4: 2.2};
 // Tap circles: a little past the disc, but never past halfway to a disc that
-// shares the point, so a tap goes to the nearest letter.
+// shares the point, so a tap goes to the nearest letter. A disc alone on its
+// point reaches halfway to the nearest other disc, up to 0.6 of a square, so
+// it is a 40 px target on a phone wherever there is room (soloHit).
 const HIT = {1: DISC + .9, 2: 2.75, 3: 2.42, 4: 2.5};
+const SOLO_MAX = 6;
+export function soloHit(pos, l) {
+  const [x, y] = pos[l];
+  let d = Infinity;
+  for (const m of Object.keys(pos)) { const [u, v] = pos[m]; if (u !== x || v !== y) d = Math.min(d, Math.hypot(u - x, v - y) * UNIT); }
+  return Math.max(HIT[1], Math.min(SOLO_MAX, d / 2));
+}
+// A lattice point that takes taps reaches halfway to its neighbours.
+const REACH = UNIT / 2;
 // Small pictures draw each dot small, close to its exact point, so a band
 // that passes near a dot without touching it shows a gap.
 const MINI_DOT = 1.3;
@@ -457,7 +469,7 @@ function discs(q, pos, look, colours, small = false) {
     // Small pictures show the dots in their colours, without letters.
     if (small) return `<circle class="sb-dot sb-c${colours[l]}" cx="${f(x + offset[0])}" cy="${f(y + offset[1])}" r="${MINI_DOT}"/>`;
     const control = it.act ? ` role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-piece="${esc(it.piece)}" data-focus="${esc(it.focus)}"` : '';
-    return `<g class="sb-disc sb-c${colours[l]}${it.cls ? ` ${it.cls}` : ''}" transform="translate(${f(x + offset[0])},${f(y + offset[1])})"${control}>${it.act ? `<circle class="sb-hit" r="${f(HIT[spots[l].count])}"/>` : ''}<circle class="sb-face" r="${r}"/><text class="sb-letter" y="${f(r * .36)}" style="font-size:${f(r * 1.3)}px">${l}</text></g>`;
+    return `<g class="sb-disc sb-c${colours[l]}${it.cls ? ` ${it.cls}` : ''}" transform="translate(${f(x + offset[0])},${f(y + offset[1])})"${control}>${it.act ? `<circle class="sb-hit" r="${f(spots[l].count === 1 ? soloHit(pos, l) : HIT[spots[l].count])}"/>` : ''}<circle class="sb-face" r="${r}"/><text class="sb-letter" y="${f(r * .36)}" style="font-size:${f(r * 1.3)}px">${l}</text></g>`;
   }).join('');
 }
 // Tap targets on lattice points. spot(p) gives {cls, label} or null.
@@ -469,7 +481,7 @@ function spots(q, spot, k = 0) {
     if (!it) return '';
     const [x, y] = drawAt(q, p), index = indexOf(q, p), cls = it.cls || '';
     const mark = cls.includes('found') ? '<circle class="sb-found" r="3.5"/>' : cls.includes('missed') ? '<path class="sb-missed" d="M-1.5 -1.5L1.5 1.5M-1.5 1.5L1.5 -1.5"/>' : '';
-    return `<g class="sb-spot${cls ? ` ${cls}` : ''}" transform="translate(${f(x)},${f(y)})" role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-point="${index}" data-focus="sb-spot-${k}-${index}"><circle class="sb-reach" r="4.3"/>${mark}</g>`;
+    return `<g class="sb-spot${cls ? ` ${cls}` : ''}" transform="translate(${f(x)},${f(y)})" role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-point="${index}" data-focus="sb-spot-${k}-${index}"><circle class="sb-reach" r="${REACH}"/>${mark}</g>`;
   }).join('');
 }
 // A ring on a point that is not a control (a place found, once finished).
@@ -485,7 +497,7 @@ function drawBoard(q, pos, opts = {}) {
   const colours = opts.colours || (split ? coloursFor(split, pos) : neutral(pos));
   const drawn = split ? splitSvg(q, pos, orderedGroups(split, colours), picture) : {bands: "", mark: ""};
   return squareBoard(gridFor(q), {
-    cls: `sb-board ${cls}`, label, picture, pad: picture ? .35 : .5,
+    cls: `sb-board ${cls}`, label, picture, pad: picture ? .35 : .45,
     under: `${pips(q)}${drawn.bands}`,
     over: `${extra}${discs(q, pos, look, colours, picture)}${drawn.mark}${spot ? spots(q, spot, k) : ''}`
   });
@@ -519,15 +531,16 @@ function renderEvery(p, a) {
   const look = l => ({act: !done, piece: l, focus: `sb-disc-${l}`, cls: act?.type === 'tap' && act.label === l ? 'hinted' : '', label: `${l}, ${COLOURS[colours[l]]}`});
   const main = drawBoard(q, q.labels, {colours, look});
   const bar = done ? '' : `<div class="sb-bar">${moveButton('Meet', {type: 'meet'}, now !== null && b.told === null, act?.type === 'meet')}${moveButton('That’s all', {type: 'all'}, b.shelf.length > 0 && !b.refused, act?.type === 'all')}</div>`;
-  const apart = b.refused?.kind === 'apart' ? b.refused.key : null;
-  const word = b.told === 'again' ? 'Already on the shelf.' : apart ? 'This one doesn’t meet.' : b.refused ? 'There is another.' : '';
+  // A refused That's all says only "Not yet.", whether a shelved split misses
+  // or one is missing, and rings nothing: told apart, a shelf of one split
+  // would judge that split (Square leftovers' find rule). The save keeps which.
+  const word = b.told === 'again' ? 'Already on the shelf.' : b.refused ? 'Not yet.' : '';
   // The shelf: unjudged splits, each a button that takes it off; once solved,
   // each split drawn with its bands.
-  const item = key => `<button type="button" class="sb-chip sb-take${apart === key ? ' ringed' : ''}${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="sb-drop-${key.replace('|', '-')}" aria-label="${splitWords(key)}. Take it off the shelf"><b class="sb-c0">${groupsOf(key)[0].join('')}</b><b class="sb-c1">${groupsOf(key)[1].join('')}</b></button>`;
+  const item = key => `<button type="button" class="sb-chip sb-take${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="sb-drop-${key.replace('|', '-')}" aria-label="${splitWords(key)}. Take it off the shelf"><b class="sb-c0">${groupsOf(key)[0].join('')}</b><b class="sb-c1">${groupsOf(key)[1].join('')}</b></button>`;
   const list = done ? shelf(b.shelf.map(k => mini(q, q.labels, k, true)), 'Splits that meet') : b.shelf.length ? `<div class="sb-goal sb-shelved" role="group" aria-label="Shelf">${b.shelf.map(item).join('')}</div>` : '';
-  const proof = apart ? shelf([mini(q, q.labels, apart, false, true)], 'This split apart') : '';
-  const say = `${colourWords(letters, b.groups)}${b.shelf.length ? ` Shelf: ${b.shelf.map(splitWords).join('; ')}.` : ' The shelf is empty.'}${word ? ` ${word}` : ''}${apart ? ` ${splitWords(apart)}.` : ''}${done ? ' That’s all.' : ''}`;
-  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${proof}${bar}${list}${status(say)}</div>`;
+  const say = `${colourWords(letters, b.groups)}${b.shelf.length ? ` Shelf: ${b.shelf.map(splitWords).join('; ')}.` : ' The shelf is empty.'}${word ? ` ${word}` : ''}${done ? ' That’s all.' : ''}`;
+  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${bar}${list}${status(say)}</div>`;
 }
 
 function renderPlace(p, a) {
@@ -631,6 +644,9 @@ export function arrowPoint(q, from, key) {
 }
 function wire(root, p, api) {
   const q = p.parameters, now = () => api.attempt().board;
+  // On a phone the boards reach the panel's edges (CSS reads --sb-bleed).
+  const panel = root.closest('.board-panel'), puzzle = root.querySelector('.sb-puzzle') || root.closest('.sb-puzzle');
+  if (panel && puzzle) puzzle.style.setProperty('--sb-bleed', `${parseFloat(getComputedStyle(panel).paddingLeft) || 0}px`);
   const keys = (el, action) => el.addEventListener('keydown', e => {
     if (!ARROWS[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;
     const m = action(e.key);
@@ -665,6 +681,28 @@ function wire(root, p, api) {
 
 export const radonMechanics = {
   radon: {
+    howTo: [
+      {parameters: {"mode": "every","cols": 4,"rows": 4,"labels": {"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]}},
+        steps: [
+          {"move": {"type": "tap","label": "A"},"taps": ["[data-sg-piece=\"A\"]"]},
+          {"move": {"type": "tap","label": "B"},"taps": ["[data-sg-piece=\"B\"]"]}
+        ]},
+      {mode: 'place', parameters: {"mode": "place","cols": 4,"rows": 4,"labels": {"A": [0,0],"B": [3,0],"C": [0,3]},"start": [3,3],"goal": ["ABC|D"],"where": ""},
+        steps: [
+          {"move": {"type": "put","at": [2,1]},"taps": ["[data-sg-point=\"11\"]"]},
+          {"move": {"type": "put","at": [1,2]},"taps": ["[data-sg-point=\"7\"]"]}
+        ]},
+      {mode: 'locus', parameters: {"mode": "locus","cols": 5,"rows": 3,"labels": {"A": [1,1],"B": [3,1]}},
+        steps: [
+          {"move": {"type": "put","at": [0,0]},"taps": ["[data-sg-point=\"0\"]"]},
+          {"move": {"type": "put","at": [2,2]},"taps": ["[data-sg-point=\"10\"]"]}
+        ]},
+      {mode: 'pair', parameters: {"mode": "pair","cols": 4,"rows": 4,"boards": [{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]},{"A": [0,0],"B": [3,0],"C": [0,3],"D": [2,2]}]},
+        steps: [
+          {"move": {"type": "put","board": 0,"label": "D","at": [3,2]},"taps": ["[data-sb-board=\"0\"] [data-sg-point=\"17\"]"]},
+          {"move": {"type": "put","board": 1,"label": "D","at": [2,3]},"taps": ["[data-sb-board=\"1\"] [data-sg-point=\"13\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire, help,
     ui(p, payload) {
       if (!object(payload)) return;
@@ -693,7 +731,7 @@ export const radonMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'radon',
-  family: {id: 'radon', symbol: '⋈'},
+  family: {id: 'radon', symbol: '⋈', area: 'geometry', region: 'shape'},
   mechanics: radonMechanics,
   pack: new URL('./radon.json', import.meta.url).href,
   css: new URL('./radon.css', import.meta.url).href,

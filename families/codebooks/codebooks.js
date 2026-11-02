@@ -259,7 +259,7 @@ export const SHAPES = [
   {name: 'heart', path: 'M12 20.5C5 15.5 2.5 12 2.5 8.6A4.6 4.6 0 0 1 12 6.3a4.6 4.6 0 0 1 9.5 2.3c0 3.4-2.5 6.9-9.5 11.9z'},
   {name: 'cross', path: 'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z'}
 ];
-const shape = (k, cls = '') => `<svg class="cb-shape s${k} ${cls}" viewBox="0 0 24 24" role="img" aria-label="${SHAPES[k].name}"><path d="${SHAPES[k].path}"/></svg>`;
+const shape = (k, cls = '') => `<svg class="cb-shape cb-s${k} ${cls}" viewBox="0 0 24 24" role="img" aria-label="${SHAPES[k].name}"><path d="${SHAPES[k].path}"/></svg>`;
 const EYE = '<svg class="cb-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const describe = row => [...row].map(c => c === '1' ? 'lit' : 'dark').join(', ');
 // A row of lanterns. `act(i)` gives a lantern's action, or null for a picture.
@@ -305,7 +305,9 @@ function renderDesign(p, a) {
   }
   if (b.wrong !== null) result += `<p class="cb-say" role="status">The changer cannot break every key with ${plural(b.wrong, 'lantern')}. Keep looking.</p>`;
   if (b.claims.includes(b.length)) result += `<p class="cb-say good" role="status">Right: no key with ${plural(b.length, 'lantern')} can stop the changer.</p>`;
-  const claim = q.goal === 'key' || done ? '' : control(`No key with ${plural(b.length, 'lantern')}`, {type: 'claim'}, 'secondary cb-claim', b.tried.includes(b.length) && !b.claims.includes(b.length) ? '' : 'disabled');
+  // A refused claim stays off until the key changes (claims audit: it stayed
+  // enabled, so a second press or a double tap met the generic error).
+  const claim = q.goal === 'key' || done ? '' : control(`No key with ${plural(b.length, 'lantern')}`, {type: 'claim'}, 'secondary cb-claim', b.tried.includes(b.length) && !b.claims.includes(b.length) && b.wrong !== b.length ? '' : 'disabled');
   const check = done ? '' : control('Check', {type: 'check'}, `primary${shown?.action?.type === 'check' ? ' hinted' : ''}`, b.checked ? 'disabled' : '');
   return `<div class="codebook-puzzle mode-design" data-mechanic-wire="codebooks">${picker}<div class="cb-key" role="group" aria-label="The key">${rows}</div><div class="cb-tools">${check}${claim}</div>${result}</div>`;
 }
@@ -344,7 +346,8 @@ function renderPartners(p, a) {
 function wire(root, p, api) {
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-cb-move]');
-    if (!el || !root.contains(el) || el.disabled) return;
+    // The number of lanterns already chosen does nothing.
+    if (!el || !root.contains(el) || el.disabled || (el.classList.contains('cb-length') && el.getAttribute('aria-pressed') === 'true')) return;
     try { api.apply(JSON.parse(el.dataset.cbMove)); } catch { /* malformed control */ }
   });
 }
@@ -365,6 +368,33 @@ export const codebookMechanics = {
 
 // The family seam entry (dist/families.js). The puzzles join Signal Lanterns
 // as its Codebooks group, so the module adds no satchel family of its own.
+// How to play: demonstrate the controls on a separate, small board.
+codebookMechanics.codebook.howTo = [
+{
+  parameters: {"mode":"design","pictures":2,"lengths":[2],"flips":0,"goal":"key"},
+  steps: [
+    {"move":{"type":"lantern","picture":0,"lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"picture\":0,\"lantern\":0}']"]},
+    {"move":{"type":"lantern","picture":1,"lantern":1},"taps":["[data-cb-move='{\"type\":\"lantern\",\"picture\":1,\"lantern\":1}']"]}
+  ]
+},
+{
+  mode: "changer",
+  parameters: {"mode":"changer","flips":1,"keys":[["100","011"]]},
+  steps: [
+    {"move":{"type":"lantern","lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"lantern\":0}']"]},
+    {"move":{"type":"send"},"taps":["[data-cb-move='{\"type\":\"send\"}']"]}
+  ]
+},
+{
+  mode: "partners",
+  parameters: {"mode":"partners","flips":1,"rounds":["10","11"]},
+  steps: [
+    {"move":{"type":"lantern","lantern":0},"taps":["[data-cb-move='{\"type\":\"lantern\",\"lantern\":0}']"]},
+    {"move":{"type":"add"},"taps":["[data-cb-move='{\"type\":\"add\"}']"]}
+  ]
+}
+];
+
 export default {
   id: 'codebooks',
   mechanics: codebookMechanics,

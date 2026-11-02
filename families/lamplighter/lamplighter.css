@@ -14,7 +14,7 @@
 
 /* Sizes: the street's two copies share their width, so lantern k of the goal
    card is straight above lantern k of the board. */
-.ll-street .ll-goal,.ll-street .ll-yard{width:100%;max-width:560px}
+.ll-street .ll-goal,.ll-street .ll-yard{width:100%;max-width:470px}
 .ll-ring .ll-yard{max-width:340px}
 .ll-ring .ll-goal{width:min(48%,190px)}
 .ll-grid .ll-yard{max-width:calc(var(--ll-width,320) * 1.1px + 1rem)}
@@ -62,5 +62,9 @@
 @media (max-width:440px){
   .ll-yard,.ll-goal{padding-left:.25rem;padding-right:.25rem}
   .ll-move,.ll-slot{width:27px;height:27px}
+  /* The ring and its goal card a little smaller, so Undo, Restart and Hint
+     stay above the fold on a phone. */
+  .ll-ring .ll-yard{max-width:296px}
+  .ll-ring .ll-goal{width:min(42%,150px)}
 }
 @media (prefers-reduced-motion:reduce){.ll-yard .lantern.fresh circle{animation:none}}

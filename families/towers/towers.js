@@ -548,7 +548,7 @@ function renderCity(p, a) {
   const pad = editable ? keypad(n, {cell: sel}, cells[sel], shown, false) : edge !== null ? keypad(n, {slot: edge}, b.extra?.[0] === edge ? b.extra[1] : 0, shown, false) : '';
   let tools = '', note = '', extra = '';
   if (q.mode === 'city' && !done) {
-    tools = `<button type="button" class="secondary tw-no${shown?.type === 'none' && !picking ? ' hinted' : ''}" ${uiAttrs({pick: !picking}, 'tw-no')} aria-pressed="${picking}" ${b.refused || !b.tried ? 'disabled' : ''}>No city</button>`;
+    tools = `<button type="button" class="secondary tw-no${shown?.type === 'none' && !picking ? ' hinted' : ''}" ${uiAttrs({pick: !picking}, 'tw-no')} data-toggle="tw-no" aria-pressed="${picking}" ${b.refused || !b.tried ? 'disabled' : ''}>No city</button>`;
     note = b.refused ? 'A city fits.' : could !== null ? 'No edge number rules this square out.' : '';
   }
   if (q.mode === 'every') {
@@ -641,6 +641,55 @@ export const towerMechanics = {
 };
 
 // The family seam entry (dist/families.js): a group in Symbol Orchard.
+// How to play: demonstrate the controls on a separate, small board.
+towerMechanics.towers.howTo = [
+{
+  parameters: {"mode":"row","order":3,"card":[3,1],"start":[2,1,3]},
+  steps: [
+    {"move":{"type":"swap","a":0,"b":2},"taps":["[data-place=\"0\"]","[data-place=\"2\"]"]},
+    {"move":{"type":"swap","a":0,"b":1},"taps":["[data-place=\"0\"]","[data-place=\"1\"]"]}
+  ]
+},
+{
+  mode: "city",
+  parameters: {"mode":"city","order":3,"clues":{"top":[0,0,1],"right":[0,0,0],"bottom":[0,0,0],"left":[0,0,0]}},
+  steps: [
+    {"ui":{"sel":1}},
+    {"move":{"type":"set","cell":1,"value":2}},
+    {"ui":{"sel":0}},
+    {"move":{"type":"set","cell":0,"value":1}}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","order":3,"city":[1,2,3,2,3,1,3,1,2],"budget":3},
+  steps: [
+    {"move":{"type":"toggle","slot":0}},
+    {"move":{"type":"toggle","slot":1}}
+  ]
+},
+{
+  mode: "every",
+  parameters: {"mode":"city","order":3,"clues":{"top":[0,0,1],"right":[0,0,0],"bottom":[0,0,0],"left":[0,0,0]}},
+  steps: [
+    {"ui":{"sel":1}},
+    {"move":{"type":"set","cell":1,"value":2}},
+    {"ui":{"sel":0}},
+    {"move":{"type":"set","cell":0,"value":1}}
+  ]
+},
+{
+  mode: "twins",
+  parameters: {"mode":"city","order":3,"clues":{"top":[0,0,1],"right":[0,0,0],"bottom":[0,0,0],"left":[0,0,0]}},
+  steps: [
+    {"ui":{"sel":1}},
+    {"move":{"type":"set","cell":1,"value":2}},
+    {"ui":{"sel":0}},
+    {"move":{"type":"set","cell":0,"value":1}}
+  ]
+}
+];
+
 export default {
   id: 'towers',
   mechanics: towerMechanics,

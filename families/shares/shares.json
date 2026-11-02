@@ -89,7 +89,7 @@
    "objective": "Give out all the cards so that nobody would swap trays.",
    "visibleObjective": "Share the cards so nobody would swap.",
    "instruction": "Give out all the cards so that nobody would swap trays.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair when nobody would swap. Undo takes back the last move.",
+   "controls": "Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine. Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair when nobody would swap. Undo takes back the last move.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
@@ -190,7 +190,7 @@
    "objective": "Give out all the cards so that nobody would swap trays.",
    "visibleObjective": "Share the cards so nobody would swap.",
    "instruction": "Give out all the cards so that nobody would swap trays.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
+   "controls": "Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine. Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
@@ -287,7 +287,7 @@
    "objective": "Give out all the cards so that nobody would swap trays.",
    "visibleObjective": "Share the cards so nobody would swap.",
    "instruction": "Give out all the cards so that nobody would swap trays.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
+   "controls": "Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine. Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
@@ -501,7 +501,7 @@
    "objective": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
    "visibleObjective": "Find every way nobody would swap.",
    "instruction": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
+   "controls": "Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine. Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
@@ -607,7 +607,7 @@
    "objective": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
    "visibleObjective": "Find every way nobody would swap.",
    "instruction": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
+   "controls": "Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine. Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
@@ -792,7 +792,7 @@
    "objective": "Cut the strip so you get half whatever piece B takes. Then B cuts, and you take a piece.",
    "visibleObjective": "",
    "instruction": "Cut the strip so you get half whatever piece B takes. Then B cuts, and you take a piece.",
-   "controls": "Tap or slide along the strip to place the knife, then press Cut. When B has cut, tap the piece you take.",
+   "controls": "Each square is worth your red or blue number to you, and B’s numbers to B. Tap or slide along the strip to place the knife, then press Cut. When B has cut, tap the piece you take.",
    "rules": [
     "Each square is worth your red or blue number to you, and B’s numbers to B.",
     "You cut the strip in two. B takes the piece worth more to B, and you get the other.",
@@ -1076,7 +1076,7 @@
    "objective": "Cut the strip so you get half whatever piece B takes. Then B cuts, and you take a piece.",
    "visibleObjective": "",
    "instruction": "Cut the strip so you get half whatever piece B takes. Then B cuts, and you take a piece.",
-   "controls": "Tap or slide along the strip to place the knife, then press Cut. When B has cut, tap the piece you take.",
+   "controls": "Each square is worth your red or blue number to you, and B’s numbers to B. Tap or slide along the strip to place the knife, then press Cut. When B has cut, tap the piece you take.",
    "rules": [
     "Each square is worth your red or blue number to you, and B’s numbers to B.",
     "You cut the strip in two. B takes the piece worth more to B, and you get the other.",

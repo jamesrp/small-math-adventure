@@ -35,11 +35,13 @@ export const artUrl = path => path && !/^(https?:|data:|\.\/|\/)/.test(path) ? `
 // One-shot clips (loop: false) hand over to the `then` slot when they end: its
 // video if it has one, otherwise its still. `nonce` makes a repeated one-shot
 // (a second mistake in a row) play again instead of reusing the finished clip.
-export function media(id, placeholder, { key = id, cls = '', alt = '', then = null, loop = true, nonce = '' } = {}) {
+// `motion: false` shows the still even when the slot has a video (a keeper's
+// talk pose with no voice playing).
+export function media(id, placeholder, { key = id, cls = '', alt = '', then = null, loop = true, nonce = '', motion = true } = {}) {
   const entry = asset(id), base = `class="art-slot ${cls}" data-art="${escAttr(id)}" data-art-key="${escAttr(key)}"`;
   if (!entry) return `<div ${base} data-art-src="placeholder:${escAttr(id)}" data-placeholder="true">${placeholder}</div>`;
   const image = artUrl(entry.image), video = artUrl(entry.video), nextEntry = then ? asset(then) : null;
-  if (video && !reduced()) {
+  if (video && motion && !reduced()) {
     const handover = !loop && nextEntry ? `data-then-video="${escAttr(artUrl(nextEntry.video) || '')}" data-then-image="${escAttr(artUrl(nextEntry.image) || '')}"` : '';
     return `<div ${base} data-art-src="${escAttr(video)}${nonce === '' ? '' : `#${escAttr(nonce)}`}"><video src="${escAttr(video)}" ${image ? `poster="${escAttr(image)}"` : ''} autoplay muted playsinline ${loop ? 'loop' : ''} preload="auto" aria-hidden="true" ${handover}></video></div>`;
   }

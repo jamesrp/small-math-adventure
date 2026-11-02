@@ -11,11 +11,17 @@
 .gb-bar{stroke:var(--b-bad,#a9503a);stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .gb-tag rect{fill:var(--b-card,#fffdf5);stroke:#9aa88f;stroke-width:1.5px;vector-effect:non-scaling-stroke}
 .gb-tag text{font-size:5.1px;fill:var(--b-ink,#294439)}
-.gb-hit{stroke:transparent;stroke-width:30px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
+/* A link takes taps 44 px wide at any board size; its keyboard focus band
+   stays 30 px. */
+.gb-hit{stroke:transparent;stroke-width:44px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
 .gb-hit:hover{stroke:rgba(41,68,57,.07)}
-.gb-hit:focus-visible{stroke:rgba(179,136,64,.32)}
+.gb-hit:focus-visible{stroke:rgba(179,136,64,.32);stroke-width:30px}
 
 .gb-node .gb-reach{fill:transparent}
+/* Once the board is fitted (hit-fit.js), a node takes taps on its own hit
+   shape and the drawn reach ring is only a ring. */
+.gb-node .hit-tap{fill:transparent;stroke:none}
+.hit-fit .gb-node .gb-reach{pointer-events:none}
 .gb-node .gb-dot{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5px;vector-effect:non-scaling-stroke}
 .gb-node .gb-label{font-size:5.2px;fill:var(--b-ink,#294439)}
 .gb-node[role="button"]{cursor:pointer;outline:none}

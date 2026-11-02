@@ -67,9 +67,13 @@ const latin = {
     if (!latinValid(p, board)) return { type: 'deadend', text: 'This board cannot be read. Restart the orchard.' };
     if (this.solved(p, board)) return { type: 'done' };
     const n = p.parameters.order, conflicts = latinConflicts(n, board.cells);
-    if (conflicts.size) return { type: 'deadend', text: 'A symbol repeats in a row or column. Clear a marked entry, or undo your last trial.' };
+    // Both dead ends are told only behind Hint (quiet). A repeat is already
+    // said on the board, by its outlined squares and one line; and saying
+    // unasked that entries with no repeat can't be finished would be the
+    // deduction itself, so it waits until the child asks or a repeat shows.
+    if (conflicts.size) return { type: 'deadend', quiet: true, text: 'A symbol repeats in a row or column. Clear a marked entry, or undo your last trial.' };
     const answer = completeLatin(p, board.cells);
-    if (!answer) return { type: 'deadend', text: 'These entries cannot lead to a complete orchard, even though no symbol repeats yet. Undo a trial or clear an entry.' };
+    if (!answer) return { type: 'deadend', quiet: true, text: 'These entries cannot lead to a complete orchard, even though no symbol repeats yet. Undo a trial or clear an entry.' };
     const empty = board.cells.flatMap((value, cell) => value ? [] : [cell]);
     let cell = empty.find(at => latinOptions(n, board.cells, at).length === 1), reason = 'Its row and column rule out every other symbol.';
     if (cell === undefined) {
@@ -107,6 +111,20 @@ function consistentCode(p, bits) { return p.parameters.transcript.every(row => e
 function codeCandidates(p) {
   return Array.from({ length: 2 ** p.parameters.length }, (_, value) => value.toString(2).padStart(p.parameters.length, '0').split('').map(Number)).filter(bits => consistentCode(p, bits));
 }
+// The library's words. A road copy brings its own (`codeWords`, dist/road.js:
+// the crypt door calls each position a light and each test an old try), and
+// shows what to do after a wrong Check under the table, where it is in view.
+const CODE_WORDS = {
+  caption: 'Recorded tests', test: 'Test', right: 'Exact matches', yours: 'Your code', position: 'Position', count: true, miss: '— recheck',
+  feedback: 'Some scores do not match yet. Change a lantern and try again.', showFeedback: false,
+  fits: 'Your lanterns fit every recorded score. Submit this code.',
+  set: (value, position, fresh) => `${fresh ? 'A code that fits every recorded score has' : 'Your current choices cannot fit every score. Try'} ${value} in position ${position}. Count matches in the same positions only.`,
+};
+const codeWords = p => {
+  const own = p.codeWords;
+  if (!own) return CODE_WORDS;
+  return { ...CODE_WORDS, ...own, set: (value, position) => own.set.replace('{value}', value).replace('{position}', position) };
+};
 const code = {
   fresh: p => ({ bits: Array(p.parameters.length).fill(null), submitted: false }),
   valid: codeValid,
@@ -130,21 +148,38 @@ const code = {
     candidates.sort((a, b) => distance(a) - distance(b));
     const answer = candidates[0], wrong = board.bits.findIndex((bit, position) => bit !== null && bit !== answer[position]);
     const position = wrong < 0 ? board.bits.indexOf(null) : wrong;
-    if (position < 0) return { type: 'move', action: { type: 'submit' }, remaining: 1, text: 'Your lanterns fit every recorded score. Submit this code.' };
+    const words = codeWords(p);
+    if (position < 0) return { type: 'move', action: { type: 'submit' }, remaining: 1, text: words.fits };
     return { type: 'move', action: { type: 'set', position, value: answer[position] }, remaining: board.bits.filter((bit, at) => bit !== answer[at]).length + 1,
-      text: `${wrong < 0 ? 'A code that fits every recorded score has' : 'Your current choices cannot fit every score. Try'} ${answer[position]} in position ${position + 1}. Count matches in the same positions only.` };
+      text: words.set(answer[position], position + 1, wrong < 0) };
   },
   render(p, attempt) {
-    const board = attempt.board;
-    return `<div class="deduction-puzzle code-puzzle">
-      <table class="code-transcript"><caption class="sr-only">Recorded tests</caption><thead><tr><th scope="col">Test</th><th scope="col">Exact matches</th>${board.submitted ? '<th scope="col">Your code</th>' : ''}</tr></thead><tbody>${p.parameters.transcript.map(row => { const actual = exactMatches(board.bits, row.guess), good = actual === row.matches; return `<tr${board.submitted && !good ? ' class="code-mismatch"' : ''}><th scope="row"><span class="code-word" role="img" aria-label="${esc(row.guess.split('').join(', '))}">${row.guess.split('').map(bit => `<span class="code-bit code-bit-${bit}" aria-hidden="true">${bit}</span>`).join('')}</span></th><td>${row.matches}</td>${board.submitted ? `<td>${actual} ${good ? '✓' : '— recheck'}</td>` : ''}</tr>`; }).join('')}</tbody></table>
-      <fieldset class="code-choices"><legend>Your code</legend><div class="code-word">${board.bits.map((bit, position) => actionButton(bit === null ? '?' : String(bit), { type: 'toggle', position }, `data-bit="${bit === null ? 'blank' : bit}" aria-label="Position ${position + 1}: ${bit === null ? 'unset; choose 0' : `${bit}; change to ${1 - bit}`}"`)).join('')}</div></fieldset><div class="deduction-form-controls">${actionButton('Check', { type: 'submit' }, board.bits.includes(null) || board.submitted ? 'disabled' : '')}</div>
-      <p class="sr-only" role="status">${board.submitted ? this.solved(p, board) ? '' : 'Some scores do not match yet. Change a lantern and try again.' : ''}</p></div>`;
+    const board = attempt.board, words = codeWords(p), solved = this.solved(p, board);
+    const feedback = board.submitted && !solved ? words.feedback : '';
+    const mark = (actual, good) => `${words.count ? `${actual} ` : ''}<span class="code-mark code-mark-${good ? 'good' : 'bad'}">${esc(good ? '✓' : words.miss)}</span>`;
+    return `<div class="deduction-puzzle code-puzzle"${words.showFeedback ? ' data-mechanic-wire="code"' : ''}>
+      <table class="code-transcript"><caption class="sr-only">${esc(words.caption)}</caption><thead><tr><th scope="col">${esc(words.test)}</th><th scope="col">${esc(words.right)}</th>${board.submitted ? `<th scope="col">${esc(words.yours)}</th>` : ''}</tr></thead><tbody>${p.parameters.transcript.map(row => { const actual = exactMatches(board.bits, row.guess), good = actual === row.matches; return `<tr${board.submitted && !good ? ' class="code-mismatch"' : ''}><th scope="row"><span class="code-word" role="img" aria-label="${esc(row.guess.split('').join(', '))}">${row.guess.split('').map(bit => `<span class="code-bit code-bit-${bit}" aria-hidden="true">${bit}</span>`).join('')}</span></th><td>${row.matches}</td>${board.submitted ? `<td>${mark(actual, good)}</td>` : ''}</tr>`; }).join('')}</tbody></table>
+      ${words.showFeedback ? `<p class="deduction-feedback code-feedback" role="status"${feedback ? '' : ' hidden'}>${esc(feedback)}</p>` : ''}
+      <fieldset class="code-choices"><legend>Your code</legend><div class="code-word">${board.bits.map((bit, position) => `<div class="code-position" role="group" aria-label="${esc(words.position)} ${position + 1}">${[0, 1].map(value => actionButton(String(value), { type: 'set', position, value }, `data-bit="${value}" aria-label="${esc(words.position)} ${position + 1}: ${value}" aria-pressed="${bit === value}"`)).join('')}</div>`).join('')}</div></fieldset><div class="deduction-form-controls">${actionButton('Check', { type: 'submit' }, board.bits.includes(null) || board.submitted ? 'disabled' : '')}</div>
+      ${words.showFeedback ? '' : `<p class="sr-only" role="status">${esc(feedback)}</p>`}</div>`;
+  },
+  // A wrong Check's line sits under the table; if the child had scrolled it
+  // away to reach Check, bring it into view once for that Check.
+  wire(root, p, api) {
+    const note = root.querySelector('.code-feedback:not([hidden])');
+    if (!note) { feedbackShown = null; return; }
+    const key = `${p.id}|${api.attempt()?.moves}`;
+    if (feedbackShown === key) return;
+    feedbackShown = key;
+    const box = note.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > innerHeight) note.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   },
   demo: 'A recorded test 10 with zero matches means the secret is 01: both positions must change. Set each lantern, then submit a code that fits all the tests.'
 };
+let feedbackShown = null;
 
 const nimPicks = new Map();
+const NIM_BUNDLES_AFTER = 'proof-duel-01';
 const nimSum = piles => piles.reduce((sum, pile) => sum ^ pile, 0);
 function nimChoice(piles, choice) {
   return object(choice) && integer(choice.pile) && choice.pile >= 1 && choice.pile <= piles.length && integer(choice.remove) && choice.remove >= 1 && choice.remove <= piles[choice.pile - 1];
@@ -157,6 +192,39 @@ function winningMove(piles) {
 }
 const legalNimMoves = piles => piles.flatMap((size, i) => numbers(size).map(remove => ({ pile: i + 1, remove })));
 const nimWinner = board => board.piles.some(Boolean) ? null : board.turns.at(-1)?.player;
+// A rival that shows off (parameters.rival_slips, the road's Pebbles with
+// Plume): while some pile still has SHOW_OFF pebbles or more, it throws away
+// its first rival_slips chances to win in a game, each on the smallest take
+// from the biggest pile that leaves the player a win and more than one pile
+// (one pebble from the biggest pile when that is not the winning take). It
+// never passes up the last pile. Otherwise it plays a winning move when it
+// has one and, with none, one pebble from the biggest pile. Every reply
+// follows from the board, so Undo and replays meet the same rival.
+const SHOW_OFF = 3;
+const biggestPile = piles => piles.indexOf(Math.max(...piles)) + 1;
+function rivalSlips(p, board) {
+  let piles = [...p.parameters.piles], slips = 0;
+  for (const turn of board.turns) {
+    if (turn.player === 'opponent' && winningMove(piles) && nimSum(afterChoice(piles, turn))) slips++;
+    piles = afterChoice(piles, turn);
+  }
+  return slips;
+}
+function showOffSlip(piles) {
+  const order = piles.map((size, i) => i + 1).filter(pile => piles[pile - 1]).sort((a, b) => piles[b - 1] - piles[a - 1] || a - b);
+  for (let remove = 1; remove <= Math.max(...piles); remove++) for (const pile of order) {
+    if (remove > piles[pile - 1]) continue;
+    const rest = afterChoice(piles, { pile, remove });
+    if (nimSum(rest) && rest.filter(Boolean).length > 1) return { pile, remove };
+  }
+  return null;
+}
+function nimReply(p, board, piles, random) {
+  const best = winningMove(piles), slips = p.parameters.rival_slips;
+  if (!Number.isInteger(slips)) { const options = legalNimMoves(piles); return best || options[Math.floor(random() * options.length)]; }
+  if (best && piles.filter(Boolean).length > 1 && Math.max(...piles) >= SHOW_OFF && rivalSlips(p, board) < slips) { const slip = showOffSlip(piles); if (slip) return slip; }
+  return best || { pile: biggestPile(piles), remove: 1 };
+}
 // Strictly recognize the former first-move format before migrating a saved attempt.
 export function legacyNimBoard(p, board) {
   return object(board) && Object.keys(board).length === 1 && Object.hasOwn(board, 'choice') && (board.choice === null || nimChoice(p.parameters.piles, board.choice));
@@ -183,7 +251,7 @@ const nim = {
     let piles = afterChoice(board.piles, choice);
     const turns = [...board.turns, { player: 'you', ...choice }];
     if (piles.some(Boolean)) {
-      const options = legalNimMoves(piles), reply = winningMove(piles) || options[Math.floor(random() * options.length)];
+      const reply = nimReply(p, board, piles, random);
       piles = afterChoice(piles, reply);
       turns.push({ player: 'opponent', ...reply });
     }
@@ -192,15 +260,16 @@ const nim = {
   hint(p, board) {
     if (!nimValid(p, board)) return { type: 'deadend', text: 'Restart to restore the piles.' };
     if (this.solved(p, board)) return { type: 'done' };
-    if (nimWinner(board)) return { type: 'deadend', text: 'The opponent took the last pebble. Undo or restart to try again.' };
+    // A named rival's win is already the board's status line, so it waits behind Hint.
+    if (nimWinner(board)) return { type: 'deadend', text: `${p.rival || 'The opponent'} took the last pebble. Undo or restart to try again.`, ...(p.rival ? { quiet: true } : {}) };
     const best = winningMove(board.piles), choice = best || legalNimMoves(board.piles)[0];
     return { type: 'move', action: { type: 'choose', ...choice },
-      text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}. Keep returning the opponent to a balanced position.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
+      text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
   },
   // Piles of pebbles, as in the proof duel: lift a pebble and everything above
   // it, then Take. On the road the opponent is a named rival.
   render(p, attempt, ctx = {}) {
-    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1), rival = ctx.encounter?.speaker === 'plume' ? 'Plume' : 'Opponent';
+    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1), rival = p.rival || (ctx.encounter?.speaker === 'plume' ? 'Plume' : 'Opponent');
     const yourTurn = !winner, pick = nimPicks.get(p.id);
     if (pick && (!yourTurn || pick.pile > board.piles.length || pick.from >= board.piles[pick.pile - 1])) nimPicks.delete(p.id);
     const lifted = nimPicks.get(p.id), take = lifted ? board.piles[lifted.pile - 1] - lifted.from : 0;
@@ -212,7 +281,7 @@ const nim = {
         const count = size - k, up = lifted && lifted.pile === i + 1 && k >= lifted.from;
         return `<button type="button" class="duel-pebble${up ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="nim-${i}-${k}" aria-label="Lift ${count} ${count === 1 ? 'pebble' : 'pebbles'} from pile ${i + 1}" aria-pressed="${Boolean(up)}" ${yourTurn ? '' : 'disabled'}></button>`;
       }).join('');
-      return `<div class="duel-bowl" role="group" aria-label="Pile ${i + 1}, ${size} ${size === 1 ? 'pebble' : 'pebbles'}"><div class="duel-pile">${pebbles}</div><span class="duel-base" aria-hidden="true"></span><span class="nim-count" aria-hidden="true">${size}</span></div>`;
+      return `<div class="duel-bowl" role="group" aria-label="Pile ${i + 1}, ${size} ${size === 1 ? 'pebble' : 'pebbles'}"><div class="duel-pile" style="--nim-rows:${Math.min(6, Math.ceil((size + before) / 2))}">${pebbles}</div><span class="duel-base" aria-hidden="true"></span><span class="nim-count" aria-hidden="true">${size}</span></div>`;
     }).join('');
     return `<div class="deduction-puzzle nim-puzzle proof-puzzle">
       <div class="nim-status duel-status" role="status" tabindex="-1" data-focus="nim-status">${reply?.player === 'opponent' ? `<span>${rival} took ${reply.remove} from pile ${reply.pile}.</span> ` : ''}<strong>${status}</strong></div>
@@ -222,11 +291,14 @@ const nim = {
   },
   ui(p, payload) { if (payload && Object.hasOwn(payload, 'pick')) { if (payload.pick) nimPicks.set(p.id, payload.pick); else nimPicks.delete(p.id); } },
   reset(p) { nimPicks.delete(p.id); },
-  help(p, attempt) {
+  // The bundle table is earned: it appears in How to play only after the
+  // two-pile duel (Duel 1 in Proofs) is solved, and states no rule.
+  help(p, attempt, ctx = {}) {
+    if (!ctx.completed?.(NIM_BUNDLES_AFTER)) return '';
     const piles = attempt.board.piles;
     const largest = Math.max(...p.parameters.piles), bundles = [];
     for (let size = 2 ** Math.max(2, Math.floor(Math.log2(largest))); size >= 1; size /= 2) bundles.push(size);
-    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
+    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
   },
   demo: 'Tap a pebble to lift it and every pebble above it, then Take. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
 };

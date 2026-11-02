@@ -120,8 +120,9 @@ function movePuzzle(p, b, action) {
         return {counts: b.counts.map((x, k) => k === i ? n : x), tried: false, cant: false};
       }
       case 'try': return !b.tried ? {...b, tried: true} : null;
-      // Can't is checked: right when no table works, otherwise refused until the table changes.
-      case 'cant': return !b.cant ? {...b, cant: true} : null;
+      // Can't waits for Try it on the table showing, and is checked: right
+      // when no table works, otherwise refused until the table changes.
+      case 'cant': return b.tried && !b.cant ? {...b, cant: true} : null;
     }
     return null;
   }
@@ -269,7 +270,7 @@ function renderPuzzle(p, a) {
   }
   if (q.mode === 'cards') {
     const s = cardSplit(b.counts), why = !s.R && !s.B ? VERDICT.none : q.goal === 'tie' ? VERDICT.tie : VERDICT.three;
-    const actions = solved ? '' : `<div class="case-actions">${button('Try it', {type: 'try'}, hinted('try'), b.tried ? 'disabled' : '')}${button('Can’t', {type: 'cant'}, hinted('cant'), b.cant ? 'disabled' : '')}</div>`;
+    const actions = solved ? '' : `<div class="case-actions">${button('Try it', {type: 'try'}, hinted('try'), b.tried ? 'disabled' : '')}${button('Can’t', {type: 'cant'}, hinted('cant'), b.tried && !b.cant ? '' : 'disabled')}</div>`;
     const notes = solved ? '' : [b.tried ? note(why) : '', b.cant ? note('Keep looking.') : ''].join('');
     const done = solved && b.cant ? tablesCatalog(q) : '';
     return wrap(stacksHTML(b.counts, maxOf(q), {still: solved, hint: h?.type === 'count' ? h : null}), actions, notes, b.tried ? cardBins(b.counts) : '', done);
@@ -338,7 +339,8 @@ function wire(root, p, api) {
     if (!el || !root.contains(el) || el.disabled) return;
     try {
       const action = JSON.parse(el.dataset.sideMove);
-      // A drawn side tapped again is already showing.
+      // A drawn side tapped again is already showing. The wrong pile shakes.
+      if (action.type === 'keep' && !isPlay(p) && !movePuzzle(p, api.attempt().board, action)) { el.classList.remove('shake'); void el.getBoundingClientRect(); el.classList.add('shake'); return; }
       if (action.type !== 'draw' || el.getAttribute('aria-pressed') !== 'true') apply(action);
     } catch { /* malformed control data is ignored */ }
   });
@@ -370,14 +372,43 @@ export const sideMechanics = {
     hint: (p, b) => isPlay(p) ? {type: 'done'} : hintPuzzle(p, b),
     render: (p, a) => isPlay(p) ? renderPlay(p, a) : renderPuzzle(p, a),
     wire,
+    // Undo keeps a refused Can't ("Keep looking.") on the same table.
+    carry: (p, from, to) => !isPlay(p) && p.parameters.mode === 'cards' && from.cant && cardsPossible(p.parameters) && !to.cant && JSON.stringify(from.counts) === JSON.stringify(to.counts) ? {...to, cant: true} : to,
     noHint: isPlay
   }
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+sideMechanics.sides.howTo = [
+{
+  parameters: {"mode":"draw","cup":[1,2,3,4],"clue":"R"},
+  steps: [
+    {"move":{"type":"draw","ticket":1},"taps":["[data-side-move='{\"type\":\"draw\",\"ticket\":1}']"]},
+    {"move":{"type":"look"},"taps":["[data-side-move='{\"type\":\"look\"}']"]}
+  ]
+},
+{
+  mode: "design",
+  parameters: {"mode":"design","start":[1,2,4],"goal":"tie"},
+  steps: [
+    {"move":{"type":"toggle","ticket":3},"taps":["[data-side-move='{\"type\":\"toggle\",\"ticket\":3}']"]},
+    {"move":{"type":"toggle","ticket":1},"taps":["[data-side-move='{\"type\":\"toggle\",\"ticket\":1}']"]}
+  ]
+},
+{
+  mode: "cards",
+  parameters: {"mode":"cards","goal":"tie","max":3,"start":[1,1,1]},
+  steps: [
+    {"move":{"type":"count","card":0,"by":1},"taps":["[data-side-move='{\"type\":\"count\",\"card\":0,\"by\":1}']"]},
+    {"move":{"type":"count","card":1,"by":1},"taps":["[data-side-move='{\"type\":\"count\",\"card\":1,\"by\":1}']"]}
+  ]
+}
+];
+
 export default {
   id: 'sides',
-  family: {id: 'sides', symbol: '◧'},
+  family: {id: 'sides', symbol: '◧', area: 'chance', region: 'chance'},
   mechanics: sideMechanics,
   pack: new URL('./sides.json', import.meta.url).href,
   css: new URL('./sides.css', import.meta.url).href,

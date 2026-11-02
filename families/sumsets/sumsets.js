@@ -363,6 +363,12 @@ function render(p, a) {
 
 export const sumsetsMechanics = {
   sumsets: {
+    howTo: [
+      {parameters: {mode: 'fewest', trays: {A: {fixed: [1, 3]}, B: {size: 2}}}, steps: [{move: {type: 'card', tray: 'B', card: 0}}, {move: {type: 'card', tray: 'B', card: 3}}, {move: {type: 'step', cell: [0, 0]}}]},
+      {mode: 'most', parameters: {mode: 'most', trays: {A: {fixed: [1, 3]}, B: {size: 3}}}, steps: [{move: {type: 'card', tray: 'B', card: 0}}, {move: {type: 'card', tray: 'B', card: 2}}]},
+      {mode: 'every', parameters: {mode: 'every', trays: {A: {fixed: [1, 3]}, B: {size: 3}}, target: 5}, steps: [{move: {type: 'card', tray: 'B', card: 0}}, {move: {type: 'card', tray: 'B', card: 3}}]},
+      {mode: 'playground', parameters: {mode: 'playground', trays: {A: {max: 3}, B: {max: 3}}}, steps: [{move: {type: 'card', tray: 'A', card: 1}}, {move: {type: 'card', tray: 'B', card: 3}}]}
+    ],
     fresh, valid, solved, move, hint, render,
     reset: p => { lastTotals.delete(p.id); },
     // Undo keeps the B trays already found, and a That's all answered too
@@ -388,7 +394,7 @@ export const sumsetsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sumsets',
-  family: {id: 'sumsets', symbol: '∔'},
+  family: {id: 'sumsets', symbol: '∔', area: 'numbers', region: 'number'},
   mechanics: sumsetsMechanics,
   pack: new URL('./sumsets.json', import.meta.url).href,
   css: new URL('./sumsets.css', import.meta.url).href,

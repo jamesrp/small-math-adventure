@@ -621,9 +621,39 @@ export const matchingMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+matchingMechanics["matching"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "every", "circles": "AB", "squares": "XY", "lists": {"A": "XY", "B": "YX", "X": "AB", "Y": "BA"}, "pairing": "YX", "edit": true, "count": 1},
+  steps: [
+    {"move": {"type": "pair", "c": "A", "s": "X"}, "taps": ["[data-sm=\"A\"]", "[data-sm=\"X\"]"]},
+    {"move": {"type": "swap", "owner": "B", "i": 0, "j": 1}, "taps": ["[data-sm=\"B:0\"]", "[data-sm=\"B:1\"]"]}
+  ]
+},
+{
+  mode: "repair",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "repair", "circles": "AB", "squares": "XY", "lists": {"A": "XY", "B": "YX", "X": "AB", "Y": "BA"}, "pairing": "XY", "edit": true, "count": 1},
+  steps: [
+    {"move": {"type": "swap", "owner": "B", "i": 0, "j": 1}, "taps": ["[data-sm=\"B:0\"]", "[data-sm=\"B:1\"]"]},
+    {"move": {"type": "swap", "owner": "B", "i": 0, "j": 1}, "taps": ["[data-sm=\"B:0\"]", "[data-sm=\"B:1\"]"]}
+  ]
+},
+{
+  mode: "check",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "check", "circles": "AB", "squares": "XY", "lists": {"A": "XY", "B": "YX", "X": "AB", "Y": "BA"}, "pairing": "XY", "edit": true, "count": 1},
+  steps: [
+    {"move": {"type": "block", "c": "A", "s": "Y"}, "taps": ["[data-sm=\"A\"]", "[data-sm=\"Y\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'matching',
-  family: {id: 'matching', symbol: '⊶'},
+  family: {id: 'matching', symbol: '⊶', area: 'chance', region: 'networks'},
   mechanics: matchingMechanics,
   pack: new URL('./matching.json', import.meta.url).href,
   css: new URL('./matching.css', import.meta.url).href,

@@ -53,8 +53,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -115,8 +115,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -178,8 +178,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -241,8 +241,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -269,7 +269,7 @@
    "idea": "Finish at the end you visit last: −2 first, then right across to 2. 6 walks and 3 lights.",
    "prerequisites": "Both sides.",
    "hints": [
-    "Where does the lamplighter finish? Go to the other end first.",
+    "Which end of the street should come last?",
     "Start by walking left.",
     "Walk left twice and light, then walk right, lighting 0 and 2 as you reach them."
    ],
@@ -305,8 +305,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -370,8 +370,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -436,8 +436,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 0,
      "lit": []
@@ -500,8 +500,8 @@
    "sourceDocument": "docs/lamplighter/README.md",
    "parameters": {
     "geometry": "street",
-    "min": -4,
-    "max": 4,
+    "min": -3,
+    "max": 3,
     "start": {
      "at": 1,
      "lit": [
@@ -747,7 +747,7 @@
    "idea": "A tour: out to a corner, round the edge to each of the others, and back to the middle: 10 walks and 4 lights.",
    "prerequisites": "Once round.",
    "hints": [
-    "Visit the corners in an order that goes round the edge.",
+    "In what order should you visit the corners?",
     "Each corner is two steps from the next one round the edge.",
     "Go to a corner and light it, go round the edge lighting each corner, then back to the middle."
    ],

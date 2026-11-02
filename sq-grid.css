@@ -9,7 +9,9 @@
 .sg-piece{fill:var(--b-sky,#9cc9de);fill-rule:evenodd;stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .sg-edge{stroke:var(--b-ink,#294439);stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .sg-dot{fill:var(--b-ink,#294439);pointer-events:none}
-.sg-hit{fill:transparent;cursor:pointer;outline:none}
+/* A small square or piece alone among tappable ones widens by a transparent
+   stroke (--hit-pad, set by hit-fit.js); focus draws its own stroke. */
+.sg-hit{fill:transparent;cursor:pointer;outline:none;stroke:transparent;stroke-width:var(--hit-pad,0);vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .sg-hit:hover{fill:rgba(41,68,57,.06)}
 .sg-hit:focus-visible{fill:rgba(179,136,64,.22);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
 .sg-edge-hit{stroke:transparent;stroke-width:14px;vector-effect:non-scaling-stroke}
@@ -17,6 +19,9 @@
 .sg-hit.in-stroke{fill:rgba(49,83,62,.28)}
 .sg-hit.in-stroke.blocked{fill:rgba(169,80,58,.22)}
 .sg-point .sg-reach{fill:transparent}
+/* Once fitted (hit-fit.js), a point takes taps on its own hit shape. */
+.sg-point .hit-tap{fill:transparent;stroke:none}
+.hit-fit .sg-point .sg-reach{pointer-events:none}
 .sg-point .sg-pip{fill:var(--b-ink,#294439)}
 .sg-point[role="button"]{cursor:pointer;outline:none}
 .sg-point[role="button"]:focus-visible .sg-reach{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}

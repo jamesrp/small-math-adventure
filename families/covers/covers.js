@@ -773,6 +773,23 @@ const help = p => {
 
 export const coversMechanics = {
   covers: {
+    howTo: [
+      {parameters: {"mode": "split","shape": [[0,0],[3,0],[0,2]],"cols": 3,"rows": 2,"depth": 2,"budget": 3,"goal": {"kind": "reach","gap": 0}},
+        steps: [
+          {"move": {"type": "split","node": "1,0,0"},"taps": ["[data-sg-piece=\"4,0\"]"]},
+          {"move": {"type": "split","node": "0,1,0"},"taps": ["[data-sg-piece=\"0,4\"]"]}
+        ]},
+      {mode: 'slide', parameters: {"mode": "slide","shape": [[0,0],[3,0],[0,2]],"width": 3,"height": 2,"steps": 4,"start": [0,0],"goal": {"gap": 0}},
+        steps: [
+          {"move": {"type": "nudge","way": "right"}},
+          {"move": {"type": "nudge","way": "up"}}
+        ]},
+      {mode: 'paint', parameters: {"mode": "paint","pattern": ["PW","OP"],"cols": 2,"rows": 2,"target": {"op": "<","value": 2}},
+        steps: [
+          {"move": {"type": "paint","squares": [0],"on": true},"taps": ["[data-sg-cell=\"0\"]"]},
+          {"move": {"type": "paint","squares": [1],"on": true},"taps": ["[data-sg-cell=\"1\"]"]}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire, help,
     // Undo takes back moves, not a claim: a refused Best keeps its value, and
     // a refused Can't keeps its pause while the painting is the same.
@@ -790,7 +807,7 @@ export const coversMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'covers',
-  family: {id: 'covers', symbol: '⊡'},
+  family: {id: 'covers', symbol: '⊡', area: 'shapes', region: 'shape'},
   mechanics: coversMechanics,
   pack: new URL('./covers.json', import.meta.url).href,
   css: new URL('./covers.css', import.meta.url).href,

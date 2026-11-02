@@ -16,7 +16,7 @@
 .pt-pad{grid-area:pad}
 .pt-stage.single .pt-room-view,.pt-stage.single.still .pt-room-view{max-width:240px}
 .pt-stage.shrink .pt-room-view{max-width:120px}
-@container (min-width:600px){
+@container (min-width:520px){
   .pt-stage{grid-template-columns:minmax(0,.75fr) minmax(0,1.35fr);grid-template-areas:"room plane" "pad plane";max-width:780px}
   .pt-stage.still{grid-template-areas:"room plane"}
   .pt-stage.single{grid-template-columns:auto auto;grid-template-areas:"room pad"}

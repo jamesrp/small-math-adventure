@@ -85,7 +85,8 @@ function movePuzzle(p, b, action) {
     else if (action.type === 'erase') diags = integer(action.d) && b.diags.includes(action.d) && !kept.includes(action.d) ? remove(b.diags, action.d) : null;
     else if (action.type === 'clear') diags = b.diags.length > kept.length ? kept : null;
     else if (action.type === 'claim') {
-      if (b.missed) return null;
+      // That's all opens with the first way found.
+      if (b.missed || !b.found.length) return null;
       return b.found.length === wanted(p).length ? {...b, claimed: true} : {...b, missed: true};
     }
     if (!diags) return null;
@@ -154,16 +155,25 @@ function hintPuzzle(p, b) {
   const now = b.path.at(-1), flips = b.path.length - 1;
   if (q.mode === 'reach') {
     const dist = distancesTo(P, q.target);
-    if (dist.get(now) > q.budget - flips) return {type: 'deadend', text: 'The card is too many flips away now. Undo.'};
+    // Told only behind Hint while flips remain: said at once, it would judge
+    // each flip, and flips with Undo would find the route. Once the flips
+    // are used up, the board already shows the card isn't made.
+    if (dist.get(now) > q.budget - flips) return flips < q.budget
+      ? {type: 'deadend', quiet: true, text: 'The card is too many flips away now. Undo.'}
+      : {type: 'deadend', text: 'No flips left, and this isn’t the card. Undo.'};
     return flipHint(P, now, map.get(now).find(k => dist.get(k) === dist.get(now) - 1));
   }
   if (q.mode === 'home') {
     const dist = homeDistances(P, q.start), par = flips % 2, left = dist.get(`${now}|${par}`);
-    if (flips + left > HOME_LIMIT) return {type: 'deadend', text: 'That is a long way round. Undo.'};
+    if (flips + left > HOME_LIMIT) return {type: 'deadend', quiet: flips < HOME_LIMIT, text: 'That is a long way round. Undo.'};
     return flipHint(P, now, map.get(now).find(k => dist.get(`${k}|${1 - par}`) === left - 1));
   }
   const route = finishTour(P, b.path, q.start);
-  if (!route) return {type: 'deadend', text: 'From here you can’t visit every way. Undo.'};
+  // Quiet while some flip still reaches a new way (or home at the end);
+  // said once every flip from here is refused.
+  if (!route) return map.get(now).some(k => !b.path.includes(k))
+    ? {type: 'deadend', quiet: true, text: 'From here you can’t visit every way. Undo.'}
+    : {type: 'deadend', text: 'Every flip from here goes to a way already visited. Undo.'};
   return flipHint(P, now, route[b.path.length]);
 }
 
@@ -198,9 +208,10 @@ const shapePoints = P => P.xy.map((_, k) => at(P, k).map(f).join(',')).join(' ')
 const linePath = (P, d, cls, extra = '') => { const [a, b] = P.diagonals[d], [x1, y1] = at(P, a), [x2, y2] = at(P, b); return `<line class="${cls}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"${extra}/>`; };
 
 // A small picture of a filling, for shelves and cards.
-export function mini(P, ds, cls = '', label = 'Filling') {
+export function mini(P, ds, cls = '', label = 'Filling', labeled = false) {
   const tris = pieces(P, ds).filter(t => t.length === 3).map(t => `<polygon class="ct-tri" points="${t.map(k => at(P, k).map(f).join(',')).join(' ')}"/>`).join('');
-  return `<svg class="ct-mini ${cls}" viewBox="-112 -112 224 224" role="img" aria-label="${esc(label)}">${tris}<polygon class="ct-shape" points="${shapePoints(P)}"/>${ds.map(d => linePath(P, d, 'ct-line')).join('')}</svg>`;
+  const labels = labeled ? P.xy.map((_, k) => { const [x, y] = at(P, k, R * 1.2); return `<text class="ct-label" x="${f(x)}" y="${f(y + 5)}" aria-hidden="true">${LETTERS[k]}</text>`; }).join('') : '';
+  return `<svg class="ct-mini ${cls}" viewBox="${labeled ? '-136 -136 272 272' : '-112 -112 224 224'}" role="img" aria-label="${esc(label)}">${tris}<polygon class="ct-shape" points="${shapePoints(P)}"/>${ds.map(d => linePath(P, d, 'ct-line')).join('')}${labels}</svg>`;
 }
 const describe = (P, ds) => ds.length ? `Lines ${ds.map(d => lineName(P, d)).join(', ')}` : 'No lines';
 
@@ -227,7 +238,7 @@ function drawBoard(P, ds, opts) {
 
 const moveButton = (label, action, cls = '', extra = '') => `<button type="button" class="secondary ct-action ${cls}" data-ct-move="${esc(JSON.stringify(action))}" data-focus="ct-${action.type}" ${extra}>${label}</button>`;
 const counter = (label, n, of, over) => `<p class="ct-counter" aria-label="${label}: ${n}${of === undefined ? '' : ` of ${of}`}">${label} <strong class="${over ? 'over' : ''}">${n}</strong>${of === undefined ? '' : ` / ${of}`}</p>`;
-const card = (P, key, label, cls) => `<figure class="ct-card ${cls}">${mini(P, fromKey(P, key), '', label)}</figure>`;
+const card = (P, key, label, cls) => `<figure class="ct-card ${cls}">${mini(P, fromKey(P, key), '', label, true)}</figure>`;
 
 function renderPuzzle(p, a) {
   const q = p.parameters, b = a.board, P = polygonFor(p), solved = solvedPuzzle(p, b), state = ui(p);
@@ -239,7 +250,7 @@ function renderPuzzle(p, a) {
     // Finds sorted by the triangle on the side from A to the last corner.
     const found = [...b.found].map(k => fromKey(P, k)).sort((x, y) => apexOf(P, x) - apexOf(P, y) || keyOf(P, x).localeCompare(keyOf(P, y)));
     const groups = [...new Set(found.map(ds => apexOf(P, ds)))].map(g => `<li class="ct-group">${found.filter(ds => apexOf(P, ds) === g).map(ds => mini(P, ds, keyOf(P, ds) === now ? 'here' : '', describe(P, ds))).join('')}</li>`).join('');
-    const actions = solved ? '' : `<div class="ct-actions">${moveButton('Clear', {type: 'clear'}, '', b.diags.length > kept.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h === 'claim' ? 'hinted' : '', b.missed ? 'disabled' : '')}</div>`;
+    const actions = solved ? '' : `<div class="ct-actions">${moveButton('Clear', {type: 'clear'}, '', b.diags.length > kept.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h === 'claim' ? 'hinted' : '', b.missed || !b.found.length ? 'disabled' : '')}</div>`;
     bottom = `<ul class="ct-shelf" aria-label="Ways found">${groups}</ul>${actions}${b.missed ? '<p class="ct-note" role="status">There’s another.</p>' : ''}`;
     top = noteOf(state);
     status = `${describe(P, b.diags)}. ${plural(b.found.length, 'way', 'ways')} found.`;
@@ -259,7 +270,9 @@ function renderPuzzle(p, a) {
       status = `${plural(flips, 'flip', 'flips')}. ${describe(P, ds)}.`;
     }
   }
-  return `<div class="ct-puzzle mode-${q.mode}${solved ? ' solved' : ''}" data-mechanic-wire="cuts">${top}<div class="ct-stage">${body}</div>${bottom}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const stage = `<div class="ct-stage">${body}</div>`;
+  const workspace = q.mode === 'reach' || q.mode === 'home' ? `<div class="ct-comparison"><div class="ct-reference">${top}</div>${stage}</div>` : `${top}${stage}`;
+  return `<div class="ct-puzzle mode-${q.mode}${solved ? ' solved' : ''}" data-mechanic-wire="cuts">${workspace}${bottom}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 const sizeIcon = n => mini(polygonOf(n), [], 'ct-size-icon', SHAPES[n]);
 function renderPlay(p, a) {
@@ -329,9 +342,40 @@ export const cutsMechanics = {cuts: hooks};
 export {MIN_N, MAX_N};
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+cutsMechanics.cuts.howTo = [
+{
+  parameters: {"mode":"every","n":4,"kept":""},
+  steps: [
+    {"move":{"type":"draw","a":0,"b":2},"taps":["[data-tg-point=\"0\"]","[data-tg-point=\"2\"]"]}
+  ]
+},
+{
+  mode: "reach",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+},
+{
+  mode: "tour",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+},
+{
+  mode: "home",
+  parameters: {"mode":"reach","n":4,"start":"AC","target":"BD","budget":2},
+  steps: [
+    {"move":{"type":"flip","d":0},"taps":["[data-tg-edge=\"0\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'cuts',
-  family: {id: 'cuts', symbol: '⬠'},
+  family: {id: 'cuts', symbol: '⬠', area: 'shapes', region: 'counting'},
   mechanics: cutsMechanics,
   pack: new URL('./cuts.json', import.meta.url).href,
   css: new URL('./cuts.css', import.meta.url).href,

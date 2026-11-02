@@ -265,7 +265,9 @@ let pending = null;
 // Board geometry: the start column, one column per slot, the finish column.
 const xStart = 7, xFinish = 93;
 // Nine columns (the five-lane playground) spread wider so their lane ends stay apart on a phone.
-const slotX = (k, s) => k === 1 ? 50 : k > 6 ? 18 + s * (64 / (k - 1)) : 24 + s * (52 / (k - 1));
+// Six slots spread to 21–81% so their lane ends are 40 px apart on a phone
+// and the first column clears the start cards.
+const slotX = (k, s) => k === 1 ? 50 : k > 6 ? 18 + s * (64 / (k - 1)) : k === 6 ? 21 + s * 12 : 24 + s * (52 / (k - 1));
 const laneY = (n, i) => (i + 0.5) / n * 100;
 const tokenSize = (q, v) => q.cards === 'binary' ? (v ? 48 : 32) : 32 + (v - 1) * (16 / Math.max(1, q.lanes - 1));
 const cardStyle = (q, v, x, i) => `left:${x}%;top:${laneY(q.lanes, i)}%;--size:${tokenSize(q, v).toFixed(1)}px`;
@@ -482,9 +484,27 @@ export const sortingMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+sortingMechanics.sorting.howTo = [
+{
+  parameters: {"mode":"every","lanes":2,"cards":"numbers","machine":[[1,2]],"start":[2,1]},
+  steps: [
+    {"move":{"type":"run"},"taps":["[data-focus=\"sort-run\"]"]}
+  ]
+},
+{
+  mode: "build",
+  parameters: {"mode":"build","lanes":2,"cards":"numbers","machine":[],"slots":2,"start":[2,1]},
+  steps: [
+    {"move":{"type":"bar","slot":0,"lanes":[0,1]},"taps":["[data-sort-peg=\"0,0\"]","[data-sort-peg=\"0,1\"]"]},
+    {"move":{"type":"run"},"taps":["[data-focus=\"sort-run\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'sorting',
-  family: {id: 'sorting', symbol: '⇅'},
+  family: {id: 'sorting', symbol: '⇅', area: 'patterns', region: 'logic'},
   mechanics: sortingMechanics,
   pack: new URL('./sorting.json', import.meta.url).href,
   css: new URL('./sorting.css', import.meta.url).href,

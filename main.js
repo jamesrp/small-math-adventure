@@ -1,19 +1,24 @@
 import { createViewState } from './view-state.js';
+import { pressHandled } from './click-echo.js';
 import { extendTileStroke, startTileStroke, tapTileSelection, tileInstructions, tileReleaseAction, tileStrokeTarget } from './tile-controls.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {FAMILIES,mergePacks} from './families.js';
 import {puzzleObjective} from './puzzle-copy.js';
-import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
-import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
-import { esc,playView,parentView,notesHTML } from './ui.js';
+import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undoPress,restart,undoToSolvable } from './engine.js';
+import { SAVE_KEY,BACKUP_KEY,REPAIR_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
+import { PREVIEW } from './preview.js';
+import { esc,playView,parentView,notesHTML,readsAloud,tapNote } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
-import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
-import { roadMapView, journalView, finaleView, stopSheet, trailOptions } from './road-ui.js';
+import { caravanHeader, caravanProfiles, libraryView, familyOf } from './caravan-ui.js';
+import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeeper, sayLine, startTalk, stopTalk, resetTalk } from './road-ui.js';
 import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
+import { stageKind, stageHelp, dress } from './road-stage.js';
+import { playDemo } from './demo.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
 const viewState=createViewState(app);
+let libraryReturn=null,libraryScroll=false;
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
 let tileSelection=[],tileGesture=null;
 const clockTimeline=createClockTimeline(()=>render());
@@ -23,6 +28,19 @@ let sessionCompleted=new Set(),activePlay=null;
 let reaction=null,solveResult=null,oopsCount=0;
 // A solve whose strip is still held back (bells still ringing) takes focus when it appears.
 let focusDone=false;
+// The phone top bar's explorer row: open until the page changes.
+let accountOpen=false;
+// Grown-ups' gate, passed once per page load: the Grown-ups button always asks,
+// and an address typed straight to #parents asks until it has been passed.
+let grownUp=false;
+// A newer offline copy waiting to take over (its registration), shown as a
+// banner on the map and in Grown-ups; it takes over only when Reload asks.
+let waitingUpdate=null;
+// The play screen an Undo press drew for the attempt it lands on. The render
+// after the press shows it as drawn: drawing it again would cost another hint,
+// and a renderer that animates from the board it drew last (a piece coming
+// back) would then start from the board Undo lands on.
+let undoDrawn=null;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -44,7 +62,7 @@ function activeEncounter(){
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){viewState.save();clockTimeline.leave();focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){viewState.save();clockTimeline.leave();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
   const savedView=viewState.beforeRender(`${state.activeProfileId||''}:${location.hash}`);
   tileGesture=null;
@@ -62,15 +80,18 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const here=location.hash,result=solveResult?.key===here?solveResult:null,said=reaction?.key===here?reaction:null;
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:said,result,changed:Boolean(result?.first)}):roadMapView(pr);
+  // Grown-ups opens only through its gate; an address typed straight to it
+  // shows the road (or the explorers) behind the gate instead.
+  const gated=view==='parents'&&!grownUp;
+  const content=view==='parents'&&!gated?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band'],Boolean(waitingUpdate)):!pr||view==='profiles'?caravanProfiles(state,route()[1]==='new'):view==='parents'?roadMapView(pr):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles,libraryReturn):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
+  undoDrawn=null;
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
   const flips=new Map([...app.querySelectorAll('[data-flip]')].map(node=>[node.dataset.flip,node.getBoundingClientRect()]));
   keepMedia(app,()=>{
     const kept=new Map([...app.querySelectorAll('[data-keep]')].map(node=>[node.dataset.keep,node]));
-    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':view==='parents'?'':'journey',accountOpen)+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${waitingUpdate&&pr&&(!view||view==='map')?updateBanner():''}${content}</main>`;
     // An unchanged speech bubble or solved strip keeps its node, so its entrance
     // animation plays once instead of on every frame of a re-render.
     for(const node of [...app.querySelectorAll('[data-keep]')]){
@@ -79,6 +100,7 @@ function render(){
       if(old&&old.keepHtml===html)node.replaceWith(old);else node.keepHtml=html;
     }
   });
+  wireKeeper(app);
   glide(flips);
   if(encounter&&isSolved(p,attempt(p).board)){
     app.querySelectorAll(':is(.board-panel,.lr-stage) :is(button,input,select)').forEach(control=>{control.disabled=true;});
@@ -91,7 +113,18 @@ function render(){
   wireClockBoard();
   wireMechanic();
   viewState.restore();
+  if(libraryScroll&&view==='library'){libraryScroll=false;const family=app.querySelector('details.satchel-family[open]'),top=family?.getBoundingClientRect().top;if(family&&(top<0||top>innerHeight/2))family.scrollIntoView({block:'start'});}
+  markReading();
+  answerAloud();
+  if(gated&&!currentDialog?.dataset.gate)grownUpGate();
 }
+// A hint opens under Undo, Restart and Hint. On a phone that can be past the
+// screen's bottom edge, where pressing Hint would seem to do nothing, so the
+// card scrolls up into view; a card already on screen stays where it is.
+function revealHint(){const card=app.querySelector('.play-sidebar .hint-card');if(!card)return;const r=card.getBoundingClientRect();if(r.top>=0&&r.bottom<=innerHeight)return;card.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+// What the play screen draws besides the attempt: the moment's selections,
+// message, keeper reaction and solve.
+function playContext(p,pr,encounter){const here=location.hash,result=solveResult?.key===here?solveResult:null;return {pack,profile:pr,encounter,from:encounter&&route()[3]==='finale'?'finale':null,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:reaction?.key===here?reaction:null,result,changed:Boolean(result?.first)};}
 // A piece that changed place (a traveler swapping seats, Hops walking a
 // boardwalk) moves there from where it was instead of jumping.
 function glide(before){
@@ -160,6 +193,8 @@ function wireTileBoard(){
     const action=cancel?null:tileReleaseAction(gesture.stroke,gesture.multi,gesture.departed,hit,insideStart);
     tileGesture=null;
     if(board.hasPointerCapture(e.pointerId))board.releasePointerCapture(e.pointerId);
+    // The press is the board's: its click must not tap the square drawn there now.
+    if(!cancel)pressHandled();
     if(action?.type==='place')applyPair(p,action.cells);
     else if(action?.type==='tap')tapTile(p,action.cell);
     else paint();
@@ -169,7 +204,7 @@ function wireTileBoard(){
   board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
 // Proof mechanics attach their own pointer gestures after each render.
-function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
+function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),repeatToggle,tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
 function wireClockBoard(){
   const svg=app.querySelector('.clock-choose svg[role="slider"]'),p=puzzle();
   if(!svg||p?.mechanic!=='clock'||svg.getAttribute('aria-disabled')==='true')return;
@@ -218,51 +253,197 @@ function wireClockBoard(){
   });
 }
 function wireForms(){
-  document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
-  document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener('change',e=>clockTimeline.edit(e.target.value)));
+  // A form marked novalidate (the bell count) says what is missing in the feedback line instead of the browser's tooltip.
+  document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(!p||!profile())return;const bad=form.querySelector(':is(input,select,textarea):invalid');if(bad){message=bad.dataset.invalid||'';render();document.querySelector(`[data-focus="${CSS.escape(bad.dataset.focus||'')}"]`)?.focus();return;}applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
+  document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener(input.type==='number'?'input':'change',e=>clockTimeline.edit(e.target.value,input.type!=='number')));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
+  // Opening New explorer puts the cursor in the name field.
+  document.querySelector('.caravan-add-profile > summary')?.addEventListener('click',e=>{const details=e.currentTarget.parentElement;requestAnimationFrame(()=>{if(details.open)document.querySelector('#nickname')?.focus();});});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());
-  document.querySelector('#sound-toggle')?.addEventListener('change',e=>{profile().sound=e.target.checked;save();render();});
+  document.querySelector('#sound-toggle')?.addEventListener('change',e=>{const pr=profile();pr.readAloud=pr.sound=e.target.checked;save();render();});
   document.querySelector('#import-file')?.addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>5000000)throw Error('Choose a backup smaller than 5 MB.');const backup=parseBackup(await file.text(),puzzles),next=importProfiles(state,backup,uid);state=next;save();render();dialog('Saves restored',`<p>${backup.profiles.length} ${backup.profiles.length===1?'explorer was':'explorers were'} added. Existing explorers are unchanged.</p>`);}catch(error){dialog('That backup could not be opened',`<p>${esc(error.message)}</p><p>Your existing saves have not changed.</p>`);}});
 }
 function dialog(title,body,actions=[{label:'Done'}]){
   currentDialog?.close();const previous=document.activeElement,d=document.createElement('dialog');d.className='modal';d.innerHTML=`<h2 id="dialog-title">${esc(title)}</h2><div class="dialog-body">${body}</div><div class="dialog-actions"></div>`;d.setAttribute('aria-labelledby','dialog-title');document.body.append(d);currentDialog=d;
   for(const [i,action]of actions.entries()){const b=document.createElement('button');b.type='button';b.className=action.danger?'danger':i===actions.length-1?'primary':'secondary';b.textContent=action.label;b.addEventListener('click',()=>{if(action.run?.(d)===false)return;d.close();});d.querySelector('.dialog-actions').append(b);}
-  d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(previous?.isConnected)previous.focus();});d.showModal();return d;
+  d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(!d.dataset.left&&previous?.isConnected)previous.focus();});d.showModal();return d;
 }
 function instructions(p){
   return isExpansion(p)?playInstructions(p):p.mechanic==='tile'?tileInstructions(p):'Tap two cups to swap them. Only the listed pairs can swap.';
 }
-function speak(p){
-  if(!('speechSynthesis'in window)){message='Read-aloud unavailable. Open How to play.';render();return;}
-  window.speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance(`${puzzleObjective(p)} ${instructions(p)}`);utterance.rate=.85;
-  utterance.onerror=event=>{if(['interrupted','canceled'].includes(event.error))return;message='Read-aloud unavailable. Open How to play.';render();};
-  window.speechSynthesis.speak(utterance);
+// A road puzzle played in its picture is explained in the picture's words (dist/road-stage.js).
+function helpCopy(p){const e=activeEncounter(),kind=e&&stageKind(e,p);return kind?{...stageHelp(kind,p),dress:text=>dress(kind,text)}:{objective:puzzleObjective(p),instructions:instructions(p),note:'',dress:text=>text};}
+// Reading aloud. Each request first stops whatever is being read, so the app
+// never speaks over itself. A recorded line plays when the art manifest has
+// one; otherwise the browser voice reads it. The keeper's portrait (`line`)
+// talks for the line's beat and, once a voice is heard, until it stops
+// (road-ui.js, "The keeper's talk pose"). While a voice is heard the page is
+// `reading`, and only the button whose line it is (`heard.owner`: a Listen
+// button's text, or 'speak' for the board's instruction under Read aloud)
+// shows a stop square, is named Stop reading and stops it when tapped. A line
+// with no button of its own (the board's feedback, the solved strip, the
+// medal) marks none; the next move or Listen stops it.
+let voiceClip=null,utterance=null,readToken=0,reading=false,heard=null;
+function setReading(on){reading=on;markReading();}
+function markReading(){
+  let marked=false;
+  for(const b of app.querySelectorAll('.lr-listen,.play-help [data-action="speak"]')){
+    if(!b.dataset.label)b.dataset.label=b.getAttribute('aria-label')||'';
+    const mine=!marked&&reading&&Boolean(heard?.owner)&&(b.dataset.action==='speak'?heard.owner==='speak':heard.owner===b.dataset.text);
+    marked||=mine;
+    b.classList.toggle('is-reading',mine);
+    b.setAttribute('aria-label',mine?'Stop reading':b.dataset.label);
+  }
 }
-// A recorded line plays when the art manifest has one; otherwise the browser voice reads it.
-let voiceClip=null;
-function narrate(text,voiceId){
-  window.speechSynthesis?.cancel();voiceClip?.pause();
-  const recorded=voiceId&&asset(voiceId)?.audio;
-  if(recorded){voiceClip=new Audio(artUrl(recorded));voiceClip.play().catch(()=>{voiceClip=null;narrate(text);});return;}
-  if(!('speechSynthesis' in window)){dialog('Read it together',`<p>${esc(text)}</p>`);return;}
-  window.speechSynthesis.cancel();
-  const voice=new SpeechSynthesisUtterance(text);voice.rate=.86;
-  voice.onerror=event=>{if(!['interrupted','canceled'].includes(event.error))dialog('Read it together',`<p>${esc(text)}</p>`);};
-  window.speechSynthesis.speak(voice);
+function hush(){
+  readToken++;heard=null;
+  if(voiceClip){voiceClip.onplaying=voiceClip.onended=voiceClip.onpause=voiceClip.onerror=null;voiceClip.pause();voiceClip=null;}
+  if(utterance){utterance.onstart=utterance.onend=utterance.onerror=null;utterance=null;}
+  window.speechSynthesis?.cancel();
+  if(reading)setReading(false);
+}
+// Says each item ({text, voiceId, line, owner, lead}) in turn; a `lead` is said
+// first in the browser voice. `fail(text)` runs when it can't be heard; reading
+// by itself (no fail) never shows anything. An answer (`answer`, below) that
+// has left the screen by its turn is skipped.
+function sayInTurn(items,fail=null){
+  hush();const token=readToken,live=()=>token===readToken;
+  items=items.flatMap(item=>item.lead?[{text:item.lead,owner:item.owner,slot:item.slot,shown:item.text,answer:item.answer},{...item,lead:null}]:[item]);
+  const started=()=>{if(live()&&!reading)setReading(true);};
+  const over=text=>{if(!live())return;heard=null;if(reading)setReading(false);if(text!==undefined)fail?.(text);};
+  const voice=(item,next)=>{
+    if(!('speechSynthesis' in window)){over(item.text);return;}
+    const u=utterance=new SpeechSynthesisUtterance(item.text);u.rate=.86;let talking=0;
+    u.onstart=()=>{if(!live())return;started();talking=startTalk(item.line);};
+    u.onend=()=>{stopTalk(talking);if(utterance===u)utterance=null;next();};
+    u.onerror=event=>{stopTalk(talking);if(utterance===u)utterance=null;over(['interrupted','canceled'].includes(event.error)?undefined:item.text);};
+    window.speechSynthesis.speak(u);
+  };
+  const step=i=>{
+    if(!live())return;
+    while(i<items.length&&items[i].answer&&!stillShown(items[i]))i++;
+    if(i>=items.length){over();return;}
+    const item=items[i],next=()=>step(i+1),recorded=item.voiceId&&asset(item.voiceId)?.audio;
+    heard=item;if(reading)markReading();
+    if(item.line)sayLine(item.line,item.text);
+    if(!recorded){voice(item,next);return;}
+    const clip=voiceClip=new Audio(artUrl(recorded));let talking=0;
+    clip.onplaying=()=>{if(!live())return;started();talking=startTalk(item.line);};
+    clip.onpause=()=>stopTalk(talking);
+    clip.onended=()=>{stopTalk(talking);if(voiceClip===clip)voiceClip=null;next();};
+    clip.onerror=()=>{stopTalk(talking);if(voiceClip===clip){voiceClip=null;voice(item,next);}};
+    clip.play().catch(()=>{if(voiceClip===clip){voiceClip=null;voice(item,next);}});
+  };
+  step(0);
+}
+function speak(p){const help=helpCopy(p);sayInTurn([{text:`${help.objective} ${help.instructions}`,owner:'speak'}],()=>{message='Read-aloud unavailable. Open How to play.';render();});}
+// A Listen button's line: its recording or the browser voice, after its lead.
+const listenItem=(b,slot=null)=>({text:b.dataset.text,voiceId:b.dataset.voice||null,line:b.closest('.lr-keeper')?.dataset.line||null,owner:b.dataset.text,lead:b.dataset.lead||null,slot});
+function narrate(control){sayInTurn([listenItem(control)],text=>dialog('Read it together',`<p>${esc(text)}</p>`));}
+// For K–1, and wherever a grown-up turned it on, the first time each puzzle
+// screen opens in a visit: each Listen line in the scene (the keeper's, then
+// Plume's where Plume speaks, after the number on Plume's card it points at),
+// then the board's instruction (the line above the board or, where the board
+// shows its goal itself, the goal How to play gives). A solved board's lines
+// are said alone. The finale reads each goodbye in order, then the medals and
+// stars.
+const heardScreens=new Set();
+function readScreen(){
+  const pr=profile(),view=route()[0],p=puzzle();
+  if(!readsAloud(pr)||!(view==='play'&&p||view==='finale'&&app.querySelector('.lr-finale')))return;
+  const key=`${pr.id}|${location.hash}`;
+  if(heardScreens.has(key))return;
+  heardScreens.add(key);
+  if(view==='finale'){sayInTurn([...[...app.querySelectorAll('.lr-byes .lr-listen')].map(b=>listenItem(b)),{text:app.querySelector('.lr-finale [data-say]')?.dataset.say}].filter(item=>item.text));return;}
+  const lines=[...app.querySelectorAll('.lr-scene .lr-listen')].map(b=>listenItem(b));
+  const goal=app.querySelector('.puzzle-goal')?.textContent.trim()||helpCopy(p).objective;
+  sayInTurn([...lines,...(isSolved(p,attempt(p).board)?[]:[{text:goal,owner:'speak'}])].filter(item=>item.text));
+}
+// After the screen's first reading, a road puzzle reads what answers the child
+// as it appears: the keeper's reaction, Plume's line, the board's own visible
+// status lines and feedback (a refusal, a weighing, Plume's reply), the hint
+// card, then the solved strip's sentence. Each has a place (`slot`); a line is
+// new when its place showed something else, or nothing, at the last render, so
+// the same line is never read twice in a row, a line that stays is not read
+// again, and the opening line coming back is not a reaction. A line still
+// being read when it leaves the screen (the child moved again) is stopped,
+// and one waiting its turn is skipped. Only lines on screen are read.
+let shownLines=null;
+const stillShown=item=>shownLines?.slots.get(item.slot)===(item.shown??item.text);
+function answerLines(){
+  const lines=[],keeper=app.querySelector('.lr-keeper[data-reacts] .lr-listen'),plume=app.querySelector('.lr-rival-line .lr-listen'),hint=app.querySelector('.play-sidebar .hint-card .lr-listen'),done=app.querySelector('.lr-done[data-say]');
+  // A mistake's or a solve's face (oops, happy) stays while its line is read by
+  // itself; the portrait talks for it only on Listen (docs/art/ROADMAP.md).
+  if(keeper)lines.push({...listenItem(keeper,'keeper'),line:keeper.closest('.lr-keeper').dataset.pose==='talk'?keeper.closest('.lr-keeper').dataset.line:null});
+  if(plume)lines.push(listenItem(plume,'plume'));
+  const seen={},live=':is([role="status"],[aria-live])';
+  for(const node of app.querySelectorAll(`.puzzle-workspace ${live}`)){
+    if(node.closest('.sr-only,.lr-done,.hint-card')||node.parentElement.closest(`.puzzle-workspace ${live}`)||!node.getClientRects().length)continue;
+    const kind=node.classList[0]||node.tagName,text=node.innerText.replace(/\s+/g,' ').trim();
+    seen[kind]=(seen[kind]||0)+1;
+    if(text)lines.push({text,slot:`board:${kind}:${seen[kind]}`});
+  }
+  if(hint)lines.push(listenItem(hint,'hint'));
+  if(done)lines.push({text:done.dataset.say,slot:'done'});
+  return lines.filter(line=>line.text);
+}
+function answerAloud(){
+  const pr=profile(),screen=route()[0]==='play'&&pr&&activeEncounter()?`${pr.id}|${location.hash}`:null;
+  lastNote=null;if(heard?.slot==='note')hush();
+  if(!screen){shownLines=null;return;}
+  const now=answerLines(),before=shownLines?.screen===screen?shownLines.slots:null;
+  shownLines={screen,slots:new Map(now.map(line=>[line.slot,line.text]))};
+  if(heard?.answer&&!stillShown(heard))hush();
+  if(!before||!readsAloud(pr))return;
+  const fresh=now.filter(line=>before.get(line.slot)!==line.text);
+  if(fresh.length)sayInTurn(fresh.map(line=>({...line,answer:true})));
+}
+// A refused tap on a road puzzle (a platform no boardwalk reaches) answers in
+// a note beside it, outside the redrawn page (ui.js tapNote). It is read like
+// the board's lines, but not again when the same tap repeats it, and the next
+// move (any redraw) stops it. A refused stop on the map is not read.
+let lastNote=null;
+function noteAloud(text){
+  if(route()[0]!=='play'||!activeEncounter()||!readsAloud(profile())||!text||text===lastNote)return;
+  lastNote=text;sayInTurn([{text,slot:'note'}]);
+}
+const updateBanner=()=>'<div class="update-banner" role="status"><span>A new version is ready.</span><button type="button" class="secondary small" data-action="apply-update">Reload</button></div>';
+// The waiting copy takes over only when asked, then this tab reloads; other
+// open tabs keep their page (and any puzzle in play) until they reload.
+let reloading=false;
+function applyUpdate(){
+  if(reloading)return;reloading=true;
+  const worker=waitingUpdate?.waiting,reload=()=>location.reload();
+  if(!worker){reload();return;}
+  navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});
+  worker.postMessage({type:'SKIP_WAITING'});
+  setTimeout(reload,4000);
+}
+// The same gate the Grown-ups button opens. Leaving it without passing it
+// trades a #parents address for the road (or the explorers).
+function grownUpGate(){
+  let passed=false;
+  const d=dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>{passed=grownUp=true;if(route()[0]==='parents')render();else go('parents');}}]);
+  d.dataset.gate='1';
+  d.addEventListener('close',()=>{if(!passed&&route()[0]==='parents')location.replace(`#${profile()?'map':'profiles'}`);});
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
-function openEncounter(id){
+// Replay from a stop sheet, the Journal or the finale (replay) starts a fresh attempt.
+// One opened from the finale keeps that in its address (…/finale), so its
+// solved strip leads back to the finale, even after a reload.
+function openEncounter(id,replay=false,from=null){
   if(!profile())return;
   const next=beginEncounter(profile(),puzzles,id);
   if(!next){go('map');return;}
-  if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
-  save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
+  const old=profile().attempts[next.puzzle.id];
+  if(!old)profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
+  else if(replay)profile().attempts[next.puzzle.id]=restart(next.puzzle,old);
+  save();go(`play/${next.puzzle.id}/${next.encounter.id}${from==='finale'?'/finale':''}`);
 }
-function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
+function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);if(!next&&chosenTap)return;selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
 document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&accountOpen&&event.target.closest?.('.caravan-topbar')){const toggle=document.querySelector('.explorer-toggle');toggle?.click();toggle?.focus();return;}
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
   if(!event.target.closest('.latin-puzzle')||event.ctrlKey||event.metaKey||event.altKey)return;
@@ -271,16 +452,43 @@ document.addEventListener('keydown',event=>{
   const value=['Backspace','Delete','0'].includes(event.key)?0:/^[1-9]$/.test(event.key)?Number(event.key):null;
   if(value!==null&&value<=p.parameters.order){event.preventDefault();if(attempt(p).board.cells[Number(cell.dataset.cell)]!==value)applyPair(p,{type:'set',cell:Number(cell.dataset.cell),value});}
 });
+// Tapping the option already chosen (a control drawn aria-pressed="true")
+// does nothing when the mechanic refuses its move: no line, nothing redrawn.
+// The board's own expansion-move buttons and the taps a family's wire() hands
+// to api.apply both reach applyPair inside the click, so the click's control
+// is noted here, before any other listener, and forgotten once it is over.
+let chosenTap=false;
+document.addEventListener('click',event=>{const control=event.target.closest?.('button,[role="button"]');chosenTap=control?.getAttribute('aria-pressed')==='true';if(chosenTap)setTimeout(()=>{chosenTap=false;});},true);
+// A button that opens a claim and closes it again in the same place carries
+// data-toggle, naming its slot. A quick double tap is one press: the click
+// right after a toggle's press, within 350 ms, is dropped when it is the same
+// slot (the second tap lands on the redrawn button and would close what the
+// first opened) or, from a pointer, lands within 40 px of the first tap,
+// whatever is drawn there now (opening a claim can move Restart, a stepper or
+// a piece of the board under the finger). Every click passes through here, so
+// any other click in between ends the double tap; so does a press somewhere
+// else (a board that answers pointerdown and redraws may get no click), and
+// any key but Enter or Space on the toggle itself. A family's own controls,
+// which its wire() handles without data-action, ask the same guard through
+// api.repeatToggle(control, event); each click is judged once.
+let lastToggle=null,judged={event:null,drop:false};
+function repeatToggle(control,event){if(event&&judged.event===event)return judged.drop;const now=performance.now(),slot=control?.dataset?.toggle,point=event?.detail>0?[event.clientX,event.clientY]:null,last=lastToggle;const drop=Boolean(last&&now-last.at<350&&(slot&&slot===last.slot||point&&last.point&&Math.hypot(point[0]-last.point[0],point[1]-last.point[1])<40));if(!drop)lastToggle=slot?{slot,at:now,point}:null;if(event)judged={event,drop};return drop;}
+document.addEventListener('keydown',event=>{if(!(['Enter',' '].includes(event.key)&&event.target.closest?.('[data-toggle]')))lastToggle=null;},true);
+document.addEventListener('pointerdown',event=>{const last=lastToggle;if(last&&event.target.closest?.('[data-toggle]')?.dataset.toggle!==last.slot&&!(last.point&&Math.hypot(event.clientX-last.point[0],event.clientY-last.point[1])<40))lastToggle=null;},true);
 document.addEventListener('click',event=>{
   if(event.target.closest('.skip-link')){event.preventDefault();const main=document.querySelector('#main');main?.setAttribute('tabindex','-1');main?.focus();return;}
-  const control=event.target.closest('[data-action]');if(!control)return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
+  const control=event.target.closest('[data-action]');if(repeatToggle(control,event)||!control)return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
   if(action==='home')go(profile()?'map':'profiles');
   else if(action==='profiles')go('profiles');
+  else if(action==='explorer-menu'){accountOpen=!accountOpen;control.closest('.caravan-topbar')?.classList.toggle('account-open',accountOpen);control.setAttribute('aria-expanded',String(accountOpen));}
   else if(action==='map')go('map');
-  else if(action==='library')go('library');
+  // The Puzzles tab from a library puzzle reopens its family (a home-screen app
+  // has no Back button); from anywhere else the library opens closed.
+  else if(action==='library'){libraryReturn=route()[0]==='play'&&p&&!p.campaignOnly?familyOf(p):null;libraryScroll=Boolean(libraryReturn);go('library');}
   else if(action==='journal')go('journal');
   else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
-  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id);}
+  else if(action==='refuse'){tapNote(control,control.dataset.text,event);noteAloud(control.dataset.text);}
+  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id,control.dataset.replay==='1',control.dataset.from);}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();
     if(!encounter||!isSolved(p,a.board))return;
@@ -290,14 +498,17 @@ document.addEventListener('click',event=>{
     if(next&&p.band===profile().band)openEncounter(next.id);
     else go('map');
   }
-  else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id);if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),[{label:'Done'}]);}
+  else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id),fair=stop?.id==='fair'&&getProgress(profile()).complete;if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),fair?[{label:'Done'},{label:'Finale',run:()=>go('finale')}]:[{label:'Done'}]);}
   else if(action==='finale'&&profile())go('finale');
   else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
-  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice);
+  else if((action==='hear-story'||action==='speak')&&control.classList.contains('is-reading'))hush();
+  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control);
   else if(action==='families')document.querySelector('.family-adventures')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   else if(action==='choose-profile'){state.activeProfileId=control.dataset.id;sessionCompleted=new Set();save();go('map');}
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
-  else if(action==='parents-gate')dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>go('parents')}]);
+  else if(action==='parents-gate')grownUpGate();
+  else if(action==='new-explorer')go('profiles/new');
+  else if(action==='apply-update')applyUpdate();
   else if(action==='change-band')dialog('Puzzle level',`<div class="grade-options road-trails">${trailOptions(profile())}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
   else if(action==='tile-cell'&&p?.mechanic==='tile'){
     if(control.classList.contains('garden-domino')||control.classList.contains('planted')||event.detail===0)tapTile(p,Number(control.dataset.cell));
@@ -307,34 +518,51 @@ document.addEventListener('click',event=>{
   else if(action==='mechanic-ui'&&p&&a&&isExpansion(p)){try{mechanicFor(p).ui?.(p,JSON.parse(control.dataset.ui));}catch{}message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){let next=undo(a);if(isExpansion(p)&&mechanicFor(p).carry&&next!==a)next={...next,board:mechanicFor(p).carry(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  // Undo compares the screen before the press with each step back as it will
+  // look after it, both at rest (a clock run drawn whole).
+  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){const atRest=()=>({...playContext(p,profile(),activeEncounter()),clockPresentation:undefined}),shown=a.history.length?playView(p,a,atRest()):null;selected=null;tileSelection=[];highlighted=null;message='';const ctx=atRest();let drawn=null;const next=undoPress(p,a,b=>(drawn={attempt:b,html:playView(p,b,ctx)}).html,shown);put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else{undoDrawn=drawn?.attempt===next?drawn.html:null;render();}}
   else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();let next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);if(action==='restart'&&isExpansion(p)&&mechanicFor(p).carryOnRestart)next={...next,board:mechanicFor(p).carryOnRestart(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
+  else if(action==='hint'&&a&&!p.missingAbility){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();revealHint();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
   else if(action==='speak'&&p)speak(p);
-  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a)||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`}`);
+  else if(action==='demo'&&p){const help=helpCopy(p),e=activeEncounter(),staged=Boolean(e&&stageKind(e,p));const d=dialog('How to play',`${staged?'':'<div class="howto-demo"></div>'}<p>${esc(help.objective)}</p><p>${esc(help.instructions)}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a,{completed:id=>Boolean(profile()?.attempts?.[id]?.completed)})||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(help.dress(r))}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${help.note?`<p class="note-stage">${esc(help.note)}</p>`:''}${notesHTML(p,pack)}</details>`}`);const slot=d.querySelector('.howto-demo');if(slot){const stop=playDemo(slot,p,pack.puzzles,{reduced:window.matchMedia('(prefers-reduced-motion: reduce)').matches});d.addEventListener('close',stop);}}
   else if(action==='export'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`math-adventure-saves-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   else if(action==='import')document.querySelector('#import-file').click();
-  else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);}catch{}render();}}]);}
-  else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
+  else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);storage.removeItem(REPAIR_KEY);}catch{}render();}}]);}
+  else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);storage.removeItem(REPAIR_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-function navigate(){if(!state||viewState.isCurrent())return;focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;window.speechSynthesis?.cancel();voiceClip?.pause();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice);else speak(puzzle());}}
+// A dialog belongs to the page it opened on (How to play names its puzzle), so a
+// history step or a hash edit closes it, and focus goes to the new page's heading.
+function leaveDialog(){if(!currentDialog)return;currentDialog.dataset.left='1';currentDialog.close();currentDialog=null;}
+function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='profiles'&&route()[1]==='new')document.querySelector('#nickname')?.focus();readScreen();}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);
 window.addEventListener('hashchange',navigate);
-window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
+window.addEventListener('storage',event=>{if(state&&(event.key===SAVE_KEY||event.key===null)){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
+// A newer offline copy waits (registration.waiting) until Reload asks it to take
+// over (apply-update); the banner shows on the map and the line and Reload in
+// Grown-ups, never over a puzzle.
+const UPDATE_READY='A new version of the app is ready. Reload to start using it.';
+function updateWaiting(registration){
+  if(!registration.waiting||!navigator.serviceWorker.controller)return;
+  const first=!waitingUpdate;waitingUpdate=registration;setOfflineMessage(UPDATE_READY);
+  if(first&&state&&['','map','parents'].includes(route()[0])&&!currentDialog)render();
+}
 async function setupOffline(){
+  // A preview copy sits inside the live app's service-worker scope and registers no worker of its own.
+  if(PREVIEW){setOfflineMessage('Preview copy · online only');return;}
   if(!window.isSecureContext||!('serviceWorker'in navigator)){setOfflineMessage('Offline install needs HTTPS');return;}
-  try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
+  try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;updateWaiting(registration);const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting&&navigator.serviceWorker.controller?UPDATE_READY:e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed')updateWaiting(registration);});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }
 function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId&&!p.campaignOnly)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
 // Family stylesheets (dist/families.js) go before the caravan styles, as the
 // static links once did, and load before the first render.
 function familyStyles(){const anchor=document.querySelector('link[href="./caravan.css"]');return Promise.all(FAMILIES.filter(m=>m.css).map(m=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=m.css;link.onload=link.onerror=resolve;if(anchor)anchor.before(link);else document.head.append(link);})));}
 async function loadPack(url){const response=await fetch(url);if(!response.ok)throw Error(`Puzzle pack unavailable: ${url}`);return response.json();}
-try{const styles=familyStyles();const [base,...packs]=await Promise.all([loadPack('./puzzles.json'),...FAMILIES.filter(m=>m.pack).map(m=>loadPack(m.pack))]);pack=mergePacks(base,packs);puzzles=withCampaignPuzzles(pack.puzzles);await Promise.all([loadArt(),styles]);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}
+// A failure before the first render shows index.html's start-up screen; after it, startup.fail() does nothing.
+try{const styles=familyStyles();const [base,...packs]=await Promise.all([loadPack('./puzzles.json'),...FAMILIES.filter(m=>m.pack).map(m=>loadPack(m.pack))]);pack=mergePacks(base,packs);puzzles=withCampaignPuzzles(pack.puzzles);await Promise.all([loadArt(),styles]);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();globalThis.startup?.done();setupOffline();registerTools();}catch(error){globalThis.startup?.fail();console.error(error);}

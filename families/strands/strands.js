@@ -374,7 +374,7 @@ function copiesText(walls) {
 }
 function untangleHint(p, b) {
   const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), least = untangleFewest(q), count = untangleCount(p, b), walls = barriers(...q.w);
-  if (count === least && b.told === null) return {type: 'move', action: {type: 'done', copies: walls}, text: walls.length ? `Every crossing left is with a copy of red that blue has to cross: ${copiesText(walls)}. Press Done, tap ${walls.length === 1 ? 'it' : 'them'}, then That’s all.` : 'No crossings are left. Press Done, then That’s all.'};
+  if (count === least && b.told === null) return {type: 'move', action: {type: 'done', copies: walls}, text: walls.length ? `Every crossing left is with a copy of red that blue has to cross: ${copiesText(walls)}. Press Done, tap ${walls.length === 1 ? 'it' : 'them'}, then That’s all.` : 'No crossings are left. Press Done.'};
   if (count === least) {
     // A refused claim at the fewest waits for a move: a short step that keeps the fewest.
     for (const d of [1, -1, 2, -2, 3, -3]) for (let j = 1; j < C.M; j++) for (const i of [1, 0]) {
@@ -485,7 +485,7 @@ const copyName = k => k === 0 ? 'Red strand' : `Red copy ${word(Math.abs(k))} to
 // the portal board starts from it.
 function bead(view, key, [x, y], strand, row, opts) {
   const ctl = opts.control ? ` role="button" tabindex="0" aria-label="${esc(`${NAMES[strand]} bead ${row}`)}" data-focus="st-bead-${strand}-${row}"` : ' aria-hidden="true"';
-  return `<g class="st-bead ${COLOURS[strand]}${opts.act ? ' act' : ''}${opts.hinted ? ' hinted' : ''}" data-pb-point="${esc(key)}" data-pb-view="${view}" data-st-bead="${strand},${row}"${ctl}><circle class="st-bead-hit" cx="${f(x)}" cy="${f(y)}" r=".44"/><circle class="st-bead-dot" cx="${f(x)}" cy="${f(y)}" r=".22"/></g>`;
+  return `<g class="st-bead ${COLOURS[strand]}${opts.act ? ' act' : ''}${opts.hinted ? ' hinted' : ''}" data-pb-point="${esc(key)}" data-pb-view="${view}" data-st-bead="${strand},${row}"${ctl}><circle class="st-bead-hit" cx="${f(x)}" cy="${f(y)}" r=".5"/><circle class="st-bead-dot" cx="${f(x)}" cy="${f(y)}" r=".22"/></g>`;
 }
 
 function roomView(p, C, routes, cross, opts) {
@@ -505,7 +505,7 @@ function liftView(p, C, opts) {
   const id = `st-clip-${p.id}`, x0 = C.k0 * C.N, x1 = (C.k1 + 1) * C.N;
   const clip = `<clipPath id="${esc(id)}"><rect x="${x0}" y="${f(-C.M - .2)}" width="${x1 - x0}" height="${f(C.M + .4)}"/></clipPath>`;
   return planeBoard(C.S, {
-    cls: `st-lift ${opts.cls || ''}`, label: 'Unrolled view', key: `strands-${p.id}`, slide: Boolean(opts.slide), pad: opts.pad ?? .7,
+    cls: `st-lift ${opts.cls || ''}`, label: 'Unrolled view', key: `strands-${p.id}`, slide: Boolean(opts.slide), pad: opts.pad ?? .95,
     window: [C.k0, 0, C.k1, C.S.box[3] - 1],
     square: (s, X, Y, copy) => copy[0] === 0 ? 'first' : '',
     under: `${clip}<g clip-path="url(#${esc(id)})">${opts.under || ''}</g>${rims(C)}`, over: opts.over, top: `${opts.clipTop ? `<g clip-path="url(#${esc(id)})">${opts.clipTop}</g>` : ''}${opts.top || ''}`
@@ -524,7 +524,7 @@ function rims(C) {
     const x = C.a + k * C.N;
     out += rimMark([x, 0], k ? 'faint' : '') + rimMark([x, -C.M], 'faint');
   }
-  return out + letter([C.a, .62], 'A');
+  return out + letter([C.a, .58], 'A');
 }
 
 function render(p, a) {
@@ -542,7 +542,9 @@ const crossingWords = n => `${n} ${n === 1 ? 'crossing' : 'crossings'}`;
 
 // A claim being made: Done (or Can't) pressed on this very board, with no refusal waiting.
 const claimingNow = (p, b) => b.told === null && uiOf(p).claim === JSON.stringify(b) && !solved(p, b);
-const uiButton = (label, payload, focus, opts = {}) => `<button type="button" class="secondary st-button${opts.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${opts.disabled ? ' disabled' : ''}>${label}</button>`;
+// Done or Can't, and Back in its place, are one slot: a quick double tap
+// doesn't open the claim and close it again (data-toggle, dist/main.js).
+const uiButton = (label, payload, focus, opts = {}) => `<button type="button" class="secondary st-button${opts.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${opts.toggle ? ` data-toggle="${opts.toggle}"` : ''}${opts.disabled ? ' disabled' : ''}>${label}</button>`;
 function renderUntangle(p, b, done, act) {
   const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), cross = crossings(C, xr, xb), walls = barriers(...q.w);
   const claiming = !done && claimingNow(p, b), moving = !done && !claiming, picks = done ? walls : claiming ? uiOf(p).picks : [];
@@ -562,11 +564,11 @@ function renderUntangle(p, b, done, act) {
   if (target) top = `<circle class="st-target" cx="${f(target.x)}" cy="${f(-target.row)}" r=".32"/>` + top;
   for (const c of cross) top += ring([c.x + c.k * C.N, -c.t]);
   const lift = liftView(p, C, {cls: claiming ? 'claiming' : '', slide: moving, under, over, clipTop: hits, top});
-  // Done starts the claim; That's all sends it with the copies tapped. Back
-  // takes Done's place, so a second tap on Done never sends a claim.
+  // With no crossings there is no certificate to pick. Otherwise Done starts
+  // the claim; That's all sends it with the copies tapped, and Back leaves it.
   let bar = '';
-  if (moving) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint)})}<span></span></div>`;
-  if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back')}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
+  if (moving) bar = `<div class="st-bar st-slots"><span></span>${cross.length === 0 ? button('Done', {type: 'done', copies: []}, {disabled: b.told !== null, hinted: Boolean(claimHint)}) : uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint), toggle: 'st-claim'})}<span></span></div>`;
+  if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back', {toggle: 'st-claim'})}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
   const told = claiming ? 'Tap each red copy that blue must cross, then press That’s all.' : b.told === 'fewer' ? 'There is a way with fewer.' : b.told === 'copies' ? 'Those aren’t the copies blue must cross.' : b.told === 'none' ? 'Blue must cross some copy of red.' : '';
   const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(q.w[0])}, blue at the B ${copyWords(q.w[1])}.${claiming ? ` ${picks.length} ${picks.length === 1 ? 'copy' : 'copies'} tapped.` : ''}${told ? ` ${told}` : ''}`;
   return frame(done, bar, lift, room, told, status);
@@ -628,10 +630,10 @@ function renderDesign(p, b, done, act) {
     marks = arc(lo, m, .9, 'inner') + arc(m, hi, .9, 'inner') + arc(lo, hi, 1.7, 'outer');
     b.w.forEach((w, i) => { marks += `<circle class="st-end-dot ${COLOURS[i]}${i === b.mid ? ' middle' : ''}" cx="${f(ends[i])}" cy="${f(-C.M)}" r=".22"/>`; });
   } else marks = endMarks(C, b.w, {sel, hinted, hintedB: act?.type === 'end' ? act.w : null});
-  const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 1.2)});
+  const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 2)});
   let bar = `<div class="st-top"><div class="st-pairs">${PAIRS.map((_, i) => pairChip(q, b.w, i)).join('')}</div></div>`;
   // Can't starts the claim; tapping a strand sends it.
-  const cant = claiming ? uiButton('Back', {claim: null}, 'st-back') : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant'});
+  const cant = claiming ? uiButton('Back', {claim: null}, 'st-back', {toggle: 'st-claim'}) : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant', toggle: 'st-claim'});
   if (!done) bar += `<div class="st-bar">${endButtons(b.w, {pick: claiming, sel, hinted})}${cant}</div>`;
   const told = claiming ? 'Tap the strand whose end is in the middle.' : b.told === 'way' ? 'There is a way.' : b.told === 'two' ? 'First get two pairs right, with every end at a different B.' : b.told === 'miss' ? 'Its end isn’t between the other two.' : '';
   const counts = pairCounts(b.w);
@@ -649,7 +651,7 @@ function renderPlay(p, b) {
   over += endMarks(C, b.w, {sel: sel !== null && sel < 2 ? sel : null});
   routes.forEach((r, i) => { for (let j = 1; j < C.M; j++) top += bead('plane', `${r[j]},${j}`, [r[j], -j], i, j, {act: true}); });
   for (const c of cross) top += ring([c.x + c.k * C.N, -c.t]);
-  const lift = liftView(p, C, {cls: 'design play', slide: true, pad: 1.6, under, over, top: band(C, .4) + top});
+  const lift = liftView(p, C, {cls: 'design play', slide: true, pad: 2, under, over, top: band(C, .4) + top});
   const twist = k => `<button type="button" class="secondary st-button st-twist" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'twist', k}))}" data-focus="st-twist-${k}" aria-label="${k > 0 ? 'Twist right' : 'Twist left'}">${k > 0 ? '↻' : '↺'}</button>`;
   const bar = `<div class="st-bar">${endButtons(b.w, {sel: sel !== null && sel < 2 ? sel : null})}${twist(-1)}${twist(1)}</div>`;
   const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(b.w[0])}, blue at the B ${copyWords(b.w[1])}.`;
@@ -657,7 +659,8 @@ function renderPlay(p, b) {
 }
 
 // --- Taps, slides and keys ---------------------------------------------------------
-// Beads are dragged on the portal board's slides, in either view: each point
+// Beads are dragged on the portal board's slides, in either view (on a touch
+// screen only in the cylinder: strands.css): each point
 // the finger enters moves the bead to that column (in the room, the short way
 // round in the direction the finger went), and a bead keeps its row. The
 // pointer's own targets here, the copies of red and the strip of end discs,
@@ -798,6 +801,18 @@ function gestureEnd(e) {
 
 export const strandMechanics = {
   strands: {
+    howTo: [
+      {parameters: {"mode": "untangle","room": {"squares": {"a": [0,0]},"right": {"a": "a"},"up": {"a": null},"n": 4,"lattice": "crosses"},"a": 1,"copies": [-1,1],"w": [0,0],"start": [[1,1,1],[2,2,2]]},
+        steps: [
+          {"move": {"type": "bead","strand": 0,"row": 2,"x": 0},"taps": ["[data-st-bead=\"0,2\"]"]},
+          {"move": {"type": "bead","strand": 0,"row": 2,"x": 1},"taps": ["[data-st-bead=\"0,2\"]"]}
+        ]},
+      {mode: 'design', parameters: {"mode": "design","room": {"squares": {"a": [0,0]},"right": {"a": "a"},"up": {"a": null},"n": 4,"lattice": "crosses"},"a": 1,"copies": [-1,2],"start": [0,0,0],"targets": [1,1,1]},
+        steps: [
+          {"move": {"type": "end","strand": 0,"w": 1},"taps": [".st-end.red"]},
+          {"move": {"type": "end","strand": 1,"w": -1},"taps": [".st-end.blue"]}
+        ]}
+    ],
     fresh, valid, solved, hint, render, wire, carry,
     // A move applied ends any claim being made, so a board met again later
     // never brings back a claim from before.
@@ -823,7 +838,7 @@ export const strandMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'strands',
-  family: {id: 'strands', symbol: '≀'},
+  family: {id: 'strands', symbol: '≀', area: 'surfaces', region: 'shape'},
   mechanics: strandMechanics,
   pack: new URL('./strands.json', import.meta.url).href,
   css: new URL('./strands.css', import.meta.url).href,

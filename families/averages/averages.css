@@ -6,7 +6,7 @@
    In a chase, the circles it forces show the top number in ochre, a square
    that agrees gets a pine ring and a smaller one a brick ring with a cross. */
 .av-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
-.av-board{max-width:440px}
+.av-board{max-width:360px}
 /* In a chase the board takes focus after Can't; show it only for keyboard use. */
 .av-board[tabindex]:focus{outline:none}
 .av-board[tabindex]:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:3px;border-radius:10px}

@@ -22,6 +22,27 @@
 <body>
   <div id="app"></div>
   <noscript>This adventure needs JavaScript to run. Your progress stays on this device.</noscript>
+  <script>
+    // Until main.js first renders, anything that stops it (a module or pack
+    // that doesn't load, or code that throws) shows this one screen. main.js
+    // calls startup.done() after that render and startup.fail() from its own
+    // catch. Saves are untouched until main.js reads them.
+    var startup = (function () {
+      var done = false;
+      function fail() {
+        var app = document.getElementById('app');
+        if (done || !app || app.querySelector('.startup-failed')) return;
+        app.innerHTML = '<main class="shell startup-failed"><section class="panel"><h1>The Lantern Caravan didn’t load.</h1><p class="spaced">The first visit needs the internet. Your saved progress is safe.</p><button type="button" class="primary spaced">Try again</button></section></main>';
+        app.querySelector('button').addEventListener('click', function () { location.reload(); });
+      }
+      // A module in main.js's static graph that fails to fetch fires error on
+      // main.js's script element; a module that throws, or a family import in
+      // families.js that rejects, reaches window as an error.
+      addEventListener('error', function (event) { if (event.target === window || event.target instanceof HTMLScriptElement) fail(); }, true);
+      addEventListener('unhandledrejection', fail);
+      return {fail: fail, done: function () { done = true; }};
+    })();
+  </script>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

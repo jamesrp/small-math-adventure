@@ -384,7 +384,7 @@ function renderPlacing(p, a) {
   if (!done) {
     if (q.mode === 'fewest') buttons.push(button('Done', {type: 'done'}, 'sq-done', full && (b.fewer === null || b.sq.length < b.fewer), act?.type === 'done'));
     buttons.push(button('Clear', {type: 'clear'}, 'sq-clear', b.sq.length > 0 && !claiming, act?.type === 'clear'));
-    if (q.mode === 'fill') buttons.push(`<button type="button" class="secondary sq-button sq-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="sq-cant" aria-pressed="${claiming}" ${b.sq.length ? '' : 'disabled'}>Can’t</button>`);
+    if (q.mode === 'fill') buttons.push(`<button type="button" class="secondary sq-button sq-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="sq-cant" data-toggle="sq-cant" aria-pressed="${claiming}" ${b.sq.length ? '' : 'disabled'}>Can’t</button>`);
   }
   if (buttons.length) bar += `<span class="sq-buttons">${buttons.join('')}</span>`;
   const note = q.mode === 'fewest' && !done && b.fewer !== null && full && b.sq.length >= b.fewer ? 'Fewer squares fit.' : claiming && state.said ? state.said : '';
@@ -492,6 +492,18 @@ function wire(root, p, api) {
 
 export const squareMechanics = {
   squares: {
+    howTo: [
+      {parameters: {"mode": "fill","cols": 4,"rows": 3,"sizes": [1,2]},
+        steps: [
+          {"move": {"type": "place","x": 0,"y": 0,"s": 2},"taps": ["[data-sg-cell=\"0\"]","[data-sg-cell=\"5\"]"]},
+          {"move": {"type": "place","x": 3,"y": 1,"s": 1},"taps": ["[data-sg-cell=\"7\"]","[data-sg-cell=\"7\"]"]}
+        ]},
+      {mode: 'design', parameters: {"mode": "design","cols": 5,"rows": 4,"goal": "last","last": 1,"need": 3},
+        steps: [
+          {"move": {"type": "size","w": 3,"h": 2},"taps": ["[data-sg-cell=\"7\"]"]},
+          {"move": {"type": "cut"}}
+        ]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) {
       if (!object(payload)) return;

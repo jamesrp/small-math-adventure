@@ -326,7 +326,7 @@ function renderPuzzle(p, a) {
   if (q.mode === 'pack') {
     top = `<div class="rh-tools" role="group" aria-label="Tool">${toolButton('piece', rhombusIcon, 'Rhombi', b.pieces.length, tool === 'piece', hint?.tool === 'piece' && tool !== 'piece')}${toolButton('dot', dotIcon, 'Dots', b.dots.length, tool === 'dot', hint?.tool === 'dot' && tool !== 'dot')}</div>`;
   } else if (q.mode === 'fill' && !b.pieces.length) {
-    top = `<p class="rh-prompt">${pieceIcon(shape)}<span>Drag across ${shape === 'chevron' ? 4 : 2} triangles</span></p>`;
+    top = `<p class="rh-prompt">${pieceIcon(shape)}<span>Tap or drag ${shape === 'chevron' ? 4 : 2} triangles</span></p>`;
   } else if (q.mode === 'flip') {
     const over = b.flips > q.budget;
     top = `<div class="rh-goalbar"><figure class="rh-goal" aria-label="Goal">${mini(g, q.goal, 'goal', 'Goal tiling')}<figcaption aria-hidden="true">⚑</figcaption></figure><p class="rh-counter" aria-label="Flips: ${b.flips} of ${q.budget}">Flips <strong class="${over ? 'over' : ''}">${b.flips}</strong> / ${q.budget}</p></div>`;
@@ -381,6 +381,17 @@ function wire(root, p, api) {
 
 export const rhombusMechanics = {
   rhombus: {
+    howTo: [
+      {parameters: {"mode":"fill","board":{"outline":[[0,0],[4,0],[4,1],[0,1]]}},
+        steps: [
+          {"move":{"type":"place","cells":[0,4]},"taps":["[data-tg-cell=\"0\"]","[data-tg-cell=\"4\"]"]},
+          {"move":{"type":"place","cells":[1,5]},"taps":["[data-tg-cell=\"1\"]","[data-tg-cell=\"5\"]"]}
+        ]},
+      {mode: 'flip', parameters: {"mode":"flip","board":{"outline":[[0,0],[1,0],[1,1],[0,2],[-1,2],[-1,1]]},"start":[[0,1],[2,4],[3,5]],"goal":[[0,2],[1,3],[4,5]],"budget":1},
+        steps: [
+          {"move":{"type":"flip","at":0},"taps":[".rh-board [data-tg-point]"]}
+        ]}
+    ],
     fresh: p => p.parameters.mode === 'playground' ? freshPlay() : freshPuzzle(p),
     valid: (p, b) => p.parameters.mode === 'playground' ? validPlay(b) : validPuzzle(p, b),
     solved: (p, b) => p.parameters.mode === 'playground' ? false : solvedPuzzle(p, b),
@@ -403,7 +414,7 @@ export const rhombusMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'rhombus',
-  family: {id: 'rhombus', symbol: '◊'},
+  family: {id: 'rhombus', symbol: '◊', area: 'shapes', region: 'shape'},
   mechanics: rhombusMechanics,
   pack: new URL('./rhombus.json', import.meta.url).href,
   css: new URL('./rhombus.css', import.meta.url).href,

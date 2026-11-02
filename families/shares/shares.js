@@ -448,7 +448,9 @@ const uiAttrs = (payload, focus = '') => `data-action="mechanic-ui" data-ui="${e
 // Claim buttons hand focus back to the board after a move: no element keeps
 // their focus key, so the app falls back to the family's focus selector.
 const claimButton = (label, action, enabled, hinted, cls) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttrs(action, 'sh-board')} ${enabled ? '' : 'disabled'}>${label}</button>`;
-const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+// A toggle opens a claim or the knife and closes it in place: a press of it
+// within 350 ms of the last is a double tap and is dropped (data-toggle).
+const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} data-toggle="${cls}" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const note = text => text ? `<p class="sh-told">${esc(text)}</p>` : '';
 
@@ -806,6 +808,11 @@ function uiHook(p, payload) {
 
 export const shareMechanics = {
   shares: {
+    howTo: [
+      {parameters: {mode: 'one', people: [{id: 'A', likes: {red: 2, blue: 1}}, {id: 'B', likes: {red: 1, blue: 2}}], goods: [{id: 'R1', colour: 'red'}, {id: 'B1', colour: 'blue'}, {id: 'B2', colour: 'blue'}]}, steps: [{move: {type: 'put', good: 'R1', to: 'A'}, taps: ['[data-sh-good="R1"]', '[data-sh-zone="A"]']}, {move: {type: 'put', good: 'B1', to: 'B'}, taps: ['[data-sh-good="B1"]', '[data-sh-zone="B"]']}]},
+      {mode: 'favourites', parameters: {mode: 'favourites', people: [{id: 'A', likes: ['circle']}, {id: 'B', likes: ['circle', 'triangle']}, {id: 'C', likes: ['triangle']}], items: [{id: 'circle'}, {id: 'triangle'}]}, steps: [{move: {type: 'give', item: 'circle', to: 'B'}, taps: ['[data-sh-good="circle"]', '[data-sh-zone="B"]']}, {move: {type: 'give', item: 'circle', to: null}, taps: ['[data-sh-good="circle"]', '[data-sh-zone=""]']}]},
+      {mode: 'duel', parameters: {mode: 'duel', strip: 'RRBB', you: {red: 2, blue: 1}, them: {red: 1, blue: 2}}, steps: [{ui: {knife: 1}}, {move: {type: 'cut', at: 1}}, {ui: {knife: 3}}, {move: {type: 'cut', at: 3}}]}
+    ],
     fresh, valid, solved, move, hint, render, wire,
     ui: uiHook,
     reset: p => { uiState.delete(p.id); },
@@ -819,7 +826,9 @@ export const shareMechanics = {
       if (q.mode === 'every' && from.told && !to.told && same(from.shelf, to.shelf)) return {...to, told: from.told};
       if (q.mode === 'halve') {
         if (from.claim && !to.claim) return {...to, claim: from.claim, told: to.told?.kind === 'over' ? null : to.told};
-        if (from.told?.kind === 'over' && !to.told && !to.claim && same(from.at, to.at)) return {...to, told: from.told};
+        // A refused Can't stands while the cards stay, over a refused Fair's
+        // line on the same cards too (that Fair is not a lock).
+        if (from.told?.kind === 'over' && !to.claim && same(from.at, to.at)) return {...to, told: from.told};
       }
       // A refused group stands until a shape moves.
       if (q.mode === 'favourites' && from.told && !to.told && !to.group && same(from.at, to.at)) return {...to, told: from.told, tried: true};
@@ -833,7 +842,7 @@ export const shareMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'shares',
-  family: {id: 'shares', symbol: '÷'},
+  family: {id: 'shares', symbol: '÷', area: 'chance', region: 'games'},
   mechanics: shareMechanics,
   pack: new URL('./shares.json', import.meta.url).href,
   css: new URL('./shares.css', import.meta.url).href,

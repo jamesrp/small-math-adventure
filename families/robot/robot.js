@@ -147,14 +147,20 @@ function move(p, b, action) {
   return d ? {walk: b.walk + d} : null;
 }
 // Hints: the next move of a shortest finish within the moves left, searched
-// from where the robot is now; Undo when no finish fits.
+// from where the robot is now; Undo when no finish fits. The budget is the
+// fewest moves, so every move off a shortest walk is a dead end at once: while
+// boxes are left it is told only behind Hint (quiet), or the line would say
+// after each move whether it was right. Once the boxes are full, the line
+// says what is wrong.
 function hint(p, b) {
   if (playground(p)) return {type: 'note'};
   if (!valid(p, b)) return {type: 'deadend', text: 'Restart.'};
   if (solved(p, b)) return {type: 'done'};
-  const q = p.parameters, s = stateOf(q, b.walk), rest = finish(q, s, q.budget - b.walk.length);
-  if (!rest) return {type: 'deadend', text: 'Too few moves are left. Undo.'};
-  return {type: 'move', action: goTo(step(s, rest[0])), text: `Move ${NAMES[rest[0]]}.`};
+  const q = p.parameters, s = stateOf(q, b.walk), left = q.budget - b.walk.length, rest = finish(q, s, left);
+  if (rest) return {type: 'move', action: goTo(step(s, rest[0])), text: `Move ${NAMES[rest[0]]}.`};
+  if (left) return {type: 'deadend', quiet: true, text: `${plural(left, 'move')} can’t reach the flag with memory ${minus(q.goal)} from here. Undo.`};
+  const onFlag = s[0] === q.flag[0] && s[1] === q.flag[1];
+  return {type: 'deadend', text: onFlag ? `Memory ${minus(s[2])}, not ${minus(q.goal)}. Undo.` : 'The robot isn’t on the flag. Undo.'};
 }
 
 // Drawing. The board is a grid of squares whose corners are the street
@@ -207,11 +213,13 @@ export function boardSvg(v, q, walk, opts = {}) {
   const start = at(v, states[0]), [rx, ry] = at(v, now);
   const flag = q.flag ? `<g class="mr-flag" transform="translate(${f(at(v, q.flag)[0])},${f(at(v, q.flag)[1])})">${FLAG}</g>` : '';
   const robot = `<g class="mr-robot" transform="translate(${f(rx)},${f(ry)})"><g class="mr-glide"${opts.glide || ''}>${ROBOT}</g></g>`;
+  // A step takes taps 0.55 of a square around its point: 47 px on a 375 px
+  // phone, and steps a diagonal apart still don't touch.
   const steps = opts.live ? ORDER.map((d, k) => {
     const t = step(now, d);
     if (!onBoard(t[0], t[1]) || t[0] < v.x0 || t[0] > v.x1 || t[1] < v.y0 || t[1] > v.y1) return '';
     const [tx, ty] = at(v, t);
-    return `<g class="mr-step${opts.hinted === d ? ' hinted' : ''}" transform="translate(${f(tx)},${f(ty)})" role="button" tabindex="0" aria-label="Move ${NAMES[d]}" data-sg-point="${k}" data-focus="mr-${d}"><circle class="mr-reach" r="4.6"/><circle class="mr-pip" r="1.25"/></g>`;
+    return `<g class="mr-step${opts.hinted === d ? ' hinted' : ''}" transform="translate(${f(tx)},${f(ty)})" role="button" tabindex="0" aria-label="Move ${NAMES[d]}" data-sg-point="${k}" data-focus="mr-${d}"><circle class="mr-reach" r="5.5"/><circle class="mr-pip" r="1.25"/></g>`;
   }).join('') : '';
   return squareBoard(g, {
     cls: `mr-board${opts.picture ? ' mr-mini' : ''}`, label: opts.label || 'Streets', picture: opts.picture, pad: .6, cell,
@@ -274,9 +282,20 @@ export const robotMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+robotMechanics["robot"].howTo = {
+  puzzle: {"objective": ""},
+  parameters: {"start": [1, 0], "flag": [0, 1], "goal": 0, "budget": 4},
+  steps: [
+    {"move": {"type": "go", "to": [1, 1]}, "taps": ["[aria-label=\"Move north\"]"]},
+    {"move": {"type": "go", "to": [2, 1]}, "taps": ["[aria-label=\"Move east\"]"]}
+  ]
+};
+
 export default {
   id: 'robot',
-  family: {id: 'robot', symbol: '⟲'},
+  family: {id: 'robot', symbol: '⟲', area: 'geometry', region: 'symmetry'},
   mechanics: robotMechanics,
   pack: new URL('./robot.json', import.meta.url).href,
   css: new URL('./robot.css', import.meta.url).href,

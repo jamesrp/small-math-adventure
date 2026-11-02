@@ -52,7 +52,7 @@
       },
       "objective": "Draw runs of four and watch where they land.",
       "instruction": "Draw runs of four and watch where they land.",
-      "controls": "Choose what joins the bag after each draw. Tap a counter to draw it, or press Draw for a random one. A run is four draws; when it ends, a dot drops into the column for how many reds were drawn. Finish completes a run at random and 10 runs makes ten more. Clear empties the columns.",
+      "controls": "Each drawn counter goes back; choose what joins it. Tap a counter to draw it, or press Draw for a random one. A run is four draws; when it ends, a dot drops into the column for how many reds were drawn. Finish completes a run at random and 10 runs makes ten more. Clear empties the columns.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and the chosen rule says what joins it."
@@ -94,7 +94,7 @@
       },
       "objective": "Make a bag of two red and three blue.",
       "instruction": "Make a bag of two red and three blue.",
-      "controls": "Tap a counter to draw it. Again starts over with the first bag.",
+      "controls": "Tap a counter to draw it. The counter goes back, and a copy of its colour joins it. Again starts over with the first bag.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter. It goes back, and a copy of its colour joins it, numbered next."
@@ -136,7 +136,7 @@
       },
       "objective": "Keep every bag three draws can make.",
       "instruction": "Keep every bag three draws can make.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter. It goes back, and a copy of its colour joins it, numbered next."
@@ -179,7 +179,7 @@
       },
       "objective": "Keep every colour story of four draws that ends with three red and three blue.",
       "instruction": "Keep every colour story of four draws that ends with three red and three blue.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter. It goes back, and a copy of its colour joins it, numbered next.",
@@ -222,7 +222,7 @@
       },
       "objective": "Keep every history of two draws.",
       "instruction": "Keep every history of two draws.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and a copy of its colour joins it, numbered next.",
@@ -266,7 +266,7 @@
       },
       "objective": "No copies now. Keep every history of two draws.",
       "instruction": "No copies now. Keep every history of two draws.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back; nothing is added. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and nothing joins it.",
@@ -310,7 +310,7 @@
       },
       "objective": "Keep every history of three draws with no reds.",
       "instruction": "Keep every history of three draws with no reds.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and a copy of its colour joins it, numbered next.",
@@ -357,7 +357,7 @@
       },
       "objective": "Keep every history of three draws with exactly two reds.",
       "instruction": "Keep every history of three draws with exactly two reds.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and a copy of its colour joins it, numbered next.",
@@ -401,7 +401,7 @@
       },
       "objective": "Now each draw adds the other colour. Keep every history of two draws.",
       "instruction": "Now each draw adds the other colour. Keep every history of two draws.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and one of the other colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red and one blue counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and a counter of the other colour joins it, numbered next.",
@@ -444,7 +444,7 @@
       },
       "objective": "Start with red, blue and yellow. Keep every history of two draws.",
       "instruction": "Start with red, blue and yellow. Keep every history of two draws.",
-      "controls": "Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
+      "controls": "Tap counters to draw them. The counter goes back, and a copy of its colour joins it. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.",
       "rules": [
         "A bag starts with one red, one blue and one yellow counter.",
         "Draw any counter; each one in the bag is as likely as any other. It goes back, and a copy of its colour joins it, numbered next.",

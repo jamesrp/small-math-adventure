@@ -713,9 +713,28 @@ export const nestMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+nestMechanics.nests.howTo = [
+{
+  parameters: {"mode":"reach","decks":[{"cards":["B","A","AB",""],"target":2,"cols":4,"pictures":2}]},
+  steps: [
+    {"move":{"type":"tap","deck":0,"card":0},"taps":["[data-deck=\"0\"][data-card=\"0\"]"]},
+    {"move":{"type":"tap","deck":0,"card":0},"taps":["[data-deck=\"0\"][data-card=\"0\"]"]}
+  ]
+},
+{
+  mode: "best",
+  parameters: {"mode":"best","decks":[{"cards":["B","A","AB",""],"cols":4,"pictures":2}]},
+  steps: [
+    {"move":{"type":"place","card":1,"row":0},"taps":["[data-deck=\"0\"][data-card=\"1\"]"]},
+    {"move":{"type":"place","card":2,"row":0},"taps":["[data-deck=\"0\"][data-card=\"2\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'nests',
-  family: {id: 'nests', symbol: '▣'},
+  family: {id: 'nests', symbol: '▣', area: 'patterns', region: 'counting'},
   mechanics: nestMechanics,
   pack: new URL('./nests.json', import.meta.url).href,
   css: new URL('./nests.css', import.meta.url).href,

@@ -340,9 +340,33 @@ export const flowMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+
+// Short move demonstrations use their own boards; no puzzle opening is played.
+flowMechanics["flow"].howTo = [
+{
+  puzzle: {"objective": ""},
+  parameters: {"mode": "pack", "aspect": 1.8, "nodes": {"s": [8, 50], "a": [40, 20], "b": [65, 80], "t": [92, 50]}, "arcs": [["s", "a"], ["a", "b"], ["b", "t"], ["s", "b"], ["a", "t"]], "start": "s", "finish": "t", "best": 2},
+  steps: [
+    {"move": {"type": "step", "node": "s"}, "taps": ["[data-gb-node=\"s\"]"]},
+    {"move": {"type": "step", "node": "a"}, "taps": ["[data-gb-node=\"a\"]"]},
+    {"ui": {"tool": "block"}},
+    {"move": {"type": "close", "arc": 2}, "taps": ["[data-gb-edge=\"2\"]"]}
+  ]
+},
+{
+  mode: "game",
+  puzzle: {"objective": ""},
+  parameters: {"mode": "game", "aspect": 1.8, "nodes": {"s": [8, 50], "a": [40, 20], "b": [65, 80], "t": [92, 50]}, "arcs": [["s", "a"], ["a", "b"], ["b", "t"], ["s", "b"], ["a", "t"]], "start": "s", "finish": "t", "best": 2, "winner": "first"},
+  steps: [
+    {"move": {"type": "order", "order": "first"}, "taps": [".flow-order button:first-child"]},
+    {"move": {"type": "close", "arc": 2}, "taps": ["[data-gb-edge=\"2\"]"]}
+  ]
+}
+];
+
 export default {
   id: 'flow',
-  family: {id: 'flow', symbol: '⇉'},
+  family: {id: 'flow', symbol: '⇉', area: 'networks', region: 'networks'},
   mechanics: flowMechanics,
   pack: new URL('./flow.json', import.meta.url).href,
   css: new URL('./flow.css', import.meta.url).href,

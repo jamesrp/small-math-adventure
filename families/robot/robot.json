@@ -65,7 +65,7 @@
    "objective": "Walk the robot anywhere and watch its memory.",
    "visibleObjective": "",
    "instruction": "Walk the robot anywhere and watch its memory.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Clear takes the robot home with memory 0. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Clear takes the robot home with memory 0. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -119,7 +119,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -178,7 +178,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -236,7 +236,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -295,7 +295,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -353,7 +353,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -411,7 +411,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -469,7 +469,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -528,7 +528,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -586,7 +586,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -645,7 +645,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -704,7 +704,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",
@@ -762,7 +762,7 @@
    "objective": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
    "visibleObjective": "",
    "instruction": "Bring the robot to the flag with the goal memory, in exactly the moves shown.",
-   "controls": "Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
+   "controls": "North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.",
    "rules": [
     "The robot walks along the streets, one block per move: east, west, north or south.",
     "Its memory starts at 0. A step north adds the robot’s column number, and a step south takes it away. East and west leave the memory alone.",

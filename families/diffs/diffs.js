@@ -330,7 +330,7 @@ function ringHtml(r, s) {
     return `<span class="df-arrow a${i}${claimed}" aria-hidden="true"><b class="df-gap${g[i] === null ? ' unset' : ''}">${g[i] ?? ''}</b><i>${(n === 4 ? ARROWS4 : ARROWS3)[i]}</i></span>`;
   });
   const gapWords = s.gaps && complete(r) ? ` Gaps ${g.join(', ')}.` : '';
-  return `<div class="df-ring n${n}${s.edit ? ' df-edit' : ''}${s.cls ? ` ${s.cls}` : ''}" style="--cap:${s.cap}" role="group" aria-label="${esc(`${s.label}: ${r.map((v, i) => `${LETTERS[i]} ${heightWords(v)}`).join(', ')}.${gapWords}`)}">${r.map((_, i) => station(r, i, s)).join('')}${s.gaps ? arrows.join('') : ''}</div>`;
+  return `<div class="df-ring n${n} df-cap${s.cap}${s.edit ? ' df-edit' : ''}${s.cls ? ` ${s.cls}` : ''}" style="--cap:${s.cap}" role="group" aria-label="${esc(`${s.label}: ${r.map((v, i) => `${LETTERS[i]} ${heightWords(v)}`).join(', ')}.${gapWords}`)}">${r.map((_, i) => station(r, i, s)).join('')}${s.gaps ? arrows.join('') : ''}</div>`;
 }
 // A small ring of numbers, for the run and the rings found.
 const miniHtml = (r, cls = '') => `<span class="df-mini n${r.length}${cls}" aria-hidden="true">${r.map((v, i) => `<i class="m${i}">${v}</i>`).join('')}</span>`;
@@ -351,7 +351,7 @@ function renderMake(p, a) {
     const ready = complete(b.old) && b.refused === null;
     const submit = state.claiming && state.marks.length;
     const attrs = submit ? moveAttrs({type: 'cant', marks: [...state.marks].sort((x, y) => x - y)}, 'df-cant') : `data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !state.claiming})}' data-focus="df-cant"`;
-    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs}${submit ? ' aria-label="Can’t: check marks"' : ''} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
+    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs} data-toggle="df-cant"${submit ? ' aria-label="Can’t: check marks"' : ''} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
   }
   const why = b.claim ? certificate(q.target, b.claim) : null;
   const note = b.refused ? 'Those don’t rule it out.' : why === 'zeros' ? 'Three 0 gaps make all four towers equal.' : why === 'odd' ? 'Odd and even can’t swap an odd number of times round a ring.' : '';
@@ -422,9 +422,18 @@ export const diffMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+diffMechanics.diffs.howTo = {
+  parameters: {"mode":"make","stations":4,"cap":3,"target":[1,2,1,2],"cant":true},
+  steps: [
+    {"move":{"type":"set","station":0,"h":1}},
+    {"move":{"type":"set","station":1,"h":3}}
+  ]
+};
+
 export default {
   id: 'diffs',
-  family: {id: 'diffs', symbol: 'Δ'},
+  family: {id: 'diffs', symbol: 'Δ', area: 'numbers', region: 'chance'},
   mechanics: diffMechanics,
   pack: new URL('./diffs.json', import.meta.url).href,
   css: new URL('./diffs.css', import.meta.url).href,

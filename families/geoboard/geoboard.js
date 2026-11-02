@@ -592,7 +592,7 @@ function recordTable(cols, rows, hiddenCell) {
 }
 const button = (label, action, focus, opts = {}) => {
   const data = action.ui ? `data-action="mechanic-ui" data-ui='${esc(JSON.stringify(action.ui))}'` : `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
-  return `<button type="button" class="secondary geo-button ${opts.cls || ''}${opts.hinted ? ' hinted' : ''}" ${data} data-focus="${focus}"${opts.pressed !== undefined ? ` aria-pressed="${opts.pressed}"` : ''}${opts.label ? ` aria-label="${esc(opts.label)}"` : ''} ${opts.disabled ? 'disabled' : ''}>${label}</button>`;
+  return `<button type="button" class="secondary geo-button ${opts.cls || ''}${opts.hinted ? ' hinted' : ''}" ${data} data-focus="${focus}"${opts.toggle ? ` data-toggle="${opts.toggle}"` : ''}${opts.pressed !== undefined ? ` aria-pressed="${opts.pressed}"` : ''}${opts.label ? ` aria-label="${esc(opts.label)}"` : ''} ${opts.disabled ? 'disabled' : ''}>${label}</button>`;
 };
 // Pick's rule with the numbers in: the argument shown after a right claim,
 // the claimed number outlined.
@@ -639,7 +639,7 @@ function renderBands(p, a) {
     // Can't waits for an attempt: a closed band on the board.
     const claimNow = view.cant && view.value !== null, locked = !rec || (claimNow && view.value === b.refused);
     // Focus: opening Can't moves it to +; after a claim it falls back to the board.
-    btns.push(button('Can’t', claimNow ? {type: 'cant', value: view.value} : {ui: {cant: !view.cant}}, claimNow ? 'geo-claim' : view.cant ? 'geo-cant-open' : 'geo-up', {cls: 'geo-cant', pressed: Boolean(view.cant), hinted: h?.button === 'cant', disabled: locked}));
+    btns.push(button('Can’t', claimNow ? {type: 'cant', value: view.value} : {ui: {cant: !view.cant}}, claimNow ? 'geo-claim' : view.cant ? 'geo-cant-open' : 'geo-up', {cls: 'geo-cant', pressed: Boolean(view.cant), hinted: h?.button === 'cant', disabled: locked, toggle: 'geo-cant'}));
   }
   if (!done && q.mode === 'every') btns.push(button('That’s all', {type: 'all'}, 'geo-all', {cls: 'geo-all', hinted: h?.button === 'all', disabled: b.told === 'more'}));
   if (!done) btns.push(button('Clear', {type: 'clear'}, 'geo-clear', {hinted: h?.button === 'clear', disabled: !b.loops.length && !b.open.length}));
@@ -816,6 +816,18 @@ function wire(root, p, api) {
 
 export const geoboardMechanics = {
   geoboard: {
+    howTo: [
+      {parameters: {"mode": "target","w": 3,"h": 3,"goal": {"area": 3}},
+        steps: [
+          {"move": {"type": "dot","at": 0},"taps": ["[data-sg-point=\"7\"]"]},
+          {"move": {"type": "dot","at": 2},"taps": ["[data-sg-point=\"8\"]"]},
+          {"move": {"type": "dot","at": 4},"taps": ["[data-sg-point=\"2\"]"]}
+        ]},
+      {mode: 'cut', parameters: {"mode": "cut","w": 4,"h": 3,"shape": [[0,0],[3,0],[3,2],[0,2]],"piece": {"area": 2}},
+        steps: [
+          {"move": {"type": "cut","a": 0,"b": 11},"taps": ["[data-sg-point=\"9\"]","[data-sg-point=\"6\"]"]}
+        ]}
+    ],
     fresh, valid, solved, hint, render, wire,
     move(p, b, action) {
       // Applying the Pick's-count hint of an impossible goal fills the goal's
@@ -858,7 +870,7 @@ export const geoboardMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'geoboard',
-  family: {id: 'geoboard', symbol: '∷'},
+  family: {id: 'geoboard', symbol: '∷', area: 'shapes', region: 'shape'},
   mechanics: geoboardMechanics,
   pack: new URL('./geoboard.json', import.meta.url).href,
   css: new URL('./geoboard.css', import.meta.url).href,

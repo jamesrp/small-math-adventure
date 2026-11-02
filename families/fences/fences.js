@@ -352,9 +352,19 @@ export const fenceMechanics = {
 };
 
 // The family seam entry (dist/families.js).
+// How to play: demonstrate the controls on a separate, small board.
+fenceMechanics.fences.howTo = {
+  parameters: {"mode":"target","cols":3,"rows":2,"tiles":4,"fence":10},
+  steps: [
+    {"move":{"type":"plant","cells":[0]},"taps":["[data-cell=\"0\"]"]},
+    {"move":{"type":"plant","cells":[1]},"taps":["[data-cell=\"1\"]"]},
+    {"move":{"type":"lift","cell":0},"taps":["[data-cell=\"0\"]"]}
+  ]
+};
+
 export default {
   id: 'fences',
-  family: {id: 'fences', symbol: '▦'},
+  family: {id: 'fences', symbol: '▦', area: 'shapes', region: 'counting'},
   mechanics: fenceMechanics,
   pack: new URL('./fences.json', import.meta.url).href,
   css: new URL('./fences.css', import.meta.url).href,
