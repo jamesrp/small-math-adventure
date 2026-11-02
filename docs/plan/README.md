@@ -2,6 +2,8 @@
 
 A plan, October 4, 2026, for three tracks: (A) the app's story, UI, art, voice and video; (B) all 63 math-circle themes in the app; (C) a quality review of the 63. It also sets who does what across Claude, Dot/Codex and James. The theme-by-theme inventory is in [themes.md](themes.md). Where each week stands, in the app or ruled out with a reason, is in [decisions.md](decisions.md). James reviewed it on October 5; his decisions are folded in and listed at the end.
 
+The current proposal for what comes next, November 2026, is [roadmap.md](roadmap.md).
+
 ## Where things stand
 
 - **App.** Twelve mechanics with 222 puzzles, 17 proof puzzles, and Chip firing. The Lantern Road has seven stops and 21 encounters on three grade trails, with finished stills in all 90 art slots. There is no video and no recorded voice. No child has played the v4 road, the proofs or Chip firing.
