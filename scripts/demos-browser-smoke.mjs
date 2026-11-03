@@ -47,6 +47,19 @@ async function worker(list) {
     const help = page.locator('dialog'), demo = help.locator('.howto-demo');
     await help.waitFor();
     assert.equal(await demo.count(), 1, `${key}: How to play shows a demo`);
+    if (key === 'pantograph|') {
+      // This drag has both a before and an after target. Drawing the after
+      // board must not detach the start control before its position is read.
+      const ring = demo.locator('.howto-tap.is-on:not(.is-drag)');
+      await ring.waitFor();
+      const position = await demo.evaluate(slot => {
+        const frame = slot.querySelector('.howto-frame').getBoundingClientRect();
+        const target = slot.querySelector('[data-pg="knob"]').getBoundingClientRect();
+        const tap = slot.querySelector('.howto-tap');
+        return {actual: [parseFloat(tap.style.left), parseFloat(tap.style.top)], expected: [target.left - frame.left + target.width / 2, target.top - frame.top + target.height / 2]};
+      });
+      assert.ok(position.actual.every((n, i) => Math.abs(n - position.expected[i]) < 1), `${key}: the drag ring starts on its control (${JSON.stringify(position)})`);
+    }
     await demo.and(page.locator('[data-played]')).waitFor({timeout: 30000});
     const fit = await demo.evaluate(node => {
       const slot = node.getBoundingClientRect(), frame = node.querySelector('.howto-frame').getBoundingClientRect();

@@ -162,6 +162,8 @@ export function playDemo(slot, p, puzzles, {reduced = false} = {}) {
   const spotsFor = (step, attempt) => {
     const taps = step.taps || [], control = controlFor(stage, step);
     const before = taps.map(t => afterTap(t) ? null : stage.querySelector(t));
+    // Drawing the after board detaches these nodes, so measure them first.
+    const beforeSpots = before.map(spot), controlSpot = spot(control);
     let after = [];
     if (taps.some(afterTap)) {
       const drawn = stage.innerHTML, style = [stage.style.width, stage.style.transform, frame.style.width, frame.style.height];
@@ -170,8 +172,8 @@ export function playDemo(slot, p, puzzles, {reduced = false} = {}) {
       stage.innerHTML = drawn;
       [stage.style.width, stage.style.transform, frame.style.width, frame.style.height] = style;
     }
-    const spots = taps.map((t, i) => afterTap(t) ? after[i] : spot(before[i]));
-    if (control && !before.includes(control)) spots.push(spot(control));
+    const spots = taps.map((t, i) => afterTap(t) ? after[i] : beforeSpots[i]);
+    if (control && !before.includes(control)) spots.push(controlSpot);
     return spots.filter(Boolean);
   };
   const place = ([x, y]) => { tap.style.left = `${x}px`; tap.style.top = `${y}px`; };
