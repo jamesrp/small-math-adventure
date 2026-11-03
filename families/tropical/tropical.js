@@ -710,8 +710,8 @@ export const tropicalMechanics = {
   tropical: {
     howTo: {parameters: {"mode": "meet","win": [0,0,8,8],"step": 2,"A": [4,4],"goal": {"kind": "point","at": [6,4]},"start": [2,6]},
       steps: [
-        {"move": {"type": "put","at": [6,6]}},
-        {"move": {"type": "put","at": [2,2]}}
+        {"move": {"type": "put","at": [6,6]}, "taps": [{"after": "circle.tr-junction.tr-b"}]},
+        {"move": {"type": "put","at": [2,2]}, "taps": [{"after": "circle.tr-junction.tr-b"}]}
       ]},
     fresh, valid, solved, move, hint, render, wire, help,
     ui(p, payload) {

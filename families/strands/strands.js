@@ -804,8 +804,8 @@ export const strandMechanics = {
     howTo: [
       {parameters: {"mode": "untangle","room": {"squares": {"a": [0,0]},"right": {"a": "a"},"up": {"a": null},"n": 4,"lattice": "crosses"},"a": 1,"copies": [-1,1],"w": [0,0],"start": [[1,1,1],[2,2,2]]},
         steps: [
-          {"move": {"type": "bead","strand": 0,"row": 2,"x": 0},"taps": ["[data-st-bead=\"0,2\"]"]},
-          {"move": {"type": "bead","strand": 0,"row": 2,"x": 1},"taps": ["[data-st-bead=\"0,2\"]"]}
+          {"move": {"type": "bead","strand": 0,"row": 2,"x": 0},"taps": ["[data-st-bead=\"0,2\"]", {"after": "[data-st-bead=\"0,2\"]"}], "drag": true},
+          {"move": {"type": "bead","strand": 0,"row": 2,"x": 1},"taps": ["[data-st-bead=\"0,2\"]", {"after": "[data-st-bead=\"0,2\"]"}], "drag": true}
         ]},
       {mode: 'design', parameters: {"mode": "design","room": {"squares": {"a": [0,0]},"right": {"a": "a"},"up": {"a": null},"n": 4,"lattice": "crosses"},"a": 1,"copies": [-1,2],"start": [0,0,0],"targets": [1,1,1]},
         steps: [

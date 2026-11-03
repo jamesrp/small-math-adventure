@@ -29,7 +29,7 @@ const BASE_DEMOS = {
     {mode: 'aim', parameters: {mode: 'aim', width: 1, height: 1, sheet: [3, 3], target: {corner: 'top-right', bounces: 2}},
       steps: [{move: {type: 'launch', aim: [1, 2]}, taps: ['.cr-controls .primary']}]},
     {mode: 'cross', parameters: {mode: 'cross', width: 1, height: 2, sheet: [4, 4]},
-      steps: [{move: {type: 'tap', at: [1, 2]}}]},
+      steps: [{move: {type: 'tap', at: [1, 2]}, taps: ['.cr-crossing[data-at="1,2"]']}]},
     {mode: 'every', parameters: {mode: 'every', cols: 4, rows: 4, start: [1, 1], bounces: 2},
       steps: [{move: {type: 'launch', room: [1, 1]}}, {move: {type: 'launch', room: [3, 1]}, taps: ['.cr-controls .primary']}]}
   ],
@@ -49,22 +49,40 @@ const BASE_DEMOS = {
     steps: [{move: {type: 'place', coin: 'A', pan: 'left'}}, {move: {type: 'place', coin: 'B', pan: 'right'}}, {move: {type: 'weigh'}}]}
 };
 
-// The demo entry for a puzzle: a mechanic's `howTo` is one entry or a list, each
-// with an optional `mode`; the entry for the puzzle's own mode wins.
+// The demo entry for a puzzle: a mechanic's `howTo` is one entry or a list.
+// An entry may name the variant it is for: `mode` (the puzzle's
+// parameters.mode) and `when` (other parameters, as {name: value} or as a
+// test of the parameters, with a `variant` name). The first entry whose
+// conditions all hold wins; an entry with none is the fallback.
+const conditional = d => d.mode !== undefined || d.when !== undefined;
+function holds(d, p) {
+  const q = p.parameters ?? {};
+  if (d.mode !== undefined && q.mode !== d.mode) return false;
+  if (typeof d.when === 'function') return Boolean(d.when(q));
+  if (d.when) return Object.entries(d.when).every(([k, v]) => same(q[k], v));
+  return true;
+}
 export function demoEntry(p) {
   const own = (isExpansion(p) ? mechanicFor(p).howTo : null) ?? BASE_DEMOS[p.mechanic];
   if (!own) return null;
   const list = Array.isArray(own) ? own : [own];
-  return list.find(d => d.mode !== undefined && d.mode === p.parameters?.mode) || list.find(d => d.mode === undefined) || null;
+  return list.find(d => conditional(d) && holds(d, p)) || list.find(d => !conditional(d)) || null;
+}
+
+// A name for an entry's variant ('' for the fallback): its mode, then its
+// variant name or its `when` values.
+export function demoKey(entry) {
+  const when = entry.variant ?? (entry.when && typeof entry.when === 'object' ? Object.values(entry.when).map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join('-') : undefined);
+  return [entry.mode, when].filter(v => v !== undefined && v !== '').join('-');
 }
 
 // The demo's own puzzle: the first puzzle of the mechanic (and of the entry's
-// mode) with the entry's board in place of the puzzle's, so the demo is the
-// same whichever puzzle opened How to play.
+// variant) with the entry's board in place of the puzzle's, so the demo is
+// the same whichever puzzle opened How to play.
 export function demoPuzzle(p, puzzles, entry = demoEntry(p)) {
   if (!entry) return null;
-  const base = puzzles.find(q => q.mechanic === p.mechanic && (entry.mode === undefined || q.parameters?.mode === entry.mode)) || p;
-  const id = `demo-${p.mechanic}${entry.mode === undefined ? '' : `-${entry.mode}`}`;
+  const base = puzzles.find(q => q.mechanic === p.mechanic && holds(entry, q)) || p, key = demoKey(entry);
+  const id = `demo-${p.mechanic}${key ? `-${key}` : ''}`;
   return {...base, ...entry.puzzle, id, parameters: entry.parameters ?? base.parameters};
 }
 
@@ -78,9 +96,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const parsed = text => { try { return JSON.parse(text); } catch { return undefined; } };
 
 // Every attempt the demo shows, from the fresh board through each step. A step
-// is {move: action} or {ui: payload}, with optional `taps` (selectors pulsed in
-// order first); without them the control whose data-move or data-ui matches is
-// pulsed. Returns null when a step is refused, so a broken demo never shows.
+// is {move: action} or {ui: payload}, with optional `taps` (where the rings
+// go, in order), `drag` (the ring slides from one tap to the next) and
+// `view`. Returns null when a step is refused, so a broken demo never shows.
 export function demoFrames(p, entry) {
   const random = seeded();
   let attempt = freshAttempt(p, random);
@@ -98,11 +116,14 @@ export function demoFrames(p, entry) {
 
 const resetView = p => { if (isExpansion(p)) mechanicFor(p).reset?.(p); };
 
-function targetsFor(stage, step) {
-  const tapped = (step.taps || []).map(selector => stage.querySelector(selector)).filter(Boolean);
+// A step's ring marks, in order: each `taps` entry (a CSS selector on the
+// board before the step, or {after: selector}, where that control is once the
+// step is made, for a tap on an empty spot or the end of a drag), then the
+// control whose data-move or data-ui equals the step, unless a tap named it.
+const afterTap = t => Boolean(t && typeof t === 'object' && typeof t.after === 'string');
+function controlFor(stage, step) {
   const key = Object.hasOwn(step, 'move') ? 'move' : 'ui', want = step[key];
-  const control = [...stage.querySelectorAll(`[data-${key}]`)].find(node => same(parsed(node.dataset[key]), want));
-  return control && !tapped.includes(control) ? [...tapped, control] : tapped;
+  return [...stage.querySelectorAll(`[data-${key}]`)].find(node => same(parsed(node.dataset[key]), want)) || null;
 }
 
 const DESIGN_WIDTH = 360; // px: the narrowest board a demo is drawn at before it is scaled down
@@ -130,28 +151,62 @@ export function playDemo(slot, p, puzzles, {reduced = false} = {}) {
     fit();
     return true;
   };
-  const pulse = target => {
-    const box = frame.getBoundingClientRect(), r = target.getBoundingClientRect();
-    tap.style.left = `${r.left - box.left + r.width / 2}px`;
-    tap.style.top = `${r.top - box.top + r.height / 2}px`;
-    tap.classList.remove('is-on');
+  // The centre of a control, from the frame's top left corner.
+  const spot = node => {
+    if (!node) return null;
+    const box = frame.getBoundingClientRect(), r = node.getBoundingClientRect();
+    return [r.left - box.left + r.width / 2, r.top - box.top + r.height / 2];
+  };
+  // Where the step's rings go. An {after} tap is measured on the board as it
+  // will be, drawn and taken down again before anything is painted.
+  const spotsFor = (step, attempt) => {
+    const taps = step.taps || [], control = controlFor(stage, step);
+    const before = taps.map(t => afterTap(t) ? null : stage.querySelector(t));
+    // Drawing the after board detaches these nodes, so measure them first.
+    const beforeSpots = before.map(spot), controlSpot = spot(control);
+    let after = [];
+    if (taps.some(afterTap)) {
+      const drawn = stage.innerHTML, style = [stage.style.width, stage.style.transform, frame.style.width, frame.style.height];
+      if (!show(attempt)) return null;
+      after = taps.map(t => afterTap(t) ? spot(stage.querySelector(t.after)) : null);
+      stage.innerHTML = drawn;
+      [stage.style.width, stage.style.transform, frame.style.width, frame.style.height] = style;
+    }
+    const spots = taps.map((t, i) => afterTap(t) ? after[i] : beforeSpots[i]);
+    if (control && !before.includes(control)) spots.push(controlSpot);
+    return spots.filter(Boolean);
+  };
+  const place = ([x, y]) => { tap.style.left = `${x}px`; tap.style.top = `${y}px`; };
+  const pulse = at => {
+    tap.classList.remove('is-on', 'is-drag');
+    place(at);
     void tap.offsetWidth;
     tap.classList.add('is-on');
   };
   const run = async () => {
     play.hidden = true;
-    tap.classList.remove('is-on');
+    delete slot.dataset.untapped;
+    delete slot.dataset.dragged;
+    tap.classList.remove('is-on', 'is-drag');
     resetView(demo);
     if (!show(frames[0].attempt)) return;
     await later(700);
     let shown = frames[0].attempt;
     for (const {attempt, step} of frames.slice(1)) {
       if (step.view && !show(shown, step.view)) return;
-      const targets = targetsFor(stage, step);
-      if (!targets.length) slot.dataset.untapped = Number(slot.dataset.untapped || 0) + 1;
-      for (const target of targets) { pulse(target); await later(600); }
+      // A ui step's view changes first, so its after spots are measured on it.
       if (Object.hasOwn(step, 'ui')) mechanicFor(demo).ui?.(demo, step.ui);
-      tap.classList.remove('is-on');
+      const spots = spotsFor(step, attempt);
+      if (!spots) return;
+      if (!spots.length) slot.dataset.untapped = Number(slot.dataset.untapped || 0) + 1;
+      if (step.drag && spots.length > 1) {
+        // A drag: pressed where it starts, then the ring slides to each next spot.
+        pulse(spots[0]);
+        await later(600);
+        for (const at of spots.slice(1)) { tap.classList.add('is-drag'); void tap.offsetWidth; place(at); await later(650); }
+        slot.dataset.dragged = Number(slot.dataset.dragged || 0) + 1;
+      } else for (const at of spots) { pulse(at); await later(600); }
+      tap.classList.remove('is-on', 'is-drag');
       if (!show(attempt)) return;
       shown = attempt;
       await later(1000);

@@ -697,14 +697,34 @@ export const internals = {validCancel, solvedCancel, hintCancel, validSchedule, 
 // its Holes group, so the module adds no satchel family.
 
 // Short move demonstrations use their own boards; no puzzle opening is played.
-holesMechanics["holes"].howTo = {
+// Schedule adds two wires and fills a tile outside the first loop; race
+// fills one tile inside each loop. Neither ends the puzzle.
+const DEMO_MESH = {"points": [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]], "cells": [[0, 1, 4], [0, 4, 3], [1, 2, 5], [1, 5, 4]]};
+holesMechanics["holes"].howTo = [{
+  when: {"kind": "schedule"},
+  puzzle: {"objective": ""},
+  parameters: {"kind": "schedule", "mesh": DEMO_MESH, "start": [[0, 1], [1, 2], [1, 4], [4, 3], [2, 5]], "target": 2},
+  steps: [
+    {"move": {"edge": 1}, "taps": ["[data-tg-edge=\"1\"]"]},
+    {"move": {"edge": 4}, "taps": ["[data-tg-edge=\"4\"]"]},
+    {"move": {"tile": 1}, "taps": ["[data-tg-cell=\"1\"]"]}
+  ]
+}, {
+  when: {"kind": "race"},
+  puzzle: {"objective": ""},
+  parameters: {"kind": "race", "mesh": DEMO_MESH, "yellow": [[0, 1], [1, 4], [4, 3], [3, 0]], "pink": [[1, 2], [2, 5], [5, 4], [4, 1]]},
+  steps: [
+    {"move": {"tile": 0}, "taps": ["[data-tg-cell=\"0\"]"]},
+    {"move": {"tile": 2}, "taps": ["[data-tg-cell=\"2\"]"]}
+  ]
+}, {
   puzzle: {"objective": ""},
   parameters: {"kind": "cancel", "mesh": {"points": [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]], "cells": [[0, 1, 4], [0, 4, 3], [1, 2, 5], [1, 5, 4]]}, "filled": [0, 1, 2, 3], "lit": [[0, 1], [1, 2], [2, 5], [5, 4], [4, 3], [3, 0]]},
   steps: [
     {"move": {"tile": 0}, "taps": ["[data-tg-cell=\"0\"]"]},
     {"move": {"tile": 2}, "taps": ["[data-tg-cell=\"2\"]"]}
   ]
-};
+}];
 
 export default {
   id: 'holes',

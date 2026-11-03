@@ -952,6 +952,28 @@ export const tetraMechanics = {
 
 // Short move demonstrations use their own boards; no puzzle opening is played.
 tetraMechanics["tetra"].howTo = [
+// A pair with one merge, or with letters to put on before turning, has its
+// own demo; Can't stays out of every demo (it is a claim).
+{
+  mode: "pair", variant: "merge", when: {"merge": true},
+  puzzle: {"objective": ""},
+  parameters: {"mode": "pair", "left": ["B", "C", "A", "D"], "right": ["D", "C", "B", "A"], "goal": "match", "cant": false, "merge": true, "hintMerge": ["B", "A"]},
+  steps: [
+    {"ui": {"lift": "B"}},
+    {"move": {"type": "merge", "drop": "B", "keep": "A"}},
+    {"move": {"type": "turn", "at": 0}}
+  ]
+},
+{
+  mode: "pair", variant: "place", when: q => Boolean(q.place),
+  puzzle: {"objective": ""},
+  parameters: {"mode": "pair", "left": ["B", "C", "A", "A"], "right": ["A", "C", "B", "A"], "goal": "match", "cant": false, "merge": false, "place": {"left": {"letters": ["D"], "on": "A"}, "right": {"letters": ["D"], "on": "A"}}},
+  steps: [
+    {"move": {"type": "place", "side": "left", "at": 2}},
+    {"move": {"type": "place", "side": "right", "at": 0}},
+    {"move": {"type": "turn", "at": 1}}
+  ]
+},
 {
   puzzle: {"objective": ""},
   parameters: {"mode": "pair", "left": ["B", "C", "A", "D"], "right": ["D", "C", "B", "A"], "goal": "match", "cant": false, "merge": false},

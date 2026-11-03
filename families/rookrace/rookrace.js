@@ -676,11 +676,19 @@ export const rookraceMechanics = {
     noUndo: () => true
   },
   everystart: {
-    howTo: {parameters: {"kind":"board","size":3},
-      steps: [
-        {"move":{"type":"mark","cell":1}},
-        {"move":{"type":"mark","cell":2}}
-      ]},
+    // Piles build a start pebble by pebble and keep it on the shelf, unjudged.
+    howTo: [
+      {when: {"kind": "piles"}, parameters: {"kind": "piles", "max": 2},
+        steps: [
+          {"move": {"type": "set", "pile": 1, "n": 2}},
+          {"move": {"type": "keep"}}
+        ]},
+      {parameters: {"kind":"board","size":3},
+        steps: [
+          {"move":{"type":"mark","cell":1}},
+          {"move":{"type":"mark","cell":2}}
+        ]}
+    ],
     fresh: everyFresh,
     valid: everyValid,
     solved: everySolved,

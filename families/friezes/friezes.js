@@ -889,14 +889,35 @@ export const friezeMechanics = {
 // The family seam entry (dist/families.js).
 
 // Short move demonstrations use their own boards; no puzzle opening is played.
-friezeMechanics["friezes"].howTo = {
+// A puzzle that lets the border change gets its own demo: free placing (pick
+// an F, tap a place) or moving one F to an empty place. The copy's slide is a
+// drag, so its ring follows the copy.
+friezeMechanics["friezes"].howTo = [{
+  mode: "puzzle", when: {"edit": "free"},
+  puzzle: {"objective": ""},
+  parameters: {"mode": "puzzle", "cell": [[null, null], [null, null]], "edit": "free", "tools": ["flip"], "goals": [{"type": "match", "move": "flip"}]},
+  steps: [
+    {"move": {"type": "put", "c": 0, "r": 0, "form": 0}, "taps": ["[data-fz-slot=\"0,0\"]"]},
+    {"ui": {"form": 2}},
+    {"move": {"type": "put", "c": 1, "r": 1, "form": 2}, "taps": ["[data-fz-slot=\"1,1\"]"]}
+  ]
+}, {
+  mode: "puzzle", when: {"edit": "move"},
+  puzzle: {"objective": ""},
+  parameters: {"mode": "puzzle", "cell": [[0, null], [null, 2]], "edit": "move", "tools": ["flip"], "goals": [{"type": "match", "move": "glide"}]},
+  steps: [
+    {"ui": {"held": [0, 0]}, "taps": ["[data-fz-slot=\"0,0\"]"]},
+    {"move": {"type": "shift", "from": [0, 0], "to": [1, 0]}, "taps": ["[data-fz-slot=\"1,0\"]"]},
+    {"move": {"type": "flip"}}
+  ]
+}, {
   puzzle: {"objective": ""},
   parameters: {"mode": "puzzle", "cell": [[0, null], [null, 2]], "edit": "none", "tools": ["flip"], "goals": [{"type": "match", "move": "slide"}, {"type": "match", "move": "flip"}]},
   steps: [
-    {"move": {"type": "slide", "by": 1}, "taps": [".fz-copy-frame"]},
+    {"move": {"type": "slide", "by": 1}, "taps": [".fz-copy-frame", {"after": ".fz-copy-frame"}], "drag": true},
     {"move": {"type": "flip"}}
   ]
-};
+}];
 
 export default {
   id: 'friezes',
