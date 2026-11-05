@@ -11,13 +11,13 @@ A proposal for James, November 2, 2026, written when the math-studio channel too
 
 ## Decisions
 
-- **November 4, 2026: keep the Lantern Road, trimmed.** James played the live app with Rose (5), and she preferred the Lantern Road version over the bare puzzles. That settles trim versus drop in favour of keeping the story, trimmed, rather than a minimalist puzzle app. Jay hasn't played it yet; if his reaction differs, revisit before cutting anything more. Still open from the play session: whether children watch the How to play demos or skip them.
+- **November 4, 2026: keep the Lantern Road, trimmed.** James played the live app with Rose (5), and she preferred the Lantern Road version over the bare puzzles. That settles trim versus drop in favour of keeping the story, trimmed, rather than a minimalist puzzle app. Jay is fine with bare puzzles; James will check whether he actively dislikes the road. The road stays unless he does. Still open from the play session: whether children watch the How to play demos or skip them.
 
 The pattern: breadth is far ahead of play. More families or weeks now add less than getting what exists in front of children and into a shape people can follow.
 
 ## The order I recommend
 
-1. **Ship and play.** *Done:* `main` deployed November 2; James played it with Rose on November 4, and the road stays, trimmed (see Decisions). Next: Jay's session, and noting whether children watch the demos or skip them. *James: Jay's play session.*
+1. **Ship and play.** *Done:* `main` deployed November 2; James played it with Rose on November 4, and the road stays, trimmed (see Decisions). Next: James checks whether Jay actively dislikes the road, and notes whether children watch the demos or skip them. *James: Jay's check.*
 
 2. **Room plans for the circle (aim 2), starting now.** A short room plan per activity: a launch of three minutes or less, pairs with jobs, timed rounds, something physical, a reset signal, and what early finishers do. Start with the permutation follow-ups (shape machines, cycle notation) and the next few weeks James picks; the Wednesday check-in uses them. *Claude.*
 
